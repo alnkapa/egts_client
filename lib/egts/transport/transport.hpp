@@ -3,54 +3,100 @@
 #define TRANSPORT_HPP
 
 #include "priority.hpp"
-#include "packet_type.hpp"
 #include <iostream>
+#include <cstdint>
+#include <cstddef>
+#include <optional>
 #include "../../endian/endian.hpp"
 
 namespace egts
 {
     namespace transport
     {
+        enum class PacketType : std::uint8_t
+        {
+            EGTS_PT_RESPONSE = 0,       // package confirmation
+            EGTS_PT_APPDATA = 1,        // new package
+            EGTS_PT_SIGNED_APPDATA = 2, // new package with encryption
+            low = 0b11,
+        };
+        std::string getPacketType(PacketType p)
+        {
+            switch (p)
+            {
+            case PacketType::EGTS_PT_RESPONSE:
+                return "EGTS_PT_RESPONSE";
+            case PacketType::EGTS_PT_APPDATA:
+                return "EGTS_PT_APPDATA";
+            case PacketType::EGTS_PT_SIGNED_APPDATA:
+                return "EGTS_PT_SIGNED_APPDATA";
+            }
+            return "???";
+        };
+        /**
+         * under construction
+         */
         struct Route
         {
-            unsigned short peer_address{};
-            unsigned short recipient_address{};
-            unsigned short time_to_live{};
+            std::uint16_t peer_address{};      // under construction
+            std::uint16_t recipient_address{}; // under construction
+            std::uint16_t time_to_live{};      // under construction
         };
         struct Flag
         {
-            Priority pr : 2;                   /** Encryption algorithm code for SFRD */
-            bool compressed : 1;               /** SFRD is compressed */
-            unsigned encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
-            bool route : 1;                    /** Packet routing flag */
-            unsigned prefix : 2;               /** Transport Layer header prefix */
+            Priority pr : 2;              /** Encryption algorithm code for SFRD */
+            bool compressed : 1;          /** SFRD is compressed */
+            int encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
+            bool route : 1;               /** Packet routing flag */
+            int prefix : 2;               /** Transport Layer header prefix */
         };
         /**
          * Composition of the Transport Layer Protocol Packet
          */
         struct Packet
         {
-            unsigned char protocol_version{0x01}; /** Protocol version */
-            unsigned char security_key_id{0};     /** ID of the key used for encryption */
+            std::uint8_t protocol_version{0x01}; /** Protocol version */
+            std::uint8_t security_key_id{0};     /** ID of the key used for encryption */
             union
             {
                 Flag flags;
-                unsigned char raw_flags{0};
+                std::uint8_t raw_flags{0};
             };
-            unsigned char header_length{0}; /** Length including the checksum */
-            unsigned char header_encoding{0};
-            unsigned short frame_data_length{0};
-            unsigned short packet_identifier{0}; /** Package number */
+            std::uint8_t header_length{0}; /** Length including the checksum */
+            std::uint8_t header_encoding{0};
+            std::uint16_t frame_data_length{0};
+            std::uint16_t packet_identifier{0}; /** Package number */
             PacketType packet_type;
-            Route route{};
-            unsigned short header_check_sum{};
+            std::optional<Route> route;
+            std::uint8_t header_check_sum{};
         };
-        /**
-         * Read Packet
-         */
-        std::istream &operator>>(std::istream &in, Packet &d) {            
-            return in;
-        };
+
+        template <typename Stream>
+        void read(Stream &stream, Packet &packet)
+        {
+            stream.read(reinterpret_cast<char *>(&packet.protocol_version), offsetof(Packet, header_encoding));
+            stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
+            packet.frame_data_length = endian::reverse(packet.frame_data_length);
+            stream.read(reinterpret_cast<char *>(&packet.packet_identifier), sizeof(packet.packet_identifier));
+            packet.packet_identifier = endian::reverse(packet.packet_identifier);
+            stream.read(reinterpret_cast<char *>(&packet.packet_type), sizeof(packet.packet_type));
+            if (packet.flags.route)
+            {
+                Route r{};
+                stream.read(reinterpret_cast<char *>(&r.peer_address), offsetof(Route, time_to_live));
+                r.peer_address = endian::reverse(r.peer_address);
+                r.recipient_address = endian::reverse(r.recipient_address);
+                r.time_to_live = endian::reverse(r.time_to_live);
+                packet.route = r;
+            }
+            stream.read(reinterpret_cast<char *>(&packet.header_check_sum), sizeof(packet.header_check_sum));
+        }
+
+        std::istream &operator>>(std::istream &is, Packet &packet)
+        {
+            read(std::cin, packet);
+            return is;
+        }
     }
 }
 #endif /* TRANSPORT_HPP */

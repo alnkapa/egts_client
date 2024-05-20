@@ -2,7 +2,7 @@
 #ifndef PRIORITY_HPP
 #define PRIORITY_HPP
 
-#include <string_view>
+#include <string>
 
 namespace egts
 {
@@ -18,7 +18,7 @@ namespace egts
             middle = 0b10,
             low = 0b11,
         };
-        std::string_view getPriority(Priority p)
+        std::string getPriority(Priority p)
         {
             switch (p)
             {
