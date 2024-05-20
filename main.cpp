@@ -8,11 +8,13 @@ int main(int argv, const char **args)
     // int dd;
     // std::cin >> dd;
     // std::cin >> tr;
+    // Добрый день. О каком промежутки времени идет речь?
 
     uint d = 0xafb1;
     uint d1 = 0xb1af;
     std::cout << std::hex << d << "\n";
-    endian::reverse(d);
+    auto d2 =  endian::reverse(d);
+    std::cout << std::hex << d2 << "\n";
     std::cout << std::hex << d << "\n";
     return EXIT_SUCCESS;
     for (unsigned char i = 0; i < 255; i++)
