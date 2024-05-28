@@ -2,47 +2,47 @@
 #ifndef RANDY_HPP
 #define RANDY_HPP
 
-#include <cstdint> //uint8_t
-#include <array>   //array
-#include <random>  // random_device,default_random_engine
-#include <iomanip> // std::setw, std::setfill
+#include <cstdint>
+#include <array>
+#include <string>
+#include <sstream>
+#include <iomanip>
+#include <iostream>
+#include <random> // random_device,default_random_engine
 
 namespace randy
 {
-    template <std::size_t N>
-    struct bytes
-    {
-        std::array<std::uint8_t, N> data{};
-    };
-    template <std::size_t N>
-    bytes<N> get_bytes()
-    {
-        bytes<N> ret{0};
-        return ret;
-    };
-    template <std::size_t N>
-    std::ostream &operator<<(std::ostream &out, const bytes<N> &buf)
-    {
-        out << "ok";
-        return out;
-    };
 
-    // Как сделать, что бы вот это собиралось?
     template <std::size_t N>
     using bytes_t = std::array<std::uint8_t, N>;
 
     template <std::size_t N>
-    bytes_t<N> get_bytesN()
+    constexpr bytes_t<N> random()
     {
-        bytes_t<N> ret{0};
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<std::uint8_t> distribution(0, UINT8_MAX);
+        bytes_t<N> ret;
+        for (int i = 0; i < N; i++)
+        {
+            ret[i] = distribution(gen);
+        }
         return ret;
-    };
+    }
     template <std::size_t N>
-    std::ostream &operator<<(std::ostream &out, const bytes_t<N> &buf)
+    std::string to_hex(const bytes_t<N> &buf)
     {
-        out << "ok1";
-        return out;
-    };
+        std::stringstream stream;
+        stream.flags(std::ios::hex | std::ios::uppercase);
+        for (auto &&b : buf)
+        {
+            if (b)
+            {
+                stream << std::setw(2) << std::setfill('0') << static_cast<int>(b);
+            }
+        };
+        return stream.str();
+    }
 }
 
 #endif /* RANDY_HPP */

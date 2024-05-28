@@ -5,12 +5,8 @@
 int main(int argv, const char **args)
 {
     egts::transport::Packet tr{};
-    auto buf = randy::get_bytes<10>();    
-    std::cout << buf << "\n";
-
-    auto buf1 = randy::get_bytesN<10>();    
-    std::cout << buf1 << "\n";
-
+    auto bb = randy::random<2>();
+    std::cout << randy::to_hex<2>(bb) << "\n";
     // std::cin >> tr;
     std::cout << "prefix:" << std::hex << tr.flags.prefix << "\n";
     std::cout << "route:" << std::hex << tr.flags.route << "\n";
