@@ -6,9 +6,13 @@
 
 namespace endian
 {
-
-    template <typename T>
-    T reverse(const T in)
+    enum class Order
+    {
+        little, //  host byte order
+        big     // network byte order
+    };
+    template <Order order = Order::little, typename T>
+    T covert_to(const T in)
     {
         static_assert(std::is_unsigned<T>::value, "T must be unsigned!");
         constexpr size_t size = sizeof(T);

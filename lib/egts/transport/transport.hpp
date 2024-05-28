@@ -76,17 +76,17 @@ namespace egts
         {
             stream.read(reinterpret_cast<char *>(&packet.protocol_version), offsetof(Packet, header_encoding));
             stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
-            packet.frame_data_length = endian::reverse(packet.frame_data_length);
+            //packet.frame_data_length = endian::reverse(packet.frame_data_length);
             stream.read(reinterpret_cast<char *>(&packet.packet_identifier), sizeof(packet.packet_identifier));
-            packet.packet_identifier = endian::reverse(packet.packet_identifier);
+            //packet.packet_identifier = endian::reverse(packet.packet_identifier);
             stream.read(reinterpret_cast<char *>(&packet.packet_type), sizeof(packet.packet_type));
             if (packet.flags.route)
             {
                 Route r{};
                 stream.read(reinterpret_cast<char *>(&r.peer_address), offsetof(Route, time_to_live));
-                r.peer_address = endian::reverse(r.peer_address);
-                r.recipient_address = endian::reverse(r.recipient_address);
-                r.time_to_live = endian::reverse(r.time_to_live);
+                //r.peer_address = endian::reverse(r.peer_address);
+                //r.recipient_address = endian::reverse(r.recipient_address);
+                //r.time_to_live = endian::reverse(r.time_to_live);
                 packet.route = r;
             }
             stream.read(reinterpret_cast<char *>(&packet.header_check_sum), sizeof(packet.header_check_sum));

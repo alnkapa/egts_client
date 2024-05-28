@@ -1,12 +1,13 @@
 #include "gtest/gtest.h"
 #include <iostream>
 #include "lib/endian/endian.hpp"
+#include <netinet/in.h>
 
-TEST(reverse, EndianTest) {
+TEST(reverse, EndianTest)
+{
     std::uint32_t d = 0xafb1;
-    std::uint32_t d1 = 0xb1af;
-    std::cout << std::hex << d <<"\n";
-    endian::reverse(d);
-    std::cout << std::hex << d <<"\n";
-    EXPECT_EQ(d,d1);
+    // convert to big-endian
+    auto test_d = htonl(d);
+    auto get_d = endian::covert_to<endian::Order::big>(d);
+    EXPECT_EQ(test_d, get_d);
 };
