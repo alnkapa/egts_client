@@ -12,7 +12,12 @@ set_target_properties(
     CXX_STANDARD_REQUIRED ON
 )
 
+find_package(Boost REQUIRED COMPONENTS context)
+
+target_link_libraries(egts_client PRIVATE Boost::context)
+
 add_subdirectory(lib)
+
 
 
 find_package(GTest REQUIRED)

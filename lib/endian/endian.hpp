@@ -6,14 +6,19 @@
 
 namespace endian
 {
+    class Bytes {
+
+    };
+    
     template <typename T>
-    T reverse(T &in)
+    T reverse(const T &in)
     {
+        // static_assert(std::is_trivial_v<T> == false, "f T isn`t a trivial type");
         const size_t size = sizeof(T);
         using b_array = std::uint8_t[size];
         union
         {
-            T data{};
+            T data;
             std::uint8_t byte[size];
         } source, dest;
         source.data = in;

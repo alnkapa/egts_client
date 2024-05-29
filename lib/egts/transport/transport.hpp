@@ -74,28 +74,40 @@ namespace egts
         template <typename Stream>
         void read(Stream &stream, Packet &packet)
         {
+            std::cout << "len:" << offsetof(Packet, header_encoding)  << "\n";
             stream.read(reinterpret_cast<char *>(&packet.protocol_version), offsetof(Packet, header_encoding));
-            stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
-            //packet.frame_data_length = endian::reverse(packet.frame_data_length);
-            stream.read(reinterpret_cast<char *>(&packet.packet_identifier), sizeof(packet.packet_identifier));
-            //packet.packet_identifier = endian::reverse(packet.packet_identifier);
-            stream.read(reinterpret_cast<char *>(&packet.packet_type), sizeof(packet.packet_type));
-            if (packet.flags.route)
-            {
-                Route r{};
-                stream.read(reinterpret_cast<char *>(&r.peer_address), offsetof(Route, time_to_live));
-                //r.peer_address = endian::reverse(r.peer_address);
-                //r.recipient_address = endian::reverse(r.recipient_address);
-                //r.time_to_live = endian::reverse(r.time_to_live);
-                packet.route = r;
-            }
-            stream.read(reinterpret_cast<char *>(&packet.header_check_sum), sizeof(packet.header_check_sum));
+            // stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
+            // // packet.frame_data_length = endian::reverse(packet.frame_data_length);
+            // stream.read(reinterpret_cast<char *>(&packet.packet_identifier), sizeof(packet.packet_identifier));
+            // // packet.packet_identifier = endian::reverse(packet.packet_identifier);
+            // stream.read(reinterpret_cast<char *>(&packet.packet_type), sizeof(packet.packet_type));
+            // if (packet.flags.route)
+            // {
+            //     Route r{};
+            //     stream.read(reinterpret_cast<char *>(&r.peer_address), offsetof(Route, time_to_live));
+            //     // r.peer_address = endian::reverse(r.peer_address);
+            //     // r.recipient_address = endian::reverse(r.recipient_address);
+            //     // r.time_to_live = endian::reverse(r.time_to_live);
+            //     packet.route = r;
+            // }
+            // stream.read(reinterpret_cast<char *>(&packet.header_check_sum), sizeof(packet.header_check_sum));
         }
 
         std::istream &operator>>(std::istream &is, Packet &packet)
         {
-            read(std::cin, packet);
+            read(is, packet);
             return is;
+        }
+        std::ostream &operator<<(std::ostream &out, const Packet &packet)
+        {
+            out << "prefix:" << std::hex << packet.flags.prefix << "\n";
+            out << "route:" << std::hex << packet.flags.route << "\n";
+            out << "encryption_algorithm:" << std::hex << packet.flags.encryption_algorithm << "\n";
+            out << "compressed:" << std::hex << packet.flags.compressed << "\n";
+            egts::transport::getPriority(packet.flags.pr);
+            out << "Priority:" << egts::transport::getPriority(packet.flags.pr) << "\n";
+            out << "\n";
+            return out;
         }
     }
 }
