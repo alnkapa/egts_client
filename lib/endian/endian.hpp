@@ -6,16 +6,11 @@
 
 namespace endian
 {
-    enum class Order
+    template <typename T>
+    T reverse(T &in)
     {
-        little, //  host byte order
-        big     // network byte order
-    };
-    template <Order order = Order::little, typename T>
-    T covert_to(const T in)
-    {
-        static_assert(std::is_unsigned<T>::value, "T must be unsigned!");
-        constexpr size_t size = sizeof(T);
+        const size_t size = sizeof(T);
+        using b_array = std::uint8_t[size];
         union
         {
             T data{};
@@ -29,5 +24,4 @@ namespace endian
         return dest.data;
     };
 }
-
 #endif /* ENDIAN_HPP */
