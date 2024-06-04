@@ -5,17 +5,11 @@
 
 int main(int argv, const char **args)
 {
-    auto bb = randy::Array<std::uint8_t,2>{};
+    auto bb = randy::Array<std::uint8_t, 2>{};
     for (auto &v : bb)
     {
         std::cout << std::hex << static_cast<int>(v);
     }
-    // std::cout << "\n ";
-    // std::fill(bb.begin(), bb.end(), 3);
-    // for (auto &v : bb)
-    // {
-    //     std::cout << static_cast<int>(v);
-    // }
     std::cout << "\n";
 
     egts::transport::Packet tr{};

@@ -2,17 +2,18 @@
 #ifndef RANDY_HPP
 #define RANDY_HPP
 
-#include <algorithm>
 #include <array>
+#include <concepts>
 #include <random> // random_device,default_random_engine
 
 namespace randy
 {
     template <typename T, std::size_t N>
+    requires (std::integral<T>)
     class Array : public std::array<T, N>
     {
     public:
-        Array() : std::array<T, N>()
+        void generate()
         {
             std::random_device rd;
             std::mt19937 gen(rd());
@@ -21,6 +22,10 @@ namespace randy
             {
                 (*this)[i] = distribution(gen);
             }
+        };
+        Array() : std::array<T, N>()
+        {
+            generate();
         };
     };
 }
