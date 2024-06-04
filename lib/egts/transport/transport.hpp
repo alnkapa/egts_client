@@ -74,7 +74,7 @@ namespace egts
         template <typename Stream>
         void read(Stream &stream, Packet &packet)
         {
-            std::cout << "len:" << offsetof(Packet, header_encoding)  << "\n";
+            std::cout << "len:" << offsetof(Packet, header_encoding) << "\n";
             stream.read(reinterpret_cast<char *>(&packet.protocol_version), offsetof(Packet, header_encoding));
             // stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
             // // packet.frame_data_length = endian::reverse(packet.frame_data_length);

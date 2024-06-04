@@ -13,6 +13,9 @@ int main(int argv, const char **args)
     std::cout << "\n";
 
     egts::transport::Packet tr{};
+    std::cin >> tr;
+
+    std::cout << tr << "\n";
 
     // вариант для чисел с плавающей точкой
 
