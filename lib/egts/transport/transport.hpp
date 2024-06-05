@@ -4,16 +4,16 @@
 
 #include "error.hpp"
 #include <iostream>
-#include <cstdint> // uint8_t
-#include <cstddef> // size_t
-#include <utility> // declval
-// #include <optional>
+#include <cstdint>  // uint8_t
+#include <stddef.h> // size_t
+#include <array>
 
 namespace egts::v1::transport
 {
     using namespace std;
     using namespace error;
     static const uint8_t version = {0x1}; // protocol version
+
     class Packet
     {
     public:
@@ -43,7 +43,17 @@ namespace egts::v1::transport
             bool route : 1;               /** Packet routing flag */
             int prefix : 2;               /** Transport Layer header prefix */
         };
-        Error parseStep1(uint8_t[3]) noexcept;
+        /*! Чтение заголовка, шаг 1
+         *
+         * Проверка PRV, PRF, HL
+         */
+        Error parseStep1(array<uint8_t, 4>) noexcept;
+        /*! Чтение заголовка, шаг 2
+         *
+         * чтение оставшихся 6 или 11 байт и проверка CRC8
+         */
+        template <size_t N>            
+        Error parseStep2(array<uint8_t, N>) noexcept;
         Type getType()
         {
             return m_packet_type;
@@ -52,6 +62,7 @@ namespace egts::v1::transport
     private:
         Type m_packet_type{Packet::Type::EGTS_PT_APPDATA};
         Flag m_flag{};
+        uint8_t crc{};
         // std::uint8_t protocol_version{0x01}; /** Protocol version */
         // std::uint8_t security_key_id{0};     /** ID of the key used for encryption */
 

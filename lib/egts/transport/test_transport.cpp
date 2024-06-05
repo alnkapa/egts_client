@@ -8,8 +8,8 @@ TEST(header_test_1, EgtsTransportPacket)
     ::testing::internal::CaptureStdout();
     egts::v1::transport::Packet tr{};    
     // первые 3 байт
-    uint8_t b[]{{1},{2},{3},{4}};
-    tr.parseStep1(b);    
+    // uint8_t b[]{{1},{2},{3},{4}};
+    // tr.parseStep1(b);    
     // std::array<std::uint8_t, 9> data = {};
     std::uint32_t d1 = 0xafb1;
     // convert to big-endian

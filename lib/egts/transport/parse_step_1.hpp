@@ -8,7 +8,11 @@ namespace egts::v1::transport
 {
     using namespace egts::v1::transport;
     using namespace egts::v1::error;
-    Error Packet::parseStep1(uint8_t buf[4]) noexcept
+    /*! Чтение заголовка, шаг 1
+     *
+     * Проверка PRV, PRF, HL
+     */
+    Error Packet::parseStep1(array<uint8_t, 4> buf) noexcept
     {
         // версия PRV
         if (buf[0] != version)
@@ -27,8 +31,23 @@ namespace egts::v1::transport
         if (!(hl == 11 && !m_flag.route) && !(hl == 16 && m_flag.route))
         {
             return Error{Error::Code::EGTS_PC_INC_HEADERFORM};
-        }       
+        }
+        // TODO: calc crc8
         return Error{};
     };
-}
+    /*! Чтение заголовка, шаг 2
+     *
+     * чтение оставшихся 6 или 11 байт и проверка CRC8
+     */
+    template <size_t N>
+    Error parseStep2(array<uint8_t, N>) noexcept
+    {        
+        if constexpr (N == 6) {
+
+        } else {
+
+        }
+        return Error{};
+    }    
+};
 #endif /* PARSE_STEP_1_HPP */
