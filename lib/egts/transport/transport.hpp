@@ -23,8 +23,27 @@ namespace egts::v1::transport
             EGTS_PT_RESPONSE = 0,       // package confirmation
             EGTS_PT_APPDATA = 1,        // new package
             EGTS_PT_SIGNED_APPDATA = 2, // new package with encryption
-        };        
-        Error parseStep1(uint8_t[3]) noexcept;        
+        };
+        /**
+         * routing priority
+         */
+        enum class Priority : uint8_t
+        {
+            highest = 0b00,
+            high = 0b01,
+            middle = 0b10,
+            low = 0b11,
+        };
+        // packet flag
+        struct Flag
+        {
+            Priority pr : 2;              /** routing priority */
+            bool compressed : 1;          /** SFRD is compressed */
+            int encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
+            bool route : 1;               /** Packet routing flag */
+            int prefix : 2;               /** Transport Layer header prefix */
+        };
+        Error parseStep1(uint8_t[3]) noexcept;
         Type getType()
         {
             return m_packet_type;
@@ -32,13 +51,10 @@ namespace egts::v1::transport
 
     private:
         Type m_packet_type{Packet::Type::EGTS_PT_APPDATA};
+        Flag m_flag{};
         // std::uint8_t protocol_version{0x01}; /** Protocol version */
         // std::uint8_t security_key_id{0};     /** ID of the key used for encryption */
-        //  union
-        //  {
-        //      Flag flags;
-        //      std::uint8_t raw_flags{0};
-        //  };
+
         //  std::uint8_t header_length{0}; /** Length including the checksum */
         //  std::uint8_t header_encoding{0};
         //  std::uint16_t frame_data_length{0};
@@ -118,3 +134,36 @@ namespace egts::v1::transport
     // };
 }
 #endif /* TRANSPORT_HPP */
+
+// namespace egts
+// {
+//     namespace transport
+//     {
+//         /**
+//          * routing priority
+//          */
+//         enum class Priority : unsigned char
+//         {
+//             highest = 0b00,
+//             high = 0b01,
+//             middle = 0b10,
+//             low = 0b11,
+//         };
+//         std::string getPriority(Priority p)
+//         {
+//             switch (p)
+//             {
+//             case Priority::highest:
+//                 return "highest";
+//             case Priority::high:
+//                 return "high";
+//             case Priority::middle:
+//                 return "middle";
+//             case Priority::low:
+//                 return "low";
+//             }
+//             return "???";
+//         };
+//     }
+// }
+// #endif /* PRIORITY_HPP */

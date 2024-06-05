@@ -1,7 +1,7 @@
 #pragma once
 #ifndef ERROR_HPP
 #define ERROR_HPP
-#include  <cstdint> // uint8_t
+#include <cstdint> // uint8_t
 
 namespace egts::v1::error
 {
@@ -51,6 +51,11 @@ namespace egts::v1::error
             EGTS_PC_MODULE_MEM_FLT = 163,  // сбой в работе внутренней памяти модуля
             EGTS_PC_TEST_FAILED = 164,     // тест не пройден
         };
+        Error() : m_code(Error::Code::EGTS_PC_OK){};
+        Error(Error::Code code) : m_code(code){};
+        ~Error(){};
+    private:
+        Error::Code m_code{Error::Code::EGTS_PC_OK};
     };
 };
 #endif /* ERROR_HPP */

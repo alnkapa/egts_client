@@ -7,9 +7,9 @@ TEST(header_test_1, EgtsTransportPacket)
 {
     ::testing::internal::CaptureStdout();
     egts::v1::transport::Packet tr{};    
-    uint8_t b[3] = {{1},{2},{3}};
-    tr.parseStep1(b);
-    // первые 9 байт
+    // первые 3 байт
+    uint8_t b[]{{1},{2},{3},{4}};
+    tr.parseStep1(b);    
     // std::array<std::uint8_t, 9> data = {};
     std::uint32_t d1 = 0xafb1;
     // convert to big-endian
