@@ -42,11 +42,7 @@ namespace egts::v1::transport
     template <size_t N>
     Error parseStep2(array<uint8_t, N>) noexcept
     {        
-        if constexpr (N == 6) {
-
-        } else {
-
-        }
+        // TODO: calc crc8        
         return Error{};
     }    
 };

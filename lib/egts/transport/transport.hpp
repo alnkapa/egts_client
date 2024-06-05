@@ -43,12 +43,12 @@ namespace egts::v1::transport
             bool route : 1;               /** Packet routing flag */
             int prefix : 2;               /** Transport Layer header prefix */
         };
-        /*! Чтение заголовка, шаг 1
+        /*! шаг 1
          *
          * Проверка PRV, PRF, HL
          */
         Error parseStep1(array<uint8_t, 4>) noexcept;
-        /*! Чтение заголовка, шаг 2
+        /*! шаг 2
          *
          * чтение оставшихся 6 или 11 байт и проверка CRC8
          */
