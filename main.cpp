@@ -1,29 +1,69 @@
 #include <iostream>
-#include <cstddef> // size_t
-#include "lib/randy/randy.hpp"
-#include "lib/endian/endian.hpp"
-#include "lib/egts/transport/transport.hpp"
+#include <boost/asio.hpp>
+#include "lib/state/state.h"
 
+using boost::asio::ip::tcp;
 
-
-int main(int argv, const char **args)
+int main(int argc, char *argv[])
 {
-    auto bb = randy::Array<std::uint8_t, 2>{};
-    for (auto &v : bb)
+    if (argc != 3)
     {
-        std::cout << std::hex << static_cast<int>(v);
+        std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
+        return 1;
     }
-    std::cout << "\n";
 
-    // egts::transport::Packet tr{};
-    // std::cin >> tr;
+    boost::asio::io_context io_context;
+    tcp::socket s(io_context);
+    std::cout << "Connected to server" << std::endl;
+    
 
-    // std::cout << tr << "\n";
+    try
+    {
+        tcp::resolver resolver(io_context);
 
-    // вариант для чисел с плавающей точкой
+        boost::asio::connect(s, resolver.resolve(argv[1], argv[2]));
 
-    return EXIT_SUCCESS;
+        std::string message = "Hello, server!";
+        boost::asio::write(s, boost::asio::buffer(message));
+
+        size_t reply_length = boost::asio::read(s, boost::asio::buffer(message));
+
+        std::cout << "Reply is: ";
+        std::cout << message;
+        std::cout << "\n";
+    }
+    catch (std::exception &e)
+    {
+        std::cerr << "Exception: " << e.what() << std::endl;
+    }
+
+    return 0;
 }
+
+// #include <iostream>
+// #include <cstddef> // size_t
+// #include "lib/randy/randy.hpp"
+// #include "lib/endian/endian.hpp"
+// #include "lib/egts/transport/transport.hpp"
+
+// int main(int argv, const char **args)
+// {
+//     auto bb = randy::Array<std::uint8_t, 2>{};
+//     for (auto &v : bb)
+//     {
+//         std::cout << std::hex << static_cast<int>(v);
+//     }
+//     std::cout << "\n";
+
+//     // egts::transport::Packet tr{};
+//     // std::cin >> tr;
+
+//     // std::cout << tr << "\n";
+
+//     // вариант для чисел с плавающей точкой
+
+//     return EXIT_SUCCESS;
+// }
 // std::string getPacketType(Type p)
 //     // {
 //     //     switch (p)

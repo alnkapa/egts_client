@@ -10,15 +10,16 @@ add_executable(egts_client main.cpp)
 
 set_target_properties(
     egts_client PROPERTIES
-    CXX_STANDARD 20
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
-find_package(Boost REQUIRED COMPONENTS context)
+find_package(Boost REQUIRED COMPONENTS system)
 
-target_link_libraries(egts_client PRIVATE Boost::context)
+target_link_libraries(egts_client ${Boost_LIBRARIES})
 
-add_subdirectory(lib)
+
+# add_subdirectory(lib)
 
 
 # if(BUILD_TESTING)
