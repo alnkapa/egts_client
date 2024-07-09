@@ -1,8 +1,8 @@
 #include <iostream>
-#include <boost/asio.hpp>
-#include "lib/state/state.h"
+//#include <boost/asio.hpp>
+#include "lib/egts/transport/all.hpp"
 
-using boost::asio::ip::tcp;
+
 
 int main(int argc, char *argv[])
 {
@@ -11,31 +11,36 @@ int main(int argc, char *argv[])
         std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
         return 1;
     }
+    using namespace egts::v1::transport;
+    Packet p{};
 
-    boost::asio::io_context io_context;
-    tcp::socket s(io_context);
-    std::cout << "Connected to server" << std::endl;
-    
+    p.pack();
 
-    try
-    {
-        tcp::resolver resolver(io_context);
 
-        boost::asio::connect(s, resolver.resolve(argv[1], argv[2]));
 
-        std::string message = "Hello, server!";
-        boost::asio::write(s, boost::asio::buffer(message));
+    // boost::asio::io_context io_context;
+    // using boost::asio::ip::tcp;
+    // tcp::socket s(io_context);
+    // try
+    // {
+    //     std::cout << "Connected to server" << std::endl;
+    //     tcp::resolver resolver(io_context);
 
-        size_t reply_length = boost::asio::read(s, boost::asio::buffer(message));
+    //     boost::asio::connect(s, resolver.resolve(argv[1], argv[2]));
 
-        std::cout << "Reply is: ";
-        std::cout << message;
-        std::cout << "\n";
-    }
-    catch (std::exception &e)
-    {
-        std::cerr << "Exception: " << e.what() << std::endl;
-    }
+    //     std::string message = "Hello, server!";
+    //     boost::asio::write(s, boost::asio::buffer(message));
+
+    //     size_t reply_length = boost::asio::read(s, boost::asio::buffer(message));
+
+    //     std::cout << "Reply is: ";
+    //     std::cout << message;
+    //     std::cout << "\n";
+    // }
+    // catch (std::exception &e)
+    // {
+    //     std::cerr << "Exception: " << e.what() << std::endl;
+    // }
 
     return 0;
 }

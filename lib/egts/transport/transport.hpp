@@ -1,78 +1,79 @@
 #pragma once
 #ifndef TRANSPORT_HPP
 #define TRANSPORT_HPP
-
 #include "error.hpp"
-#include <iostream>
-#include <cstdint>  // uint8_t
-#include <stddef.h> // size_t
-#include <array>
+#include "../egts.h" // uint8_t
+#include <cstdint>   // uint8_t
+#include <stddef.h>  // size_t
+#include <variant>
+#include <memory>
 
 namespace egts::v1::transport
 {
     using namespace std;
     using namespace error;
-    static const uint8_t version = {0x1}; // protocol version
+    static const uint8_t protocol_version = {0x1}; // protocol version
 
-    class Packet
+    // packet type
+    enum class Type : uint8_t
     {
-    public:
-        // packet type
-        enum class Type : uint8_t
-        {
-            EGTS_PT_RESPONSE = 0,       // package confirmation
-            EGTS_PT_APPDATA = 1,        // new package
-            EGTS_PT_SIGNED_APPDATA = 2, // new package with encryption
-        };
-        /**
-         * routing priority
-         */
-        enum class Priority : uint8_t
-        {
-            highest = 0b00,
-            high = 0b01,
-            middle = 0b10,
-            low = 0b11,
-        };
-        // packet flag
-        struct Flag
-        {
-            Priority pr : 2;              /** routing priority */
-            bool compressed : 1;          /** SFRD is compressed */
-            int encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
-            bool route : 1;               /** Packet routing flag */
-            int prefix : 2;               /** Transport Layer header prefix */
-        };
-        /*! шаг 1
-         *
-         * Проверка PRV, PRF, HL
-         */
-        Error parseStep1(array<uint8_t, 4>) noexcept;
-        /*! шаг 2
-         *
-         * чтение оставшихся 6 или 11 байт и проверка CRC8
-         */
-        template <size_t N>            
-        Error parseStep2(array<uint8_t, N>) noexcept;
-        Type getType()
-        {
-            return m_packet_type;
-        };
+        EGTS_PT_RESPONSE = 0,       // package confirmation
+        EGTS_PT_APPDATA = 1,        // new package
+        EGTS_PT_SIGNED_APPDATA = 2, // new package with encryption
+    };
 
+    // routing priority
+    enum class Priority : uint8_t
+    {
+        highest = 0b00,
+        high = 0b01,
+        middle = 0b10,
+        low = 0b11,
+    };
+
+    // under construction
+    struct Route
+    {
+        std::uint16_t peer_address{};      // under construction
+        std::uint16_t recipient_address{}; // under construction
+        std::uint16_t time_to_live{};      // under construction
+    };
+
+    // packet flag
+    struct Flag
+    {
+        Priority pr : 2;              /** routing priority */
+        bool compressed : 1;          /** SFRD is compressed */
+        int encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
+        bool route : 1;               /** Packet routing flag */
+        int prefix : 2;               /** Transport Layer header prefix */
+    };
+
+    class Packet : public egts::v1::Payload
+    {
     private:
-        Type m_packet_type{Packet::Type::EGTS_PT_APPDATA};
-        Flag m_flag{};
-        uint8_t crc{};
-        // std::uint8_t protocol_version{0x01}; /** Protocol version */
-        // std::uint8_t security_key_id{0};     /** ID of the key used for encryption */
-
-        //  std::uint8_t header_length{0}; /** Length including the checksum */
-        //  std::uint8_t header_encoding{0};
-        //  std::uint16_t frame_data_length{0};
-        //  std::uint16_t packet_identifier{0}; /** Package number */
+        weak_ptr<egts::v1::Payload> mp_data;
+        Type m_packet_type{Type::EGTS_PT_APPDATA};
+        uint16_t m_packet_identifier{0}; /** Package number */
+        // uint8_t security_key_id{0}; /** ID of the key used for encryption */
+        // std::variant<Flag, uint8_t> flag;
+        // std::uint8_t header_length{0}; /** Length including the checksum */
+        // std::uint8_t header_encoding{0};
 
         // std::optional<Route> route;
         // std::uint8_t header_check_sum{};
+        //  Flag m_flag{};
+        //  uint8_t crc{};
+    public:
+        Packet(uint16_t identifier = 0, Type type = Type::EGTS_PT_APPDATA) : m_packet_identifier(identifier), m_packet_type(type){};
+        void set_data(weak_ptr<egts::v1::Payload> data)
+        {
+            mp_data = move(data);
+        };
+        std::vector<uint8_t> pack()
+        {             
+            return std::vector<uint8_t>{};
+        };
     };
 
     // template <typename Stream>
@@ -126,15 +127,7 @@ namespace egts::v1::transport
     //     }
     //     return "???";
     // };
-    // /**
-    //  * under construction
-    //  */
-    // struct Route
-    // {
-    //     std::uint16_t peer_address{};      // under construction
-    //     std::uint16_t recipient_address{}; // under construction
-    //     std::uint16_t time_to_live{};      // under construction
-    // };
+
     // struct Flag
     // {
     //     Priority pr : 2;              /** Encryption algorithm code for SFRD */
@@ -177,4 +170,3 @@ namespace egts::v1::transport
 //         };
 //     }
 // }
-// #endif /* PRIORITY_HPP */
