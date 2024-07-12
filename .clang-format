@@ -1,0 +1,17 @@
+BasedOnStyle: Google
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+NamespaceIndentation: Inner
+Language: Cpp
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: Empty
+EmptyLineAfterAccessModifier: Always
+EmptyLineBeforeAccessModifier: LogicalBlock
+IncludeBlocks: Merge
+PackConstructorInitializers: CurrentLine
+PointerAlignment: Right
+ReferenceAlignment: Right
+QualifierAlignment: Left

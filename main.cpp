@@ -1,13 +1,9 @@
 #include <iostream>
-//#include <boost/asio.hpp>
+// #include <boost/asio.hpp>
 #include "lib/egts/transport/all.hpp"
 
-
-
-int main(int argc, char *argv[])
-{
-    if (argc != 3)
-    {
+int main(int argc, char *argv[]) {
+    if (argc != 3) {
         std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
         return 1;
     }
@@ -15,8 +11,6 @@ int main(int argc, char *argv[])
     Packet p{};
 
     p.pack();
-
-
 
     // boost::asio::io_context io_context;
     // using boost::asio::ip::tcp;
