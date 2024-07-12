@@ -4,14 +4,23 @@
 #include <stddef.h>  // size_t
 #include <cstdint>   // uint8_t
 #include <memory>
-#include <variant>
 #include "../egts.h"  // uint8_t
 #include "error.hpp"
 
 namespace egts::v1::transport {
 using namespace std;
 using namespace error;
-static const uint8_t protocol_version = {0x1};  // protocol version
+// protocol version
+constexpr uint8_t protocol_version = {0x1};
+// the parameter SKID defines the identifier of the key used for encryption
+constexpr uint8_t security_key_id = {0x0};
+// transport Layer header prefix
+constexpr uint8_t prefix = {(0x0 << 6) & 0xC0};
+// the length of the Transport Layer header in bytes, including the checksum byte
+constexpr uint8_t header_length = {11};
+// determines the encoding method applied to the part of the Transport Layer header
+// following this parameter
+constexpr uint8_t header_encoding = {0};
 
 // packet type
 enum class Type : uint8_t {
@@ -20,44 +29,18 @@ enum class Type : uint8_t {
     EGTS_PT_SIGNED_APPDATA = 2,  // new package with encryption
 };
 
-// routing priority
-enum class Priority : uint8_t {
-    highest = 0b00,
-    high = 0b01,
-    middle = 0b10,
-    low = 0b11,
-};
-
-// under construction
-struct Route {
-    std::uint16_t peer_address{};       // under construction
-    std::uint16_t recipient_address{};  // under construction
-    std::uint16_t time_to_live{};       // under construction
-};
-
-// packet flag
-struct Flag {
-    Priority pr : 2;              /** routing priority */
-    bool compressed : 1;          /** SFRD is compressed */
-    int encryption_algorithm : 2; /** Encryption algorithm code for SFRD */
-    bool route : 1;               /** Packet routing flag */
-    int prefix : 2;               /** Transport Layer header prefix */
-};
-
 class Packet : public egts::v1::Payload {
    private:
 
+    // generates values for fields PRF RTE ENA CMP PR
+    uint8_t flag() {
+        return prefix;
+    };
     weak_ptr<egts::v1::Payload> mp_data;
     Type m_packet_type{Type::EGTS_PT_APPDATA};
     uint16_t m_packet_identifier{0}; /** Package number */
-                                     // uint8_t security_key_id{0}; /** ID of the key used for encryption */
-                                     // std::variant<Flag, uint8_t> flag;
-                                     // std::uint8_t header_length{0}; /** Length including the checksum */
-                                     // std::uint8_t header_encoding{0};
-
-    // std::optional<Route> route;
+    uint8_t m_flag;
     // std::uint8_t header_check_sum{};
-    //  Flag m_flag{};
     //  uint8_t crc{};
    public:
 
@@ -67,11 +50,26 @@ class Packet : public egts::v1::Payload {
     void set_data(weak_ptr<egts::v1::Payload> data) {
         mp_data = move(data);
     };
-    void data() {};
-    std::vector<uint8_t> pack() {
-        return std::vector<uint8_t>{};
+    egts::v1::Buffer pack() {
+        egts::v1::Buffer rez{
+            protocol_version,
+            security_key_id,
+            flag(),
+            header_length,
+            header_encoding,
+        };
+        return rez;
     };
 };
+/*
+Прочитать 1 байт
+Прочитать 2 байт
+---------------
+Прочитать 4 байт
+
+ИТОГО прочитать 4 байта.
+
+*/
 
 // template <typename Stream>
 // void read(Stream &stream, Packet &packet)

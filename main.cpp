@@ -1,16 +1,27 @@
 #include <iostream>
 // #include <boost/asio.hpp>
-#include "lib/egts/transport/all.hpp"
+// #include "lib/egts/transport/all.hpp"
+
+#include "lib/egts/egts.h"
 
 int main(int argc, char *argv[]) {
-    if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
-        return 1;
-    }
-    using namespace egts::v1::transport;
-    Packet p{};
+    egts::v1::Buffer buffer1{
+        uint8_t(1),
+        uint8_t(2),
+        uint16_t(256),
+        uint32_t(2147483648),
+        uint64_t(1<<6),
+    };
+    buffer1.printBuffer();
 
-    p.pack();
+    // if (argc != 3) {
+    //     std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
+    //     return 1;
+    // }
+    // using namespace egts::v1::transport;
+    // Packet p{};
+
+    // p.pack();
 
     // boost::asio::io_context io_context;
     // using boost::asio::ip::tcp;
@@ -25,7 +36,8 @@ int main(int argc, char *argv[]) {
     //     std::string message = "Hello, server!";
     //     boost::asio::write(s, boost::asio::buffer(message));
 
-    //     size_t reply_length = boost::asio::read(s, boost::asio::buffer(message));
+    //     size_t reply_length = boost::asio::read(s,
+    //     boost::asio::buffer(message));
 
     //     std::cout << "Reply is: ";
     //     std::cout << message;
