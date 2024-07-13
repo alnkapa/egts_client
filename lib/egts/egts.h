@@ -19,7 +19,7 @@ class Buffer {
     vector<uint8_t> m_buf;
 
     template <typename U>
-    void push_back(U val) {
+    requires(is_unsigned_v<U>) void push_back(U val) {
         const auto size = sizeof(U);
         if (size > 1) {  // write in reversed order
             m_buf.resize(m_buf.size() + size);
@@ -49,6 +49,7 @@ class Buffer {
         std::cout << std::endl;
     }
 };
+
 class Payload {
     virtual Buffer pack() = 0;
     virtual void set_data(weak_ptr<Payload>) = 0;

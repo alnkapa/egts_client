@@ -16,10 +16,11 @@ constexpr uint8_t protocol_version = {0x1};
 constexpr uint8_t security_key_id = {0x0};
 // transport Layer header prefix
 constexpr uint8_t prefix = {(0x0 << 6) & 0xC0};
-// the length of the Transport Layer header in bytes, including the checksum byte
+// the length of the Transport Layer header in bytes, including the checksum
+// byte
 constexpr uint8_t header_length = {11};
-// determines the encoding method applied to the part of the Transport Layer header
-// following this parameter
+// determines the encoding method applied to the part of the Transport Layer
+// header following this parameter
 constexpr uint8_t header_encoding = {0};
 
 // packet type
@@ -57,7 +58,11 @@ class Packet : public egts::v1::Payload {
             flag(),
             header_length,
             header_encoding,
+            uint16_t{0},  // FrameDataLength
+            m_packet_identifier,
+            uint8_t(m_packet_type),
         };
+        
         return rez;
     };
 };
@@ -75,22 +80,30 @@ class Packet : public egts::v1::Payload {
 // void read(Stream &stream, Packet &packet)
 // {
 //     std::cout << "len:" << offsetof(Packet, header_encoding) << "\n";
-//     stream.read(reinterpret_cast<char *>(&packet.protocol_version), offsetof(Packet, header_encoding));
-//     // stream.read(reinterpret_cast<char *>(&packet.frame_data_length), sizeof(packet.frame_data_length));
-//     // // packet.frame_data_length = endian::reverse(packet.frame_data_length);
-//     // stream.read(reinterpret_cast<char *>(&packet.packet_identifier), sizeof(packet.packet_identifier));
-//     // // packet.packet_identifier = endian::reverse(packet.packet_identifier);
-//     // stream.read(reinterpret_cast<char *>(&packet.packet_type), sizeof(packet.packet_type));
+//     stream.read(reinterpret_cast<char *>(&packet.protocol_version),
+//     offsetof(Packet, header_encoding));
+//     // stream.read(reinterpret_cast<char *>(&packet.frame_data_length),
+//     sizeof(packet.frame_data_length));
+//     // // packet.frame_data_length =
+//     endian::reverse(packet.frame_data_length);
+//     // stream.read(reinterpret_cast<char *>(&packet.packet_identifier),
+//     sizeof(packet.packet_identifier));
+//     // // packet.packet_identifier =
+//     endian::reverse(packet.packet_identifier);
+//     // stream.read(reinterpret_cast<char *>(&packet.packet_type),
+//     sizeof(packet.packet_type));
 //     // if (packet.flags.route)
 //     // {
 //     //     Route r{};
-//     //     stream.read(reinterpret_cast<char *>(&r.peer_address), offsetof(Route, time_to_live));
+//     //     stream.read(reinterpret_cast<char *>(&r.peer_address),
+//     offsetof(Route, time_to_live));
 //     //     // r.peer_address = endian::reverse(r.peer_address);
 //     //     // r.recipient_address = endian::reverse(r.recipient_address);
 //     //     // r.time_to_live = endian::reverse(r.time_to_live);
 //     //     packet.route = r;
 //     // }
-//     // stream.read(reinterpret_cast<char *>(&packet.header_check_sum), sizeof(packet.header_check_sum));
+//     // stream.read(reinterpret_cast<char *>(&packet.header_check_sum),
+//     sizeof(packet.header_check_sum));
 // }
 
 // std::istream &operator>>(std::istream &is, Packet &packet)
@@ -102,12 +115,12 @@ class Packet : public egts::v1::Payload {
 // {
 //     out << "prefix:" << std::hex << packet.flags.prefix << "\n";
 //     out << "route:" << std::hex << packet.flags.route << "\n";
-//     out << "encryption_algorithm:" << std::hex << packet.flags.encryption_algorithm << "\n";
-//     out << "compressed:" << std::hex << packet.flags.compressed << "\n";
+//     out << "encryption_algorithm:" << std::hex <<
+//     packet.flags.encryption_algorithm << "\n"; out << "compressed:" <<
+//     std::hex << packet.flags.compressed << "\n";
 //     egts::transport::getPriority(packet.flags.pr);
-//     out << "Priority:" << egts::transport::getPriority(packet.flags.pr) << "\n";
-//     out << "\n";
-//     return out;
+//     out << "Priority:" << egts::transport::getPriority(packet.flags.pr) <<
+//     "\n"; out << "\n"; return out;
 // }
 // std::string getPacketType(Type p)
 // {
