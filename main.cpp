@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
         uint8_t(2),
         uint16_t(256),
         uint32_t(2147483648),
-        uint64_t(1<<6),
+        uint64_t(0x8000000000000000),
     };
     buffer1.printBuffer();
 
