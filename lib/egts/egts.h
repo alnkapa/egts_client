@@ -21,7 +21,7 @@ class Buffer {
     template <typename U>
     void push_back(U val) {
         const auto size = sizeof(U);
-        if (size > 1) {  // in reversed order
+        if (size > 1) {  // write in reversed order
             m_buf.resize(m_buf.size() + size);
             auto it = m_buf.end();
             for (auto i = 0; i < size; ++i) {
