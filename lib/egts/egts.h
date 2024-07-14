@@ -19,7 +19,8 @@ class Buffer {
     vector<uint8_t> m_buf;
 
     template <typename U>
-    requires(is_unsigned_v<U>) void push_back(U val) {
+        requires(is_unsigned_v<U>)
+    void push_back(U val) {
         const auto size = sizeof(U);
         if (size > 1) {  // write in reversed order
             m_buf.resize(m_buf.size() + size);
@@ -36,7 +37,8 @@ class Buffer {
    public:
 
     template <typename... Args>
-    requires(is_unsigned_v<Args>&&...) Buffer(Args... args) {
+        requires(is_unsigned_v<Args> && ...)
+    Buffer(Args... args) {
         auto size = (sizeof(args) + ...);
         m_buf.reserve(size);
         (push_back(args), ...);

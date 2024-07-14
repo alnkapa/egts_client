@@ -15,3 +15,6 @@ PackConstructorInitializers: CurrentLine
 PointerAlignment: Right
 ReferenceAlignment: Right
 QualifierAlignment: Left
+RequiresClausePosition: OwnLine
+
+
