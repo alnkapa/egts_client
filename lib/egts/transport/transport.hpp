@@ -52,17 +52,16 @@ class Packet : public egts::v1::Payload {
         mp_data = move(data);
     };
     egts::v1::Buffer pack() {
+        egts::v1::Buffer buf;  // FrameDataLength
+        if (auto ptr = mp_data.lock()) {
+            buf = ptr->pack();
+        }
         egts::v1::Buffer rez{
-            protocol_version,
-            security_key_id,
-            flag(),
-            header_length,
-            header_encoding,
-            uint16_t{0},  // FrameDataLength
-            m_packet_identifier,
-            uint8_t(m_packet_type),
+            protocol_version,    security_key_id,        flag(),
+            header_length,       header_encoding,        buf.size(),
+            m_packet_identifier, uint8_t(m_packet_type), buf,
         };
-        
+
         return rez;
     };
 };

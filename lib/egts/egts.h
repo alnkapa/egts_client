@@ -3,7 +3,7 @@
 #define EGTS_H
 
 #include <stddef.h>   // size_t
-#include <algorithm>  // std::fill_n
+#include <algorithm>  // std::fill_n, std::copy, std::back_inserter
 #include <cstdint>    // uint8_t, UINT8_MAX
 #include <iostream>
 #include <memory>       //weak_ptr
@@ -12,6 +12,10 @@
 
 namespace egts::v1 {
 using namespace std;
+
+class Buffer;
+template <typename T>
+concept ValidType = is_unsigned_v<T> || is_same_v<T, Buffer>;
 
 class Buffer {
    private:
@@ -34,16 +38,31 @@ class Buffer {
         }
     }
 
+    void push_back(const Buffer& other) {
+        // TODO:  move semantic ?
+        const auto size = other.m_buf.size();
+        if (size) {
+            m_buf.resize(m_buf.size() + size);
+            copy(other.m_buf.begin(), other.m_buf.end(),
+                 std::back_inserter(m_buf));
+        }
+    }
+
    public:
 
     template <typename... Args>
-        requires(is_unsigned_v<Args> && ...)
-    Buffer(Args... args) {
-        auto size = (sizeof(args) + ...);
-        m_buf.reserve(size);
-        (push_back(args), ...);
+        requires(ValidType<Args> && ...)
+    Buffer(const Args&... args) {
+        if constexpr (sizeof...(Args)) {
+            auto size = (sizeof(args) + ...);
+            m_buf.reserve(size);
+            (push_back(args), ...);
+        }
     };
-
+    uint16_t size() {
+        // TODO: check size if less than max_uint16
+        return m_buf.size();
+    }
     void printBuffer() {
         for (const auto& val : m_buf) {
             std::cout << static_cast<unsigned long long>(val) << " ";
@@ -53,6 +72,8 @@ class Buffer {
 };
 
 class Payload {
+   public:
+
     virtual Buffer pack() = 0;
     virtual void set_data(weak_ptr<Payload>) = 0;
 };

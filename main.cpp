@@ -1,27 +1,27 @@
 #include <iostream>
 // #include <boost/asio.hpp>
-// #include "lib/egts/transport/all.hpp"
+#include "lib/egts/transport/all.hpp"
 
-#include "lib/egts/egts.h"
+// #include "lib/egts/egts.h"
 
 int main(int argc, char *argv[]) {
-    egts::v1::Buffer buffer1{
-        uint8_t(1),
-        uint8_t(2),
-        uint16_t(256),
-        uint32_t(2147483648),
-        uint64_t(0x8000000000000000),
-    };
-    buffer1.printBuffer();
+    // egts::v1::Buffer buffer1{
+    //     uint8_t(1),
+    //     uint8_t(2),
+    //     uint16_t(256),
+    //     uint32_t(2147483648),
+    //     uint64_t(0x8000000000000000),
+    // };
+    // buffer1.printBuffer();
 
     // if (argc != 3) {
     //     std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
     //     return 1;
     // }
-    // using namespace egts::v1::transport;
-    // Packet p{};
-
-    // p.pack();
+    using namespace egts::v1::transport;
+    Packet p{};
+    auto buffer1 = p.pack();
+    buffer1.printBuffer();
 
     // boost::asio::io_context io_context;
     // using boost::asio::ip::tcp;
