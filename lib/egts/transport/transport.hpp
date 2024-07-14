@@ -66,6 +66,11 @@ class Packet : public egts::v1::Payload {
         for (const auto& val : rez) {
             std::cout << static_cast<unsigned long long>(val) << " ";
         }
+        cout << "\n";
+        auto crc = CRC{0};
+        cout << crc(rez.begin(), rez.end()) << "\n";
+        cout << "\n";
+        cout << crc(rez) << "\n";
 
         // HeaderCheckSum
 
