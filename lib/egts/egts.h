@@ -6,6 +6,7 @@
 #include <algorithm>  // std::fill_n, std::copy, std::back_inserter
 #include <cstdint>    // uint8_t, UINT8_MAX
 #include <iostream>
+#include <iterator>     // input_iterator_tag
 #include <memory>       //weak_ptr
 #include <type_traits>  // is_unsigned
 #include <vector>       // vector
@@ -62,24 +63,21 @@ class Buffer {
             (push_back(args), ...);
         }
     };
+
     Buffer(const Buffer& other) = delete;
     Buffer& operator=(const Buffer& other) = delete;
 
-    Buffer(const Buffer&& other){
-        
+    Buffer(const Buffer&& other) : m_buf(std::move(other.m_buf)){};
+
+    Buffer& operator=(const Buffer&& other) {
+        m_buf = std::move(other.m_buf);
+        return *this;
     };
 
-    Buffer& operator=(const Buffer&& other){
-
-    };
     uint16_t size() {
         // TODO: check size if less than max_uint16
         return m_buf.size();
     }
-
-    void check_sum(){
-
-    };
 
     void printBuffer() {
         for (const auto& val : m_buf) {
@@ -87,6 +85,44 @@ class Buffer {
         }
         std::cout << std::endl;
     }
+
+    class Iterator {
+       private:
+
+        vector<uint8_t>::iterator m_it;
+
+       public:
+
+        using iterator_category = input_iterator_tag;
+        using reference = vector<uint8_t>::iterator::reference;
+
+        explicit Iterator(vector<uint8_t>::iterator it) : m_it(it) {}
+        Iterator& operator++() {
+            m_it++;
+            return *this;
+        }
+        Iterator operator++(int) {
+            Iterator retval = *this;
+            ++(*this);
+            return retval;
+        }
+        bool operator==(Iterator other) const {
+            return m_it == other.m_it;
+        }
+        bool operator!=(Iterator other) const {
+            return !(*this == other);
+        }
+        reference operator*() const {
+            return *m_it;
+        }
+    };
+
+    Iterator begin() {
+        return Iterator{m_buf.begin()};
+    };
+    Iterator end() {
+        return Iterator{m_buf.end()};
+    };
 };
 
 class Payload {

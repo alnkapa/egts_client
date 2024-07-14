@@ -63,6 +63,10 @@ class Packet : public egts::v1::Payload {
             header_length,       header_encoding,        frame_data.size(),
             m_packet_identifier, uint8_t(m_packet_type),
         };
+        for (const auto& val : rez) {
+            std::cout << static_cast<unsigned long long>(val) << " ";
+        }
+
         // HeaderCheckSum
 
         // ServicesFrameData
