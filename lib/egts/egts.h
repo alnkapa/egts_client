@@ -50,6 +50,9 @@ class Buffer {
 
    public:
 
+    Buffer() = default;
+    ~Buffer() = default;
+
     template <typename... Args>
         requires(ValidType<Args> && ...)
     Buffer(const Args&... args) {
@@ -59,10 +62,25 @@ class Buffer {
             (push_back(args), ...);
         }
     };
+    Buffer(const Buffer& other) = delete;
+    Buffer& operator=(const Buffer& other) = delete;
+
+    Buffer(const Buffer&& other){
+        
+    };
+
+    Buffer& operator=(const Buffer&& other){
+
+    };
     uint16_t size() {
         // TODO: check size if less than max_uint16
         return m_buf.size();
     }
+
+    void check_sum(){
+
+    };
+
     void printBuffer() {
         for (const auto& val : m_buf) {
             std::cout << static_cast<unsigned long long>(val) << " ";

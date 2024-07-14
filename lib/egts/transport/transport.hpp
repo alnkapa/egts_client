@@ -4,7 +4,9 @@
 #include <stddef.h>  // size_t
 #include <cstdint>   // uint8_t
 #include <memory>
-#include "../egts.h"  // uint8_t
+#include <utility>       // move
+#include "../crc/crc.h"  // uint8_t
+#include "../egts.h"     // uint8_t
 #include "error.hpp"
 
 namespace egts::v1::transport {
@@ -52,17 +54,21 @@ class Packet : public egts::v1::Payload {
         mp_data = move(data);
     };
     egts::v1::Buffer pack() {
-        egts::v1::Buffer buf;  // FrameDataLength
+        egts::v1::Buffer frame_data{};  // FrameData
         if (auto ptr = mp_data.lock()) {
-            buf = ptr->pack();
+            frame_data = std::move(ptr->pack());
         }
         egts::v1::Buffer rez{
             protocol_version,    security_key_id,        flag(),
-            header_length,       header_encoding,        buf.size(),
-            m_packet_identifier, uint8_t(m_packet_type), buf,
+            header_length,       header_encoding,        frame_data.size(),
+            m_packet_identifier, uint8_t(m_packet_type),
         };
+        // HeaderCheckSum
 
-        return rez;
+        // ServicesFrameData
+
+        // Services Frame Data Check Sum
+        return std::move(rez);
     };
 };
 /*
