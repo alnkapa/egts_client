@@ -63,11 +63,13 @@ class Packet : public egts::v1::Payload {
             header_length,       header_encoding,        frame_data.size(),
             m_packet_identifier, uint8_t(m_packet_type),
         };
-        for (const auto& val : rez) {
+        uint8_t crc{};
+        for (const auto& val : rez) {            
             std::cout << static_cast<unsigned long long>(val) << " ";
+            crc = crc8(val)
         }
         cout << "\n";
-        auto crc = CRC{0};
+        auto crc = CRC();
         cout << crc(rez.begin(), rez.end()) << "\n";
         cout << "\n";
         cout << crc(rez) << "\n";
