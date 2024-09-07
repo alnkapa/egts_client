@@ -12,15 +12,20 @@
 namespace egts::v1::transport {
 using namespace std;
 using namespace error;
+
 // protocol version
 constexpr uint8_t protocol_version = {0x1};
+
 // the parameter SKID defines the identifier of the key used for encryption
 constexpr uint8_t security_key_id = {0x0};
+
 // transport Layer header prefix
 constexpr uint8_t prefix = {(0x0 << 6) & 0xC0};
+
 // the length of the Transport Layer header in bytes, including the checksum
 // byte
 constexpr uint8_t header_length = {11};
+
 // determines the encoding method applied to the part of the Transport Layer
 // header following this parameter
 constexpr uint8_t header_encoding = {0};
@@ -39,58 +44,86 @@ class Packet : public egts::v1::Payload {
     uint8_t flag() {
         return prefix;
     };
+    // packet payload
     weak_ptr<egts::v1::Payload> mp_data;
+    // packet type
     Type m_packet_type{Type::EGTS_PT_APPDATA};
-    uint16_t m_packet_identifier{0}; /** Package number */
-    uint8_t m_flag;
+    // package number
+    uint16_t m_packet_identifier{0};
+    // response package number
+    uint16_t m_response_packet_identifier{0};
+    Error m_processing_result{};
     // std::uint8_t header_check_sum{};
     //  uint8_t crc{};
    public:
 
-    Packet(uint16_t identifier = 0, Type type = Type::EGTS_PT_APPDATA)
-        : m_packet_identifier(identifier),
-          m_packet_type(type){};
+    Packet(uint16_t identifier = 0) : m_packet_identifier(identifier){};
+
+    void response(uint16_t response_packet_identifier,
+                  egts::v1::error::Error processing_result) {
+        m_packet_type = Type::EGTS_PT_RESPONSE;
+        m_response_packet_identifier = response_packet_identifier;
+        m_processing_result = processing_result;
+    };
+
     void set_data(weak_ptr<egts::v1::Payload> data) {
         mp_data = move(data);
     };
+
+    // pack packet to Buffer
     egts::v1::Buffer pack() {
-        egts::v1::Buffer frame_data{};  // FrameData
-        if (auto ptr = mp_data.lock()) {
+        // FrameData
+        egts::v1::Buffer frame_data{};
+        egts::v1::Buffer response_buf{};
+        uint16_t crc16_val = 0;
+        if (m_packet_type == Type::EGTS_PT_RESPONSE) {  // prepend response id
+            egts::v1::Buffer response_buf{
+                m_response_packet_identifier,  // response_packet_identifier (2
+                                               // byte)
+                static_cast<uint8_t>(
+                    m_processing_result)  // processing_result (1 byte)
+            };
+            crc16_val =
+                egts::v1::crc16(response_buf.begin(), response_buf.end());
+        }
+        if (auto ptr = mp_data.lock()) {  // packet has payload
             frame_data = std::move(ptr->pack());
+            crc16_val = egts::v1::crc16(frame_data.begin(), frame_data.end(),
+                                        crc16_val);
         }
+        uint32_t frame_size = response_buf.size() + frame_data.size();
+        if (frame_size > std::numeric_limits<uint16_t>::max()) {
+            throw std::overflow_error("Frame size exceeds maximum limit");
+        }
+        // make packet header
         egts::v1::Buffer rez{
-            protocol_version,    security_key_id,        flag(),
-            header_length,       header_encoding,        frame_data.size(),
-            m_packet_identifier, uint8_t(m_packet_type),
+            protocol_version,                     // protocol version  (byte)
+            security_key_id,                      // SKID (byte)
+            flag(),                               // flag (byte)
+            header_length,                        // header_length (byte)
+            header_encoding,                      // header_encoding (byte)
+            static_cast<uint16_t>(frame_size),    // frame data size (2 byte)
+            m_packet_identifier,                  // packet_identifier (2 byte)
+            static_cast<uint8_t>(m_packet_type),  // packet_type (byte)
         };
-        uint8_t crc{};
-        for (const auto& val : rez) {            
-            std::cout << static_cast<unsigned long long>(val) << " ";
-            crc = crc8(val)
+        // header check sum
+        rez.push_back(egts::v1::crc8(rez.begin(), rez.end()));
+
+        if (frame_size > 0) {
+            // response packet type
+            if (m_packet_type == Type::EGTS_PT_RESPONSE) {
+                rez.push_back(response_buf);
+            }
+            // services frame data
+            if (!frame_data.empty()) {
+                rez.push_back(frame_data);
+            }
+            rez.push_back(crc16_val);
         }
-        cout << "\n";
-        auto crc = CRC();
-        cout << crc(rez.begin(), rez.end()) << "\n";
-        cout << "\n";
-        cout << crc(rez) << "\n";
 
-        // HeaderCheckSum
-
-        // ServicesFrameData
-
-        // Services Frame Data Check Sum
         return std::move(rez);
     };
 };
-/*
-Прочитать 1 байт
-Прочитать 2 байт
----------------
-Прочитать 4 байт
-
-ИТОГО прочитать 4 байта.
-
-*/
 
 // template <typename Stream>
 // void read(Stream &stream, Packet &packet)
@@ -122,36 +155,6 @@ class Packet : public egts::v1::Payload {
 //     sizeof(packet.header_check_sum));
 // }
 
-// std::istream &operator>>(std::istream &is, Packet &packet)
-// {
-//     read(is, packet);
-//     return is;
-// }
-// std::ostream &operator<<(std::ostream &out, const Packet &packet)
-// {
-//     out << "prefix:" << std::hex << packet.flags.prefix << "\n";
-//     out << "route:" << std::hex << packet.flags.route << "\n";
-//     out << "encryption_algorithm:" << std::hex <<
-//     packet.flags.encryption_algorithm << "\n"; out << "compressed:" <<
-//     std::hex << packet.flags.compressed << "\n";
-//     egts::transport::getPriority(packet.flags.pr);
-//     out << "Priority:" << egts::transport::getPriority(packet.flags.pr) <<
-//     "\n"; out << "\n"; return out;
-// }
-// std::string getPacketType(Type p)
-// {
-//     switch (p)
-//     {
-//     case Type::EGTS_PT_RESPONSE:
-//         return "EGTS_PT_RESPONSE";
-//     case Type::EGTS_PT_APPDATA:
-//         return "EGTS_PT_APPDATA";
-//     case Type::EGTS_PT_SIGNED_APPDATA:
-//         return "EGTS_PT_SIGNED_APPDATA";
-//     }
-//     return "???";
-// };
-
 // struct Flag
 // {
 //     Priority pr : 2;              /** Encryption algorithm code for SFRD */
@@ -162,35 +165,3 @@ class Packet : public egts::v1::Payload {
 // };
 }  // namespace egts::v1::transport
 #endif /* TRANSPORT_HPP */
-
-// namespace egts
-// {
-//     namespace transport
-//     {
-//         /**
-//          * routing priority
-//          */
-//         enum class Priority : unsigned char
-//         {
-//             highest = 0b00,
-//             high = 0b01,
-//             middle = 0b10,
-//             low = 0b11,
-//         };
-//         std::string getPriority(Priority p)
-//         {
-//             switch (p)
-//             {
-//             case Priority::highest:
-//                 return "highest";
-//             case Priority::high:
-//                 return "high";
-//             case Priority::middle:
-//                 return "middle";
-//             case Priority::low:
-//                 return "low";
-//             }
-//             return "???";
-//         };
-//     }
-// }

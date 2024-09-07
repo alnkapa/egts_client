@@ -23,6 +23,8 @@ class Buffer {
 
     vector<uint8_t> m_buf;
 
+   public:
+
     template <typename U>
         requires(is_unsigned_v<U>)
     void push_back(U val) {
@@ -49,8 +51,6 @@ class Buffer {
         }
     }
 
-   public:
-
     Buffer() = default;
     ~Buffer() = default;
 
@@ -64,19 +64,13 @@ class Buffer {
         }
     };
 
-    Buffer(const Buffer& other) = delete;
-    Buffer& operator=(const Buffer& other) = delete;
-
-    Buffer(const Buffer&& other) : m_buf(std::move(other.m_buf)){};
-
-    Buffer& operator=(const Buffer&& other) {
-        m_buf = std::move(other.m_buf);
-        return *this;
-    };
-
     uint16_t size() {
         // TODO: check size if less than max_uint16
         return m_buf.size();
+    }
+
+    bool empty() {
+        return m_buf.empty();
     }
 
     void printBuffer() {
