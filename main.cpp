@@ -34,6 +34,7 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
                         {
                             self->do_read_header();
                         }
+                        // TODO: response for packet is received
                     }
                     else
                     {
