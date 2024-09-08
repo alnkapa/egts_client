@@ -1,115 +1,109 @@
+#include "lib/egts/error/error.h"
+#include "lib/egts/transport/transport.h"
+#include <boost/asio.hpp>
 #include <iostream>
-// #include <boost/asio.hpp>
-#include "lib/egts/transport/transport.hpp"
 
-// #include "lib/egts/egts.h"
+class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
+{
+  private:
+    std::array<std::uint8_t, egts::v1::transport::header_length> m_header;
+    std::vector<std::uint8_t> m_frame;
+    boost::asio::ip::tcp::socket m_socket;
+    std::shared_ptr<egts::v1::transport::Packet> m_pkg;
 
-int main(int argc, char *argv[]) {
-    // egts::v1::Buffer buffer1{
-    //     uint8_t(1),
-    //     uint8_t(2),
-    //     uint16_t(256),
-    //     uint32_t(2147483648),
-    //     uint64_t(0x8000000000000000),
-    // };
-    // buffer1.printBuffer();
+    void
+    do_read_header()
+    {
+        boost::asio::async_read(
+            m_socket,
+            boost::asio::buffer(m_header),
+            [self = shared_from_this()](
+                const boost::system::error_code &ec,
+                std::size_t bytes_transferred)
+            {
+                if (!ec)
+                {
+                    auto err = self->m_pkg->parse_header(self->m_header);
+                    if (err == egts::v1::error::Code::EGTS_PC_OK)
+                    {
+                        if (self->m_pkg->frame_data_length() > 0)
+                        {
+                            self->do_read_frame(self->m_pkg->frame_data_length());
+                        }
+                        else
+                        {
+                            self->do_read_header();
+                        }
+                    }
+                    else
+                    {
+                        // TODO: response error and disconnect
+                    }
+                }
+                else
+                {
+                    std::cerr << "Error reading header: " << ec.message() << std::endl;
+                }
+            });
+    }
 
-    // if (argc != 3) {
-    //     std::cerr << "Usage: " << argv[0] << " <host> <port>" << std::endl;
-    //     return 1;
-    // }
-    using namespace egts::v1::transport;
-    Packet p{};
-    auto buffer1 = p.pack();
-    buffer1.printBuffer();
+    void
+    do_read_frame(size_t frame_size)
+    {
+        m_frame.reserve(frame_size);
+        boost::asio::async_read(
+            m_socket,
+            boost::asio::buffer(m_frame),
+            [self = shared_from_this(), frame_size](
+                const boost::system::error_code &ec,
+                std::size_t bytes_transferred)
+            {
+                if (!ec)
+                {
+                    // Обработка прочитанного фрейма
+                    std::cout << "Read frame of size: " << bytes_transferred << std::endl;
+                    // Здесь вы можете добавить код для обработки фрейма
+                    self->do_read_header(); // Запускаем чтение следующего заголовка
+                }
+                else
+                {
+                    std::cerr << "Error reading frame: " << ec.message() << std::endl;
+                }
+            });
+    }
 
-    // boost::asio::io_context io_context;
-    // using boost::asio::ip::tcp;
-    // tcp::socket s(io_context);
-    // try
-    // {
-    //     std::cout << "Connected to server" << std::endl;
-    //     tcp::resolver resolver(io_context);
+  public:
+    ReaderWriter(boost::asio::ip::tcp::socket socket)
+        : m_socket(std::move(socket)),
+          m_pkg(std::make_shared<egts::v1::transport::Packet>()) {}
 
-    //     boost::asio::connect(s, resolver.resolve(argv[1], argv[2]));
+    void
+    start()
+    {
+        // подписаться на очередь для получения точек
 
-    //     std::string message = "Hello, server!";
-    //     boost::asio::write(s, boost::asio::buffer(message));
+        // запустить процесс чтение ответов от сервера
+        do_read_header();
+    }
+};
 
-    //     size_t reply_length = boost::asio::read(s,
-    //     boost::asio::buffer(message));
-
-    //     std::cout << "Reply is: ";
-    //     std::cout << message;
-    //     std::cout << "\n";
-    // }
-    // catch (std::exception &e)
-    // {
-    //     std::cerr << "Exception: " << e.what() << std::endl;
-    // }
-
+int
+main(int argc, char *argv[])
+{
+    boost::asio::io_context io_context{};
+    boost::asio::ip::tcp::resolver resolver(io_context);
+    boost::asio::ip::tcp::resolver::results_type endpoints;
+    boost::asio::ip::tcp::socket socket(io_context);
+    try
+    {
+        endpoints = resolver.resolve("alfa.shatl-t.ru", "34329");
+        boost::asio::connect(socket, endpoints);
+        std::make_shared<ReaderWriter>(std::move(socket))->start();
+        io_context.run();
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "error: " << e.what() << std::endl;
+    };
     return 0;
 }
-
-// #include <iostream>
-// #include <cstddef> // size_t
-// #include "lib/randy/randy.hpp"
-// #include "lib/endian/endian.hpp"
-// #include "lib/egts/transport/transport.hpp"
-
-// int main(int argv, const char **args)
-// {
-//     auto bb = randy::Array<std::uint8_t, 2>{};
-//     for (auto &v : bb)
-//     {
-//         std::cout << std::hex << static_cast<int>(v);
-//     }
-//     std::cout << "\n";
-
-//     // egts::transport::Packet tr{};
-//     // std::cin >> tr;
-
-//     // std::cout << tr << "\n";
-
-//     // вариант для чисел с плавающей точкой
-
-//     return EXIT_SUCCESS;
-// }
-// std::string getPacketType(Type p)
-//     // {
-//     //     switch (p)
-//     //     {
-//     //     case Type::EGTS_PT_RESPONSE:
-//     //         return "EGTS_PT_RESPONSE";
-//     //     case Type::EGTS_PT_APPDATA:
-//     //         return "EGTS_PT_APPDATA";
-//     //     case Type::EGTS_PT_SIGNED_APPDATA:
-//     //         return "EGTS_PT_SIGNED_APPDATA";
-//     //     }
-//     //     return "???";
-//     // };
-
-// #include <cstdlib>
-// #include <iostream>
-
-// #include <boost/context/fiber.hpp>
-
-// namespace ctx = boost::context;
-
-// ctx::fiber bar( ctx::fiber && f) {
-//     do {
-//         std::cout << "bar\n";
-//         f = std::move( f).resume();
-//     } while ( f);
-//     return std::move( f);
-// }
-
-// int main() {
-//     ctx::fiber f{ bar };
-//     do {
-//         std::cout << "foo\n";
-//         f = std::move( f).resume();
-//     } while ( f);
-//     std::cout << "main: done" << std::endl;
-//     return EXIT_SUCCESS;
-// }

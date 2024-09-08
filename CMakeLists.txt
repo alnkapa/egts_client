@@ -5,17 +5,20 @@ project(egtsClient VERSION 0.0.1)
 set(CMAKE_BUILD_TYPE "Debug")
 
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(lib)
+add_subdirectory(lib/egts/transport)
 
 add_executable(egts_client main.cpp)
 
+target_link_libraries(egts_client PRIVATE transport)
+
+
 # find_package(Boost REQUIRED COMPONENTS system)
 
-# target_link_libraries(egts_client ${Boost_LIBRARIES})
+# target_link_libraries(egts_client transport)
 
 
 # add_subdirectory(lib)
