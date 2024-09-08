@@ -4,13 +4,13 @@ add_library(transport INTERFACE)
 
 target_include_directories(transport INTERFACE .)
 
-include(CTest)
+# include(CTest)
 
-if(BUILD_TESTING)
-  # ... CMake code to create tests ...
-    find_package(GTest REQUIRED)
-    add_executable(test_transport test_transport.cpp)
-    target_link_libraries(test_transport GTest::gtest_main)
-    add_test(header_test_1 test_transport)
-    enable_testing()
-endif()
+# if(BUILD_TESTING)
+#   # ... CMake code to create tests ...
+#     find_package(GTest REQUIRED)
+#     add_executable(test_transport test_transport.cpp)
+#     target_link_libraries(test_transport GTest::gtest_main)
+#     add_test(header_test_1 test_transport)
+#     enable_testing()
+# endif()

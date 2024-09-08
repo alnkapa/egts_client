@@ -2,11 +2,11 @@
 #ifndef CRC_H
 #define CRC_H
 
-#include <cstdint>  // uint8_t, UINT8_MAX
-#include <numeric>
+#include <cstdint>  // uint8_t, uint16_t
 
 namespace egts::v1 {
 
+inline const std::uint16_t init_crc8 = 0xFF;
 // count crc8
 //
 //	Name  : CRC-8
@@ -16,7 +16,7 @@ namespace egts::v1 {
 //	XorOut: 0x00
 //	Check : 0xF7 ("123456789")
 template <typename Iterator>
-std::uint8_t crc8(Iterator begin, Iterator end, std::uint8_t crc = 0xFF) {
+std::uint8_t crc8(Iterator begin, Iterator end, std::uint8_t crc = init_crc8) {
     for (auto it = begin; it != end; ++it) {
         crc ^= *it;
         for (int j = 0; j < 8; j++) {
@@ -27,10 +27,10 @@ std::uint8_t crc8(Iterator begin, Iterator end, std::uint8_t crc = 0xFF) {
             }
         }
     }
-
     return crc;
 };
 
+inline const std::uint16_t init_crc16 = 0xFFFF;
 // count crc16
 //
 // Name  : CRC-16 CCITT
@@ -40,7 +40,7 @@ std::uint8_t crc8(Iterator begin, Iterator end, std::uint8_t crc = 0xFF) {
 // XorOut: 0x0000
 // Check : 0x29B1 (“123456789”)
 template <typename Iterator>
-std::uint16_t crc16(Iterator begin, Iterator end, std::uint16_t crc = 0xFFFF) {
+std::uint16_t crc16(Iterator begin, Iterator end, std::uint16_t crc = init_crc16) {
     for (auto it = begin; it != end; ++it) {
         crc ^= static_cast<std::uint16_t>(*it) << 8;
         for (int j = 0; j < 8; j++) {
