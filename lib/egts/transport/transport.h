@@ -46,7 +46,7 @@ enum class Type : uint8_t
     EGTS_PT_SIGNED_APPDATA = 2, // new packet with encryption
 };
 
-class Packet : public egts::v1::Payload
+class Packet
 {
   private:
     // generates values for fields PRF RTE ENA CMP PR
@@ -57,24 +57,32 @@ class Packet : public egts::v1::Payload
     // };
     // packet payload
     std::vector<unsigned char> mp_data;
+
     // packet type
     Type m_packet_type{Type::EGTS_PT_APPDATA};
+
     // packet number
     uint16_t m_packet_identifier{0};
+
     // frame data length
     uint16_t m_frame_data_length{0};
+
     // response packet number
     uint16_t m_response_packet_identifier{0};
+
     error::Error m_processing_result{};
-    // std::uint8_t header_check_sum{};
-    //  uint8_t crc{};
+
   public:
     Packet(uint16_t identifier = 0);
+
     virtual ~Packet();
+
     uint16_t
     packet_identifier() const;
+
     uint16_t
     frame_data_length() const;
+
     void
     response(uint16_t response_packet_identifier, egts::v1::error::Error processing_result)
     {
@@ -83,20 +91,21 @@ class Packet : public egts::v1::Payload
         m_processing_result = processing_result;
     };
 
-    void
-    set_data(weak_ptr<egts::v1::Payload> data);
-
-    // pack packet to Buffer
-    egts::v1::Buffer
-    pack();
-
     // parse frame
     error::Error
     parse_frame(std::vector<unsigned char> &&buffer) noexcept;
 
+    // pack header
+    std::vector<unsigned char>
+    frame() const noexcept;
+
     // parse header
     error::Error
     parse_header(const std::array<unsigned char, header_length> &) noexcept;
+
+    // pack header
+    std::array<unsigned char, header_length>
+    header() const noexcept;
 };
 
 } // namespace egts::v1::transport

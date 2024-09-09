@@ -6,10 +6,66 @@
 class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
 {
   private:
-    std::array<std::uint8_t, egts::v1::transport::header_length> m_header;
-    std::vector<std::uint8_t> m_frame;
+    std::array<unsigned char, egts::v1::transport::header_length> m_header;
+    std::vector<unsigned char> m_frame;
     boost::asio::ip::tcp::socket m_socket;
     std::shared_ptr<egts::v1::transport::Packet> m_pkg;
+
+    void
+    do_write_error()
+    {
+        // EXIT
+    }
+
+    void
+    do_write_header()
+    {
+        boost::asio::async_write(
+            m_socket,
+            boost::asio::buffer(m_pkg->header()),
+            [self = shared_from_this()](
+                const boost::system::error_code &ec,
+                std::size_t bytes_transferred)
+            {
+                if (!ec)
+                {
+
+                    if (self->m_pkg->frame_data_length() > 0)
+                    {
+                        self->do_write_frame();
+                    }
+                    else
+                    {
+                        self->do_read_header();
+                    }
+                }
+                else
+                {
+                    std::cerr << "Error writing header: " << ec.message() << std::endl;
+                }
+            });
+    }
+
+    void
+    do_write_frame()
+    {
+        boost::asio::async_write(
+            m_socket,
+            boost::asio::buffer(m_pkg->frame()),
+            [self = shared_from_this()](
+                const boost::system::error_code &ec,
+                std::size_t bytes_transferred)
+            {
+                if (!ec)
+                {
+                    self->do_read_header();
+                }
+                else
+                {
+                    std::cerr << "Error writing frame: " << ec.message() << std::endl;
+                }
+            });
+    }
 
     void
     do_read_header()
@@ -34,13 +90,12 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
                         }
                         else
                         {
-                            // TODO: response for packet is received
-                            self->do_read_header();
+                            self->do_write_header();
                         }
                     }
                     else
                     {
-                        // TODO: response error and disconnect
+                        self->do_write_error();
                     }
                 }
                 else
@@ -66,12 +121,11 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
                     auto err = self->m_pkg->parse_frame(std::move(self->m_frame));
                     if (err == egts::v1::error::Code::EGTS_PC_OK)
                     {
-                        // TODO: response for packet is received
-                        self->do_read_header();
+                        self->do_write_header();
                     }
                     else
                     {
-                        // TODO: response error and disconnect
+                        self->do_write_error();
                     }
                 }
                 else
