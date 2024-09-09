@@ -9,11 +9,36 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(BOOST_ROOT_PREFIX ${CMAKE_SOURCE_DIR}/lib/boost)
+set(CMAKE_PREFIX_PATH ${BOOST_ROOT_PREFIX})
+
+# Найдите Boost
+find_package(Boost REQUIRED)
+
+if(Boost_FOUND)
+    message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+    message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
+else()
+    message(FATAL_ERROR "Boost not found")
+endif()
+
+
 add_subdirectory(lib/egts/transport)
 
 add_executable(egts_client main.cpp)
 
-target_link_libraries(egts_client PRIVATE transport)
+target_include_directories(
+    egts_client 
+    PRIVATE 
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    egts_client 
+    PRIVATE 
+    transport 
+    ${Boost_LIBRARIES}
+)
 
 
 # find_package(Boost REQUIRED COMPONENTS system)
