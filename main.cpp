@@ -141,12 +141,10 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
           m_pkg(std::make_shared<egts::v1::transport::Packet>()) {}
 
     void
-    start()
+    start_client()
     {
-        // подписаться на очередь для получения точек
-
-        // запустить процесс чтение ответов от сервера
-        do_read_header();
+        // подписаться на очередь для получения точек        
+        do_write_header();
     }
 };
 
@@ -161,7 +159,7 @@ main(int argc, char *argv[])
     {
         endpoints = resolver.resolve("alfa.shatl-t.ru", "34329");
         boost::asio::connect(socket, endpoints);
-        std::make_shared<ReaderWriter>(std::move(socket))->start();
+        std::make_shared<ReaderWriter>(std::move(socket))->start_client();
         io_context.run();
     }
     catch (const std::exception &e)
