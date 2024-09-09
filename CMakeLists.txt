@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 project(egtsClient VERSION 0.0.1)
 
 set(CMAKE_BUILD_TYPE "Debug")
+include(CTest)
+enable_testing()
 
 set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
 set(CMAKE_CXX_STANDARD 20)

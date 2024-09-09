@@ -11,5 +11,5 @@ target_include_directories(
 
 
 if(BUILD_TESTING)
-    add_subdirectory(tests)
+    add_subdirectory(transport_tests)
 endif()

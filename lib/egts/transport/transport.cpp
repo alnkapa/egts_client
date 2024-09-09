@@ -22,6 +22,11 @@ Packet::frame_data_length() const
     return m_frame_data_length;
 }
 
+void
+Packet::set_data(weak_ptr<egts::v1::Payload> data)
+{
+}
+
 egts::v1::Buffer
 Packet::pack()
 {
@@ -78,16 +83,32 @@ Packet::pack()
     //     return std::move(rez);
     // };
     return egts::v1::Buffer();
-};
+}
 
 using Error = egts::v1::error::Error;
 using Code = egts::v1::error::Code;
 
 Error
-Packet::parse_frame(const std::vector<unsigned char> &buffer) noexcept
+Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
 {
+    mp_data = std::move(buffer);
+    // test size of frame size
+    if (mp_data.size() != m_frame_data_length + crc_data_length)
+    {
+        return Error(Code::EGTS_PC_INVDATALEN);
+    }
+    // test crc
+    uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end() - crc_data_length);
 
-    return Error();
+    uint16_t crc_begin_index = m_frame_data_length - crc_data_length - 1;
+    uint16_t got_crc16_val = static_cast<std::uint16_t>(mp_data[crc_begin_index]) |
+                             static_cast<std::uint16_t>(mp_data[crc_begin_index + 1]) << 8;
+
+    if (crc16_val != got_crc16_val)
+    {
+        return Error(Code::EGTS_PC_DATACRC_ERROR);
+    }
+    return {};
 }
 
 Error
@@ -125,18 +146,20 @@ Packet::parse_header(const std::array<unsigned char, header_length> &head) noexc
     }
     m_packet_type = static_cast<Type>(head[9]);
     // test crc
-    if (head[header_length] != egts::v1::crc8(head.begin(), head.end() - 1))
+    if (head[header_length - 1] != egts::v1::crc8(head.begin(), head.end() - crc_header_length))
     {
         return Error(Code::EGTS_PC_HEADERCRC_ERROR);
     }
     // read frame data length
-    m_frame_data_length = static_cast<std::uint16_t>(head[5]) | static_cast<std::uint16_t>(head[6]) << 8;
+    m_frame_data_length = static_cast<std::uint16_t>(head[5]) |
+                          static_cast<std::uint16_t>(head[6]) << 8;
     if (m_frame_data_length > max_frame_size)
     {
         return Error(Code::EGTS_PC_INVDATALEN);
     }
     // read packet identifier
-    m_packet_identifier = static_cast<std::uint16_t>(head[7]) | static_cast<std::uint16_t>(head[8]) << 8;
+    m_packet_identifier = static_cast<std::uint16_t>(head[7]) |
+                          static_cast<std::uint16_t>(head[8]) << 8;
 
     return {};
 }

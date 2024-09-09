@@ -28,13 +28,15 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
                     {
                         if (self->m_pkg->frame_data_length() > 0)
                         {
-                            self->do_read_frame(self->m_pkg->frame_data_length());
+                            self->do_read_frame(
+                                self->m_pkg->frame_data_length() +
+                                egts::v1::transport::crc_data_length);
                         }
                         else
                         {
+                            // TODO: response for packet is received
                             self->do_read_header();
                         }
-                        // TODO: response for packet is received
                     }
                     else
                     {
@@ -61,10 +63,16 @@ class ReaderWriter : public std::enable_shared_from_this<ReaderWriter>
             {
                 if (!ec)
                 {
-                    // Обработка прочитанного фрейма
-                    std::cout << "Read frame of size: " << bytes_transferred << std::endl;
-                    // Здесь вы можете добавить код для обработки фрейма
-                    self->do_read_header(); // Запускаем чтение следующего заголовка
+                    auto err = self->m_pkg->parse_frame(std::move(self->m_frame));
+                    if (err == egts::v1::error::Code::EGTS_PC_OK)
+                    {
+                        // TODO: response for packet is received
+                        self->do_read_header();
+                    }
+                    else
+                    {
+                        // TODO: response error and disconnect
+                    }
                 }
                 else
                 {

@@ -13,6 +13,12 @@
 namespace egts::v1::transport
 {
 
+// length crc of frame data
+const u_int8_t crc_data_length = 2;
+
+// length crc of header data
+const u_int8_t crc_header_length = 1;
+
 // protocol version
 const std::uint8_t protocol_version{0x1};
 // the length of the Transport Layer header in bytes, including the checksum
@@ -50,7 +56,7 @@ class Packet : public egts::v1::Payload
     //     return prefix;
     // };
     // packet payload
-    weak_ptr<egts::v1::Payload> mp_data;
+    std::vector<unsigned char> mp_data;
     // packet type
     Type m_packet_type{Type::EGTS_PT_APPDATA};
     // packet number
@@ -78,10 +84,7 @@ class Packet : public egts::v1::Payload
     };
 
     void
-    set_data(weak_ptr<egts::v1::Payload> data)
-    {
-        mp_data = move(data);
-    };
+    set_data(weak_ptr<egts::v1::Payload> data);
 
     // pack packet to Buffer
     egts::v1::Buffer
@@ -89,7 +92,7 @@ class Packet : public egts::v1::Payload
 
     // parse frame
     error::Error
-    parse_frame(const std::vector<unsigned char> &buffer) noexcept;
+    parse_frame(std::vector<unsigned char> &&buffer) noexcept;
 
     // parse header
     error::Error
