@@ -100,7 +100,7 @@ Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
     // test crc
     uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end() - crc_data_length);
 
-    uint16_t crc_begin_index = m_frame_data_length - crc_data_length - 1;
+    uint16_t crc_begin_index = m_frame_data_length;
     uint16_t got_crc16_val = static_cast<std::uint16_t>(mp_data[crc_begin_index]) |
                              static_cast<std::uint16_t>(mp_data[crc_begin_index + 1]) << 8;
 

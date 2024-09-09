@@ -157,12 +157,12 @@ TEST(PARSE_FRAME, BasicTests)
     {
         ADD_FAILURE() << "crc test failed: error is: " << er.what();
     }
-    
+
     uint16_t crc16_val = egts::v1::crc16(frame.begin(), frame.end());
-    frame_copy.resize(frame_data_length + crc_data_length, 0);
+    frame_copy.resize(frame_data_length, 0);
     std::copy(frame.begin(), frame.end(), frame_copy.begin());
-    frame.emplace_back(static_cast<std::uint8_t>(crc16_val));
-    frame.emplace_back(static_cast<std::uint8_t>(crc16_val >> 8));
+    frame_copy.emplace_back(static_cast<std::uint8_t>(crc16_val));
+    frame_copy.emplace_back(static_cast<std::uint8_t>(crc16_val >> 8));
     er = pr.parse_frame(std::move(frame_copy));
     if (er != Code::EGTS_PC_OK)
     {

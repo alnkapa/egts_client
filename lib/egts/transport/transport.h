@@ -97,15 +97,6 @@ class Packet : public egts::v1::Payload
     // parse header
     error::Error
     parse_header(const std::array<unsigned char, header_length> &) noexcept;
-
-    // try {
-    //     // reader header
-    //     auto header = in.read(header_length);
-
-    // } catch (...) {
-    //     std::terminate();
-    //     // TODO: define some exaction
-    // };
 };
 
 } // namespace egts::v1::transport
