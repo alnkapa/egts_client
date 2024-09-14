@@ -4,10 +4,10 @@
 #include "../crc/crc.h"
 #include "../egts.h"
 #include "../error/error.h"
-#include <tuple>
 #include <array>
 #include <cstdint>  // uint8_t
 #include <stddef.h> // size_t
+#include <tuple>
 #include <vector>
 
 namespace egts::v1::transport
@@ -46,7 +46,6 @@ enum class Type : uint8_t
     EGTS_PT_SIGNED_APPDATA = 2, // new packet with encryption
 };
 
-// TODO: !!!!copy and move tor!!!
 class Packet
 {
   private:
@@ -68,12 +67,11 @@ class Packet
     error::Error m_processing_result{};
 
   public:
-    Packet(uint16_t identifier = 0, uint16_t frame_data_length = 0);
+    Packet();
 
     virtual ~Packet();
 
-    uint16_t
-    packet_identifier() const;
+    void identifier(uint16_t packet_identifier);
 
     bool
     is_response() const;
@@ -85,23 +83,22 @@ class Packet
     frame_data_length() const;
 
     Packet
-    make_response(uint16_t identifier = 0, egts::v1::error::Error processing_result = {});
+    make_response(const egts::v1::error::Error &processing_result);
 
-    // parse frame
     error::Error
     parse_frame(std::vector<unsigned char> &&buffer) noexcept;
 
-    // pack header
     std::vector<unsigned char>
     frame() const noexcept;
 
-    // parse header
     error::Error
     parse_header(const std::array<unsigned char, header_length> &) noexcept;
 
-    // pack header
     std::array<unsigned char, header_length>
     header() const noexcept;
+
+    std::vector<unsigned char>
+    buffer() const noexcept;
 };
 
 } // namespace egts::v1::transport

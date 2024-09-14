@@ -16,41 +16,33 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     Queue<egts::v1::transport::Packet, std::uint16_t> m_queue;
     std::atomic<std::uint16_t> packet_number{0};
 
-    void
-    do_write_header()
+    boost::system::error_code
+    do_write(const std::vector<std::uint8_t> &buffer)
     {
-        std::vector<unsigned char> frame{};
-        auto pkg = m_queue.wait_for_send();        
-        do_write_header(pkg);
+        boost::system::error_code ec;
+        boost::asio::write(m_socket, boost::asio::buffer(buffer), ec);
+        return ec;
     }
 
     void
-    do_write_header(const egts::v1::transport::Packet &pkg)
+    async_do_write()
     {
         std::vector<unsigned char> frame{};
-        if (pkg.frame_data_length() > 0)
-        {
-            frame = pkg.frame();
-        }
+        auto pkg = m_queue.wait_for_send();
+        auto number = ++packet_number;
+        pkg.identifier(number);
         boost::asio::async_write(
             m_socket,
-            boost::asio::buffer(pkg.header()),
-            [self = shared_from_this(), packet_index = pkg.packet_identifier(), frame = std::move(frame)](
+            boost::asio::buffer(pkg.buffer()),
+            [self = shared_from_this(), number, frame = std::move(frame)](
                 const boost::system::error_code &ec,
                 std::size_t bytes_transferred) mutable
             {
                 if (!ec)
                 {
                     std::cerr << "write header size: " << bytes_transferred << std::endl;
-                    if (!frame.empty())
-                    {
-                        self->do_write_frame(std::move(frame), packet_index);
-                    }
-                    else
-                    {
-                        self->m_queue.mark_as_sent(packet_index);
-                        self->do_write_header();
-                    }
+                    self->m_queue.mark_as_sent(number);
+                    self->async_do_write();
                 }
                 else
                 {
@@ -61,31 +53,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
     void
-    do_write_frame(std::vector<unsigned char> &&frame, uint16_t packet_index)
-    {
-        boost::asio::async_write(
-            m_socket,
-            boost::asio::buffer(std::move(frame)),
-            [self = shared_from_this(), packet_index](
-                const boost::system::error_code &ec,
-                std::size_t bytes_transferred)
-            {
-                std::cerr << "write frame size: " << bytes_transferred << std::endl;
-                if (!ec)
-                {
-                    self->m_queue.mark_as_sent(packet_index);
-                    self->do_write_header();
-                }
-                else
-                {
-                    ++g_unsuccess_send_attempts;
-                    std::cerr << "Error writing frame: " << ec.message() << std::endl;
-                }
-            });
-    }
-
-    void
-    do_read_header()
+    async_do_read_header()
     {
         std::array<unsigned char, egts::v1::transport::header_length> header;
         boost::asio::async_read(
@@ -104,7 +72,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                     {
                         if (pkg->frame_data_length() > 0)
                         {
-                            self->do_read_frame(std::move(pkg));
+                            self->async_do_read_frame(std::move(pkg));
                         }
                         else
                         {
@@ -115,17 +83,17 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             }
                             else
                             {
-                                auto rsp_pkg = pkg->make_response(++self->packet_number);
+                                auto rsp_pkg = pkg->make_response(err);
                                 self->m_queue.wait_for_push(std::move(rsp_pkg));
-                                self->do_read_header();
+                                self->async_do_read_header();
                             }
                         }
                     }
                     else
                     {
-                        auto rsp_pkg = pkg->make_response(++self->packet_number, err);
-                        self->do_write_header(rsp_pkg);
-                        // TODO: add some time out ?
+                        auto rsp_pkg = pkg->make_response(err);
+                        rsp_pkg.identifier(++self->packet_number);
+                        self->do_write(rsp_pkg.buffer());
                         std::cerr << "Error reading header: " << err.what() << std::endl;
                     }
                 }
@@ -137,7 +105,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
     void
-    do_read_frame(std::unique_ptr<egts::v1::transport::Packet> pkg)
+    async_do_read_frame(std::unique_ptr<egts::v1::transport::Packet> pkg)
     {
         std::vector<unsigned char> frame(
             pkg->frame_data_length() +
@@ -162,7 +130,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             if (resp.second.OK())
                             {
                                 self->m_queue.mark_as_confirmed(resp.first);
-                                self->do_read_header();
+                                self->async_do_read_header();
                             }
                             else
                             {
@@ -171,18 +139,18 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                         }
                         else
                         {
-                            auto rsp_pkg = pkg->make_response(++self->packet_number);
+                            auto rsp_pkg = pkg->make_response(err);
                             self->m_queue.wait_for_push(std::move(rsp_pkg));
-                            self->do_read_header();
+                            self->async_do_read_header();
                         }
                     }
                     else
                     {
                         if (!pkg->is_response())
                         {
-                            auto rsp_pkg = pkg->make_response(++self->packet_number, err);
-                            self->do_write_header(rsp_pkg);
-                            // TODO: add some time out ?
+                            auto rsp_pkg = pkg->make_response(err);
+                            rsp_pkg.identifier(++self->packet_number);
+                            self->do_write(rsp_pkg.buffer());
                         }
                         std::cerr << "Error reading frame: " << err.what() << std::endl;
                     }
@@ -201,8 +169,8 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     void
     start_client()
     {
-        do_write_header();
-        do_read_header();
+        async_do_write();
+        async_do_read_header();
     }
 };
 

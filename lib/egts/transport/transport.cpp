@@ -2,20 +2,19 @@
 #include "crc.h"
 #include "error.h"
 #include <algorithm>
+#include <cassert>
 #include <iterator>
-
 namespace egts::v1::transport
 {
 
-Packet::Packet(uint16_t identifier, uint16_t frame_data_length)
-    : m_packet_identifier(identifier), m_frame_data_length(frame_data_length) {}
+Packet::Packet() {}
 
 Packet::~Packet() {}
 
-uint16_t
-Packet::packet_identifier() const
+void
+Packet::identifier(uint16_t packet_identifier)
 {
-    return m_packet_identifier;
+    m_packet_identifier = packet_identifier;
 }
 
 bool
@@ -61,15 +60,12 @@ Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
 std::vector<unsigned char>
 Packet::frame() const noexcept
 {
-    if (m_frame_data_length != mp_data.size())
-    {
-        // never execute
-        Error error{Code::EGTS_PC_INVDATALEN};
-        std::cerr << "!! never execute !! :" << m_frame_data_length << " !=  " << mp_data.size() << " " << error.what() << std::endl;
-        std::exit(EXIT_FAILURE);
-    }
-    std::vector<unsigned char> ret(mp_data.size());
+    assert(m_frame_data_length != mp_data.size());
+    std::vector<unsigned char> ret(m_frame_data_length + crc_data_length);
     std::copy(mp_data.begin(), mp_data.end(), ret.begin());
+    uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end());
+    ret[m_frame_data_length] = static_cast<std::uint8_t>(crc16_val);
+    ret[m_frame_data_length + 1] = static_cast<std::uint8_t>(crc16_val >> 8);
     return std::move(ret);
 }
 
@@ -144,5 +140,20 @@ Packet::header() const noexcept
     };
     ret[header_length - 1] = egts::v1::crc8(ret.begin(), ret.end() - crc_header_length); // 10
     return ret;
+}
+
+std::vector<unsigned char>
+Packet::buffer() const noexcept
+{
+    std::vector<unsigned char> ret(header_length);
+    auto h = header();
+    std::copy(h.begin(), h.end(), ret.begin());
+    if (m_frame_data_length > 0)
+    {
+        ret.resize(header_length + m_frame_data_length + crc_data_length);
+        auto f = frame();
+        std::copy(f.begin(), f.end(), ret.begin());
+    }
+    return std::move(ret);
 }
 } // namespace egts::v1::transport
