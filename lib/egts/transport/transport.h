@@ -4,6 +4,7 @@
 #include "../crc/crc.h"
 #include "../egts.h"
 #include "../error/error.h"
+#include <tuple>
 #include <array>
 #include <cstdint>  // uint8_t
 #include <stddef.h> // size_t
@@ -74,16 +75,17 @@ class Packet
     uint16_t
     packet_identifier() const;
 
+    bool
+    is_response() const;
+
+    std::pair<uint16_t, error::Error>
+    response() const;
+
     uint16_t
     frame_data_length() const;
 
-    void
-    response(uint16_t response_packet_identifier, egts::v1::error::Error processing_result)
-    {
-        m_packet_type = Type::EGTS_PT_RESPONSE;
-        m_response_packet_identifier = response_packet_identifier;
-        m_processing_result = processing_result;
-    };
+    Packet
+    make_response(uint16_t identifier = 0, egts::v1::error::Error processing_result = {});
 
     // parse frame
     error::Error

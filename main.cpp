@@ -1,69 +1,84 @@
 #include "lib/egts/error/error.h"
 #include "lib/egts/transport/transport.h"
+#include "queue.h"
+#include <atomic>
 #include <boost/asio.hpp>
 #include <iostream>
 
 const int MAX_SEND_TRY = 3;
 // Because there is only one connection
-int g_send_attempts{0};
+int g_unsuccess_send_attempts{0};
 
 class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReaderWriter>
 {
   private:
     boost::asio::ip::tcp::socket m_socket;
+    Queue<egts::v1::transport::Packet, std::uint16_t> m_queue;
+    std::atomic<std::uint16_t> packet_number{0};
+
     void
     do_write_header()
     {
-        auto pkg = std::make_unique<egts::v1::transport::Packet>();
-        // получить индекс очередной точки для посылки на сервер
+        std::vector<unsigned char> frame{};
+        auto pkg = m_queue.wait_for_send();        
+        do_write_header(pkg);
+    }
+
+    void
+    do_write_header(const egts::v1::transport::Packet &pkg)
+    {
+        std::vector<unsigned char> frame{};
+        if (pkg.frame_data_length() > 0)
+        {
+            frame = pkg.frame();
+        }
         boost::asio::async_write(
             m_socket,
-            boost::asio::buffer(pkg->header()),
-            [self = shared_from_this(), pkg = std::move(pkg)](
+            boost::asio::buffer(pkg.header()),
+            [self = shared_from_this(), packet_index = pkg.packet_identifier(), frame = std::move(frame)](
                 const boost::system::error_code &ec,
                 std::size_t bytes_transferred) mutable
             {
                 if (!ec)
                 {
-                    std::cerr << "header size: " << bytes_transferred << std::endl;
-                    if (pkg->frame_data_length() > 0)
+                    std::cerr << "write header size: " << bytes_transferred << std::endl;
+                    if (!frame.empty())
                     {
-                        self->do_write_frame(std::move(pkg));
+                        self->do_write_frame(std::move(frame), packet_index);
                     }
                     else
                     {
-                        ++g_send_attempts;
+                        self->m_queue.mark_as_sent(packet_index);
                         self->do_write_header();
                     }
                 }
                 else
                 {
-                    ++g_send_attempts;
+                    ++g_unsuccess_send_attempts;
                     std::cerr << "Error header: " << ec.message() << std::endl;
                 }
             });
     }
 
     void
-    do_write_frame(std::unique_ptr<egts::v1::transport::Packet> pkg)
+    do_write_frame(std::vector<unsigned char> &&frame, uint16_t packet_index)
     {
         boost::asio::async_write(
             m_socket,
-            boost::asio::buffer(pkg->frame()),
-            [self = shared_from_this()](
+            boost::asio::buffer(std::move(frame)),
+            [self = shared_from_this(), packet_index](
                 const boost::system::error_code &ec,
                 std::size_t bytes_transferred)
             {
-                std::cerr << "frame size: " << bytes_transferred << std::endl;
+                std::cerr << "write frame size: " << bytes_transferred << std::endl;
                 if (!ec)
                 {
-                    // увеличить количество попыток отправки точек
+                    self->m_queue.mark_as_sent(packet_index);
                     self->do_write_header();
                 }
                 else
                 {
-                    // увеличить количество попыток отправки точек
-                    // вернуть ошибку в main
+                    ++g_unsuccess_send_attempts;
                     std::cerr << "Error writing frame: " << ec.message() << std::endl;
                 }
             });
@@ -82,7 +97,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
             {
                 if (!ec)
                 {
-                     std::cerr << "header size: " << bytes_transferred << std::endl;
+                    std::cerr << "read header size: " << bytes_transferred << std::endl;
                     auto pkg = std::make_unique<egts::v1::transport::Packet>();
                     auto err = pkg->parse_header(header);
                     if (err == egts::v1::error::Code::EGTS_PC_OK)
@@ -93,22 +108,29 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                         }
                         else
                         {
-                            // Проверить, что если тип пакета — это ответ,  и фрейм пустой, то это приводит к неопределенному поведению.
-                            // Если тип пакета новый, то сформировать ответ и поместить его в очередь для отправки на сервер.
-                            self->do_read_header();
+                            if (pkg->is_response())
+                            {
+                                // тип пакета — это ответ, и фрейм пустой
+                                // то это ошибка.
+                            }
+                            else
+                            {
+                                auto rsp_pkg = pkg->make_response(++self->packet_number);
+                                self->m_queue.wait_for_push(std::move(rsp_pkg));
+                                self->do_read_header();
+                            }
                         }
                     }
                     else
                     {
-                        // Сформировать ответ на ошибочный пакет и сразу его отправит.
-                        // Выйти по причине того, что буфер может содержать недочитанный мусор.
-                        // вернуть ошибку в main
-                        std::cerr << "Error reading header: " << ec.message() << std::endl;
+                        auto rsp_pkg = pkg->make_response(++self->packet_number, err);
+                        self->do_write_header(rsp_pkg);
+                        // TODO: add some time out ?
+                        std::cerr << "Error reading header: " << err.what() << std::endl;
                     }
                 }
                 else
                 {
-                    // вернуть ошибку в main
                     std::cerr << "Error reading header: " << ec.message() << std::endl;
                 }
             });
@@ -130,38 +152,55 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
             {
                 if (!ec)
                 {
-                    std::cerr << "frame size: " << bytes_transferred << std::endl;                    
+                    std::cerr << "read frame size: " << bytes_transferred << std::endl;
                     auto err = pkg->parse_frame(std::move(frame));
                     if (err == egts::v1::error::Code::EGTS_PC_OK)
                     {
-                        // Если тип пакета новый, то сформировать ответ и поместить его в очередь для отправки на сервер.
-                        // Если это подтверждение получения пакета, то найти в очереди отправленных этот пакет и пометить его как полученный.
-                        self->do_read_header();
+                        if (pkg->is_response())
+                        {
+                            auto resp = pkg->response();
+                            if (resp.second.OK())
+                            {
+                                self->m_queue.mark_as_confirmed(resp.first);
+                                self->do_read_header();
+                            }
+                            else
+                            {
+                                std::cerr << "Error reading frame: " << resp.second.what() << std::endl;
+                            }
+                        }
+                        else
+                        {
+                            auto rsp_pkg = pkg->make_response(++self->packet_number);
+                            self->m_queue.wait_for_push(std::move(rsp_pkg));
+                            self->do_read_header();
+                        }
                     }
                     else
                     {
-                        // Сформировать ответ на ошибочный пакет и сразу его отправит.
-                        // Выйти по причине того, что буфер может содержать недочитанный мусор.
-                        // вернуть ошибку в main
-                        std::cerr << "Error reading frame: " << ec.message() << std::endl;
+                        if (!pkg->is_response())
+                        {
+                            auto rsp_pkg = pkg->make_response(++self->packet_number, err);
+                            self->do_write_header(rsp_pkg);
+                            // TODO: add some time out ?
+                        }
+                        std::cerr << "Error reading frame: " << err.what() << std::endl;
                     }
                 }
                 else
                 {
-                    // вернуть ошибку в main
                     std::cerr << "Error reading frame: " << ec.message() << std::endl;
                 }
             });
     }
 
   public:
-    StateLessReaderWriter(boost::asio::ip::tcp::socket socket)
-        : m_socket(std::move(socket)) {}
+    StateLessReaderWriter(boost::asio::ip::tcp::socket socket, Queue<egts::v1::transport::Packet, std::uint16_t> queue)
+        : m_socket(std::move(socket)), m_queue(queue) {}
 
     void
     start_client()
     {
-        // подписаться на очередь для получения точек
         do_write_header();
         do_read_header();
     }
@@ -174,17 +213,24 @@ main(int argc, char *argv[])
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints;
     boost::asio::ip::tcp::socket socket(io_context);
-    try
+    Queue<egts::v1::transport::Packet, std::uint16_t> queue;
+
+    while (g_unsuccess_send_attempts < MAX_SEND_TRY)
     {
-        endpoints = resolver.resolve("alfa.shatl-t.ru", "34329");
-        boost::asio::connect(socket, endpoints);
-        std::make_shared<StateLessReaderWriter>(std::move(socket))->start_client();
-        io_context.run();
+        try
+        {
+            endpoints = resolver.resolve("alfa.shatl-t.ru", "34329");
+            boost::asio::connect(socket, endpoints);
+            std::make_shared<StateLessReaderWriter>(std::move(socket), queue)->start_client();
+            io_context.run();
+        }
+        catch (const std::exception &e)
+        {
+            // Смотреть на ошибку и, если необходимо, перезапустить клиента.
+            break;
+
+            std::cerr << "error: " << e.what() << std::endl;
+        };
     }
-    catch (const std::exception &e)
-    {
-        // Смотреть на ошибку и, если необходимо, перезапустить клиента.
-        std::cerr << "error: " << e.what() << std::endl;
-    };
     return 0;
 }

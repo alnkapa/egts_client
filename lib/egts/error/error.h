@@ -77,6 +77,12 @@ class Error : public std::exception
         return m_code;
     }
 
+    bool
+    OK() const noexcept
+    {
+        return m_code == Code::EGTS_PC_OK;
+    }
+
     const char *
     what() const noexcept override
     {

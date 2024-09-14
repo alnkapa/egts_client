@@ -18,6 +18,12 @@ Packet::packet_identifier() const
     return m_packet_identifier;
 }
 
+bool
+Packet::is_response() const
+{
+    return m_packet_type == Type::EGTS_PT_RESPONSE;
+}
+
 uint16_t
 Packet::frame_data_length() const
 {
