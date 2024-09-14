@@ -1,12 +1,14 @@
 #include "transport.h"
 #include "crc.h"
 #include "error.h"
+#include <algorithm>
+#include <iterator>
 
 namespace egts::v1::transport
 {
 
-Packet::Packet(uint16_t identifier)
-    : m_packet_identifier(identifier) {}
+Packet::Packet(uint16_t identifier, uint16_t frame_data_length)
+    : m_packet_identifier(identifier), m_frame_data_length(frame_data_length) {}
 
 Packet::~Packet() {}
 
@@ -22,81 +24,18 @@ Packet::frame_data_length() const
     return m_frame_data_length;
 }
 
-// void
-// Packet::set_data(weak_ptr<egts::v1::Payload> data)
-// {
-// }
-
-// egts::v1::Buffer
-// Packet::pack()
-// {
-//     egts::v1::Buffer frame_data{};
-//     egts::v1::Buffer response_buf{};
-//     uint16_t crc16_val = egts::v1::init_crc16;
-//     if (m_packet_type == Type::EGTS_PT_RESPONSE)
-//     { // prepend response id
-//         egts::v1::Buffer response_buf{
-//             m_response_packet_identifier,             // 2 byte
-//             static_cast<uint8_t>(m_processing_result) // byte
-//         };
-//         crc16_val = egts::v1::crc16(response_buf.begin(), response_buf.end());
-//     }
-//     if (auto ptr = mp_data.lock())
-//     { // packet has payload
-//         frame_data = std::move(ptr->pack());
-//         crc16_val = egts::v1::crc16(frame_data.begin(), frame_data.end(), crc16_val);
-//     }
-//     uint32_t frame_size = response_buf.size() + frame_data.size();
-//     if (frame_size > max_frame_size)
-//     {
-//         throw std::overflow_error("Frame size exceeds maximum limit");
-//     }
-//     // make packet header
-//     egts::v1::Buffer rez{
-//         protocol_version,                    // byte
-//         security_key_id,                     // byte
-//         flag(),                              // byte
-//         header_length,                       // byte
-//         header_encoding,                     // byte
-//         static_cast<uint16_t>(frame_size),   // 2 byte
-//         m_packet_identifier,                 // 2 byte
-//         static_cast<uint8_t>(m_packet_type), // byte
-//     };
-//     // header check sum
-//     rez.push_back(egts::v1::crc8(rez.begin(), rez.end()));
-
-//     if (frame_size > 0)
-//     {
-//         // response packet type
-//         if (m_packet_type == Type::EGTS_PT_RESPONSE)
-//         {
-//             rez.push_back(std::move(response_buf));
-//         }
-//         // services frame data
-//         if (!frame_data.empty())
-//         {
-//             rez.push_back(std::move(frame_data));
-//         }
-//         rez.push_back(crc16_val);
-//     }
-
-//     return std::move(rez);
-// };
-//     return egts::v1::Buffer();
-// }
-
 using Error = egts::v1::error::Error;
 using Code = egts::v1::error::Code;
 
 Error
 Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
 {
-    mp_data = std::move(buffer);
     // test size of frame size
-    if (mp_data.size() != m_frame_data_length + crc_data_length)
+    if (buffer.size() != m_frame_data_length + crc_data_length)
     {
         return Error(Code::EGTS_PC_INVDATALEN);
     }
+    mp_data = std::move(buffer);
     // test crc
     uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end() - crc_data_length);
 
@@ -108,13 +47,24 @@ Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
     {
         return Error(Code::EGTS_PC_DATACRC_ERROR);
     }
+    // cut crc value
+    mp_data.resize(m_frame_data_length);
     return {};
 }
 
 std::vector<unsigned char>
 Packet::frame() const noexcept
 {
-    return std::vector<unsigned char>();
+    if (m_frame_data_length != mp_data.size())
+    {
+        // never execute
+        Error error{Code::EGTS_PC_INVDATALEN};
+        std::cerr << "!! never execute !! :" << m_frame_data_length << " !=  " << mp_data.size() << " " << error.what() << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+    std::vector<unsigned char> ret(mp_data.size());
+    std::copy(mp_data.begin(), mp_data.end(), ret.begin());
+    return std::move(ret);
 }
 
 Error
@@ -173,6 +123,20 @@ Packet::parse_header(const std::array<unsigned char, header_length> &head) noexc
 std::array<unsigned char, header_length>
 Packet::header() const noexcept
 {
-    return std::array<unsigned char, header_length>();
+    // make packet header
+    std::array<unsigned char, header_length> ret{
+        protocol_version,                                    // 0
+        security_key_id,                                     // 1
+        flag,                                                // 2
+        header_length,                                       // 3
+        header_encoding,                                     // 4
+        static_cast<std::uint8_t>(m_frame_data_length),      // 5
+        static_cast<std::uint8_t>(m_frame_data_length >> 8), // 6
+        static_cast<std::uint8_t>(m_packet_identifier),      // 7
+        static_cast<std::uint8_t>(m_packet_identifier >> 8), // 8
+        static_cast<uint8_t>(m_packet_type),                 // 9
+    };
+    ret[header_length - 1] = egts::v1::crc8(ret.begin(), ret.end() - crc_header_length); // 10
+    return ret;
 }
 } // namespace egts::v1::transport

@@ -29,6 +29,7 @@ add_subdirectory(lib/egts/transport)
 
 add_executable(egts_client main.cpp)
 
+
 target_include_directories(
     egts_client 
     PRIVATE 
@@ -37,6 +38,21 @@ target_include_directories(
 
 target_link_libraries(
     egts_client 
+    PRIVATE 
+    transport 
+    ${Boost_LIBRARIES}
+)
+
+add_executable(1 1.cpp)
+
+target_include_directories(
+    1 
+    PRIVATE 
+    ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+    1
     PRIVATE 
     transport 
     ${Boost_LIBRARIES}

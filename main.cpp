@@ -3,11 +3,14 @@
 #include <boost/asio.hpp>
 #include <iostream>
 
+const int MAX_SEND_TRY = 3;
+// Because there is only one connection
+int g_send_attempts{0};
+
 class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReaderWriter>
 {
   private:
     boost::asio::ip::tcp::socket m_socket;
-
     void
     do_write_header()
     {
@@ -22,21 +25,21 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
             {
                 if (!ec)
                 {
+                    std::cerr << "header size: " << bytes_transferred << std::endl;
                     if (pkg->frame_data_length() > 0)
                     {
                         self->do_write_frame(std::move(pkg));
                     }
                     else
                     {
-                        // увеличить количество попыток отправки точек
+                        ++g_send_attempts;
                         self->do_write_header();
                     }
                 }
                 else
                 {
-                    // увеличить количество попыток отправки точек
-                    // вернуть ошибку в main
-                    std::cerr << "Error writing header: " << ec.message() << std::endl;
+                    ++g_send_attempts;
+                    std::cerr << "Error header: " << ec.message() << std::endl;
                 }
             });
     }
@@ -51,6 +54,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                 const boost::system::error_code &ec,
                 std::size_t bytes_transferred)
             {
+                std::cerr << "frame size: " << bytes_transferred << std::endl;
                 if (!ec)
                 {
                     // увеличить количество попыток отправки точек
@@ -78,6 +82,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
             {
                 if (!ec)
                 {
+                     std::cerr << "header size: " << bytes_transferred << std::endl;
                     auto pkg = std::make_unique<egts::v1::transport::Packet>();
                     auto err = pkg->parse_header(header);
                     if (err == egts::v1::error::Code::EGTS_PC_OK)
@@ -125,6 +130,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
             {
                 if (!ec)
                 {
+                    std::cerr << "frame size: " << bytes_transferred << std::endl;                    
                     auto err = pkg->parse_frame(std::move(frame));
                     if (err == egts::v1::error::Code::EGTS_PC_OK)
                     {

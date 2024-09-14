@@ -170,6 +170,37 @@ TEST(PARSE_FRAME, BasicTests)
     }
 }
 
+TEST(SEND_RECEIVE, BasicTests)
+{
+    Packet pr{22};
+    auto header_buf = pr.header();
+
+    auto er = pr.parse_header(header_buf);
+    if (er != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "header failed: error is: " << er.what();
+    }
+}
+
+TEST(SEND_RECEIVE_1, BasicTests)
+{
+    auto fr = std::vector<unsigned char>{1, 2, 3};
+    Packet pr{55, static_cast<std::uint16_t>(fr.size())};
+    uint16_t crc16_val = egts::v1::crc16(fr.begin(), fr.end());
+    fr.emplace_back(static_cast<std::uint8_t>(crc16_val));
+    fr.emplace_back(static_cast<std::uint8_t>(crc16_val >> 8));
+    auto er = pr.parse_frame(std::move(fr));
+    if (er != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "frame failed: error is: " << er.what();
+    }
+    auto buf = pr.frame();    
+    if (buf != std::vector<unsigned char>{1, 2, 3})
+    {
+        ADD_FAILURE() << "frame 1 failed: error is: " << er.what();
+    }
+}
+
 int
 main(int argc, char **argv)
 {

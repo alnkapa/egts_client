@@ -17,3 +17,7 @@ add_test(NAME PARSE_HEADER COMMAND transport_tests)
 
 add_test(NAME PARSE_FRAME COMMAND transport_tests)
 
+
+add_test(NAME SEND_RECEIVE COMMAND transport_tests)
+
+add_test(NAME SEND_RECEIVE_1 COMMAND transport_tests)

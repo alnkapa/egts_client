@@ -1,12 +1,11 @@
 #pragma once
-#ifndef TRANSPORT_HPP
-#define TRANSPORT_HPP
+#ifndef TRANSPORT_H
+#define TRANSPORT_H
 #include "../crc/crc.h"
 #include "../egts.h"
 #include "../error/error.h"
 #include <array>
-#include <cstdint> // uint8_t
-#include <memory>
+#include <cstdint>  // uint8_t
 #include <stddef.h> // size_t
 #include <vector>
 
@@ -25,15 +24,15 @@ const std::uint8_t protocol_version{0x1};
 // byte
 const std::uint8_t header_length{11};
 
-// // the parameter SKID defines the identifier of the key used for encryption
-// constexpr uint8_t security_key_id{0x0};
+// the parameter SKID defines the identifier of the key used for encryption
+constexpr uint8_t security_key_id{0x0};
 
-// // transport Layer header prefix
-// constexpr uint8_t prefix{(0x0 << 6) & 0xC0};
+// transport Layer header flag
+constexpr uint8_t flag{0};
 
-// // determines the encoding method applied to the part of the Transport Layer
-// // header following this parameter
-// constexpr uint8_t header_encoding{0};
+// determines the encoding method applied to the part of the Transport Layer
+// header following this parameter
+constexpr uint8_t header_encoding{0};
 
 // maximum size of the frame data
 constexpr uint16_t max_frame_size{65517};
@@ -46,15 +45,10 @@ enum class Type : uint8_t
     EGTS_PT_SIGNED_APPDATA = 2, // new packet with encryption
 };
 
+// TODO: !!!!copy and move tor!!!
 class Packet
 {
   private:
-    // generates values for fields PRF RTE ENA CMP PR
-    // uint8_t
-    // flag()
-    // {
-    //     return prefix;
-    // };
     // packet payload
     std::vector<unsigned char> mp_data;
 
@@ -73,7 +67,7 @@ class Packet
     error::Error m_processing_result{};
 
   public:
-    Packet(uint16_t identifier = 0);
+    Packet(uint16_t identifier = 0, uint16_t frame_data_length = 0);
 
     virtual ~Packet();
 
@@ -109,4 +103,4 @@ class Packet
 };
 
 } // namespace egts::v1::transport
-#endif /* TRANSPORT_HPP */
+#endif /* TRANSPORT_H */
