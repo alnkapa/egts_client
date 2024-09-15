@@ -109,9 +109,9 @@ Packet::frame() const noexcept
 
     if (is_response())
     {
-        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier & 0xFF);        // 0
-        *ptr++ = static_cast<std::uint8_t>((m_response_packet_identifier >> 8) & 0xFF); // 1
-        *ptr++ = static_cast<std::uint8_t>(m_processing_result);                        // 2
+        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier);      // 0
+        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier >> 8); // 1
+        *ptr++ = static_cast<std::uint8_t>(m_processing_result);               // 2
     }
 
     if (m_frame_data_length != 0)
@@ -120,7 +120,7 @@ Packet::frame() const noexcept
         ptr += m_frame_data_length;
     }
 
-    uint16_t crc16_val = egts::v1::crc16(ret.begin(), ptr);    
+    uint16_t crc16_val = egts::v1::crc16(ret.begin(), ptr);
     *ptr++ = static_cast<std::uint8_t>(crc16_val);
     *ptr++ = static_cast<std::uint8_t>(crc16_val >> 8);
 
