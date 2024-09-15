@@ -17,7 +17,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     std::atomic<std::uint16_t> packet_number{0};
 
     boost::system::error_code
-    do_write(const std::vector<std::uint8_t> &buffer)
+    do_write(const egts::v1::transport::frame_buffer_type &buffer)
     {
         boost::system::error_code ec;
         boost::asio::write(m_socket, boost::asio::buffer(buffer), ec);
@@ -27,16 +27,15 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     void
     async_do_write()
     {
-        std::vector<unsigned char> frame{};
         auto pkg = m_queue.wait_for_send();
         auto number = ++packet_number;
         pkg.identifier(number);
         boost::asio::async_write(
             m_socket,
             boost::asio::buffer(pkg.buffer()),
-            [self = shared_from_this(), number, frame = std::move(frame)](
+            [self = shared_from_this(), number](
                 const boost::system::error_code &ec,
-                std::size_t bytes_transferred) mutable
+                std::size_t bytes_transferred)
             {
                 if (!ec)
                 {
@@ -107,7 +106,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     void
     async_do_read_frame(std::unique_ptr<egts::v1::transport::Packet> pkg)
     {
-        std::vector<unsigned char> frame(
+         egts::v1::transport::frame_buffer_type frame(
             pkg->frame_data_length() +
                 egts::v1::transport::crc_data_length,
             0);

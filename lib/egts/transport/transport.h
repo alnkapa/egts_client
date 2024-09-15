@@ -13,11 +13,15 @@
 namespace egts::v1::transport
 {
 
+using frame_buffer_type = std::vector<unsigned char>;
 // length crc of frame data
 const u_int8_t crc_data_length = 2;
 
 // length crc of header data
 const u_int8_t crc_header_length = 1;
+
+// length response
+const u_int8_t response_length = 3;
 
 // protocol version
 const std::uint8_t protocol_version{0x1};
@@ -50,7 +54,7 @@ class Packet
 {
   private:
     // packet payload
-    std::vector<unsigned char> mp_data;
+    frame_buffer_type mp_data;
 
     // packet type
     Type m_packet_type{Type::EGTS_PT_APPDATA};
@@ -71,7 +75,11 @@ class Packet
 
     virtual ~Packet();
 
-    void identifier(uint16_t packet_identifier);
+    void
+    identifier(uint16_t packet_identifier);
+
+    uint16_t
+    identifier();
 
     bool
     is_response() const;
@@ -86,9 +94,9 @@ class Packet
     make_response(const egts::v1::error::Error &processing_result);
 
     error::Error
-    parse_frame(std::vector<unsigned char> &&buffer) noexcept;
+    parse_frame(frame_buffer_type &&buffer) noexcept;
 
-    std::vector<unsigned char>
+    frame_buffer_type
     frame() const noexcept;
 
     error::Error
@@ -97,7 +105,7 @@ class Packet
     std::array<unsigned char, header_length>
     header() const noexcept;
 
-    std::vector<unsigned char>
+    frame_buffer_type
     buffer() const noexcept;
 };
 

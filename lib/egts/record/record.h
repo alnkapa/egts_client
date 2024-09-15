@@ -27,7 +27,7 @@ class Record
     uint16_t m_record_number{0};
 
     // record payload
-    std::vector<unsigned char> mp_data;
+    frame_buffer_type mp_data;
 
   public:
     Record(uint16_t record_number = 0);
@@ -36,7 +36,7 @@ class Record
 
     // parse
     error::Error
-    parse(std::vector<unsigned char> &&buffer) noexcept;
+    parse(frame_buffer_type &&buffer) noexcept;
 };
 
 } // namespace egts::v1::record

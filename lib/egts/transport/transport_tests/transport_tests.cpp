@@ -112,7 +112,7 @@ TEST(PARSE_HEADER, BasicTests)
     {
         ADD_FAILURE() << "packet_identifier test failed: error is: " << er.what();
     }
-    if (pr.packet_identifier() != packet_identifier)
+    if (pr.identifier() != packet_identifier)
     {
         ADD_FAILURE() << "packet_identifier test failed ";
     }
@@ -143,7 +143,7 @@ TEST(PARSE_FRAME, BasicTests)
         ADD_FAILURE() << "packet test failed: error is: " << er.what();
     }
 
-    std::vector<std::uint8_t> frame_copy(frame_data_length, 0);
+    frame_buffer_type frame_copy(frame_data_length, 0);
     std::copy(frame.begin(), frame.end(), frame_copy.begin());
     er = pr.parse_frame(std::move(frame_copy));
     if (er != Code::EGTS_PC_INVDATALEN)
@@ -172,7 +172,7 @@ TEST(PARSE_FRAME, BasicTests)
 
 TEST(SEND_RECEIVE, BasicTests)
 {
-    Packet pr{22};
+    Packet pr{};
     auto header_buf = pr.header();
 
     auto er = pr.parse_header(header_buf);
@@ -184,20 +184,89 @@ TEST(SEND_RECEIVE, BasicTests)
 
 TEST(SEND_RECEIVE_1, BasicTests)
 {
-    auto fr = std::vector<unsigned char>{1, 2, 3};
-    Packet pr{55, static_cast<std::uint16_t>(fr.size())};
+    auto fr = frame_buffer_type{1, 2, 3};
+    auto frame_data_length = fr.size();
+    Packet pr{};
+    std::array<std::uint8_t, header_length> header = {
+        protocol_version,                                  // 0  PRV
+        0,                                                 // 1  SKID
+        0,                                                 // 2  FLAG
+        header_length,                                     // 3  HeaderLength
+        0,                                                 // 4  HeaderEncoding
+        static_cast<std::uint8_t>(frame_data_length),      // 5  FrameDataLength 0
+        static_cast<std::uint8_t>(frame_data_length >> 8), // 6  FrameDataLength 1
+        0,                                                 // 7  PacketIdentifier 0
+        0,                                                 // 8  PacketIdentifier 1
+        static_cast<std::uint8_t>(Type::EGTS_PT_APPDATA),  // 9  PacketType
+        0,                                                 // 10 HeaderCheckSum
+    };
+    header[header_length - 1] = egts::v1::crc8(header.begin(), header.end() - crc_header_length);
+    auto er = pr.parse_header(header);
+    if (er != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "packet test failed: error is: " << er.what();
+    }
+
     uint16_t crc16_val = egts::v1::crc16(fr.begin(), fr.end());
     fr.emplace_back(static_cast<std::uint8_t>(crc16_val));
     fr.emplace_back(static_cast<std::uint8_t>(crc16_val >> 8));
-    auto er = pr.parse_frame(std::move(fr));
+    er = pr.parse_frame(std::move(fr));
     if (er != Code::EGTS_PC_OK)
     {
         ADD_FAILURE() << "frame failed: error is: " << er.what();
     }
-    auto buf = pr.frame();    
-    if (buf != std::vector<unsigned char>{1, 2, 3})
+
+    auto buf = pr.frame();
+    if (buf != frame_buffer_type{
+                   1,
+                   2,
+                   3,
+                   static_cast<std::uint8_t>(crc16_val),
+                   static_cast<std::uint8_t>(crc16_val >> 8)})
     {
-        ADD_FAILURE() << "frame 1 failed: error is: " << er.what();
+        ADD_FAILURE() << "frame 1 failed: error is: " << buf[0] << buf[1] << buf[2];
+    }
+
+    fr = frame_buffer_type{1, 2, 3};
+    frame_data_length = fr.size();
+    header = {
+        protocol_version,                                  // 0  PRV
+        0,                                                 // 1  SKID
+        0,                                                 // 2  FLAG
+        header_length,                                     // 3  HeaderLength
+        0,                                                 // 4  HeaderEncoding
+        static_cast<std::uint8_t>(frame_data_length),      // 5  FrameDataLength 0
+        static_cast<std::uint8_t>(frame_data_length >> 8), // 6  FrameDataLength 1
+        0,                                                 // 7  PacketIdentifier 0
+        0,                                                 // 8  PacketIdentifier 1
+        static_cast<std::uint8_t>(Type::EGTS_PT_RESPONSE), // 9  PacketType
+        0,                                                 // 10 HeaderCheckSum
+    };
+    header[header_length - 1] = egts::v1::crc8(header.begin(), header.end() - crc_header_length);
+    er = pr.parse_header(header);
+    if (er != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "packet test failed: error is: " << er.what();
+    }
+
+    crc16_val = egts::v1::crc16(fr.begin(), fr.end());
+    fr.emplace_back(static_cast<std::uint8_t>(crc16_val));
+    fr.emplace_back(static_cast<std::uint8_t>(crc16_val >> 8));
+    er = pr.parse_frame(std::move(fr));
+    if (er != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "frame failed: error is: " << er.what();
+    }
+
+    buf = pr.frame();
+    if (buf != frame_buffer_type{
+                   1,
+                   2,
+                   3,
+                   static_cast<std::uint8_t>(crc16_val),
+                   static_cast<std::uint8_t>(crc16_val >> 8)})
+    {
+        ADD_FAILURE() << "frame 1 failed: error is: " << buf[0] << buf[1] << buf[2];
     }
 }
 

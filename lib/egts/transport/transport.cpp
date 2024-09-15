@@ -17,10 +17,22 @@ Packet::identifier(uint16_t packet_identifier)
     m_packet_identifier = packet_identifier;
 }
 
+uint16_t
+Packet::identifier()
+{
+    return m_packet_identifier;
+}
+
 bool
 Packet::is_response() const
 {
     return m_packet_type == Type::EGTS_PT_RESPONSE;
+}
+
+std::pair<uint16_t, error::Error>
+Packet::response() const
+{
+    return std::pair<uint16_t, error::Error>();
 }
 
 uint16_t
@@ -29,44 +41,90 @@ Packet::frame_data_length() const
     return m_frame_data_length;
 }
 
+Packet
+Packet::make_response(const egts::v1::error::Error &processing_result)
+{
+    Packet response = *this;
+    response.m_response_packet_identifier = m_packet_identifier;
+    response.m_processing_result = processing_result;
+    response.m_packet_type = Type::EGTS_PT_RESPONSE;
+    return response;
+}
+
 using Error = egts::v1::error::Error;
 using Code = egts::v1::error::Code;
 
 Error
-Packet::parse_frame(std::vector<unsigned char> &&buffer) noexcept
+Packet::parse_frame(frame_buffer_type &&buffer) noexcept
 {
     // test size of frame size
     if (buffer.size() != m_frame_data_length + crc_data_length)
     {
         return Error(Code::EGTS_PC_INVDATALEN);
     }
-    mp_data = std::move(buffer);
     // test crc
-    uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end() - crc_data_length);
-
-    uint16_t crc_begin_index = m_frame_data_length;
-    uint16_t got_crc16_val = static_cast<std::uint16_t>(mp_data[crc_begin_index]) |
-                             static_cast<std::uint16_t>(mp_data[crc_begin_index + 1]) << 8;
+    uint16_t crc16_val = egts::v1::crc16(buffer.begin(), buffer.end() - crc_data_length);
+    uint16_t got_crc16_val = static_cast<std::uint16_t>(buffer[m_frame_data_length]) |
+                             static_cast<std::uint16_t>(buffer[m_frame_data_length + 1]) << 8;
 
     if (crc16_val != got_crc16_val)
     {
         return Error(Code::EGTS_PC_DATACRC_ERROR);
     }
     // cut crc value
-    mp_data.resize(m_frame_data_length);
+    buffer.resize(m_frame_data_length);
+    // parse response
+    if (is_response())
+    {
+        if (m_frame_data_length < response_length)
+        {
+            return Error(Code::EGTS_PC_INC_DATAFORM);
+        }
+        m_response_packet_identifier = static_cast<std::uint16_t>(buffer[0]) |
+                                       static_cast<std::uint16_t>(buffer[1]) << 8;
+        m_processing_result = Error(static_cast<Code>(buffer[2]));
+        buffer.erase(buffer.begin(), buffer.begin() + response_length);
+    }
+    m_frame_data_length = buffer.size();
+    mp_data = std::move(buffer);
     return {};
 }
 
-std::vector<unsigned char>
+frame_buffer_type
 Packet::frame() const noexcept
 {
-    assert(m_frame_data_length != mp_data.size());
-    std::vector<unsigned char> ret(m_frame_data_length + crc_data_length);
-    std::copy(mp_data.begin(), mp_data.end(), ret.begin());
-    uint16_t crc16_val = egts::v1::crc16(mp_data.begin(), mp_data.end());
-    ret[m_frame_data_length] = static_cast<std::uint8_t>(crc16_val);
-    ret[m_frame_data_length + 1] = static_cast<std::uint8_t>(crc16_val >> 8);
-    return std::move(ret);
+    if (m_frame_data_length == 0 && !is_response())
+    {
+        return {};
+    }
+
+    auto size = m_frame_data_length + crc_data_length;
+    if (is_response())
+    {
+        size += response_length;
+    }
+
+    frame_buffer_type ret(size);
+    auto ptr = ret.begin();
+
+    if (is_response())
+    {
+        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier & 0xFF);        // 0
+        *ptr++ = static_cast<std::uint8_t>((m_response_packet_identifier >> 8) & 0xFF); // 1
+        *ptr++ = static_cast<std::uint8_t>(m_processing_result);                        // 2
+    }
+
+    if (m_frame_data_length != 0)
+    {
+        std::copy(mp_data.begin(), mp_data.end(), ptr);
+        ptr += m_frame_data_length;
+    }
+
+    uint16_t crc16_val = egts::v1::crc16(ret.begin(), ptr);    
+    *ptr++ = static_cast<std::uint8_t>(crc16_val);
+    *ptr++ = static_cast<std::uint8_t>(crc16_val >> 8);
+
+    return ret;
 }
 
 Error
@@ -115,6 +173,10 @@ Packet::parse_header(const std::array<unsigned char, header_length> &head) noexc
     {
         return Error(Code::EGTS_PC_INVDATALEN);
     }
+    if (is_response() && m_frame_data_length < response_length)
+    {
+        return Error(Code::EGTS_PC_INVDATALEN);
+    }
     // read packet identifier
     m_packet_identifier = static_cast<std::uint16_t>(head[7]) |
                           static_cast<std::uint16_t>(head[8]) << 8;
@@ -125,6 +187,11 @@ Packet::parse_header(const std::array<unsigned char, header_length> &head) noexc
 std::array<unsigned char, header_length>
 Packet::header() const noexcept
 {
+    auto frame_data = m_frame_data_length;
+    if (is_response())
+    {
+        frame_data += response_length;
+    }
     // make packet header
     std::array<unsigned char, header_length> ret{
         protocol_version,                                    // 0
@@ -132,8 +199,8 @@ Packet::header() const noexcept
         flag,                                                // 2
         header_length,                                       // 3
         header_encoding,                                     // 4
-        static_cast<std::uint8_t>(m_frame_data_length),      // 5
-        static_cast<std::uint8_t>(m_frame_data_length >> 8), // 6
+        static_cast<std::uint8_t>(frame_data),               // 5
+        static_cast<std::uint8_t>(frame_data >> 8),          // 6
         static_cast<std::uint8_t>(m_packet_identifier),      // 7
         static_cast<std::uint8_t>(m_packet_identifier >> 8), // 8
         static_cast<uint8_t>(m_packet_type),                 // 9
@@ -142,10 +209,10 @@ Packet::header() const noexcept
     return ret;
 }
 
-std::vector<unsigned char>
+frame_buffer_type
 Packet::buffer() const noexcept
 {
-    std::vector<unsigned char> ret(header_length);
+    frame_buffer_type ret(header_length);
     auto h = header();
     std::copy(h.begin(), h.end(), ret.begin());
     if (m_frame_data_length > 0)
