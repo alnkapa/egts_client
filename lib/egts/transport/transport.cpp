@@ -44,7 +44,7 @@ Packet::frame_data_length() const
 Packet
 Packet::make_response(const egts::v1::error::Error &processing_result)
 {
-    Packet response = *this;
+    Packet response{};
     response.m_response_packet_identifier = m_packet_identifier;
     response.m_processing_result = processing_result;
     response.m_packet_type = Type::EGTS_PT_RESPONSE;
@@ -90,8 +90,21 @@ Packet::parse_frame(frame_buffer_type &&buffer) noexcept
     return {};
 }
 
+void
+Packet::set_frame(frame_buffer_type &&buffer) noexcept
+{
+    mp_data = std::move(buffer);
+    m_frame_data_length = mp_data.size();
+}
+
+frame_buffer_type &&
+Packet::get_frame() noexcept
+{
+    return std::move(mp_data);
+}
+
 frame_buffer_type
-Packet::frame() const noexcept
+Packet::frame_to_buffer() const noexcept
 {
     if (m_frame_data_length == 0 && !is_response())
     {
@@ -128,7 +141,7 @@ Packet::frame() const noexcept
 }
 
 Error
-Packet::parse_header(const std::array<unsigned char, header_length> &head) noexcept
+Packet::parse_header(const header_buffer_type &head) noexcept
 {
     // test protocol_version and PRF
     if (head[0] != protocol_version || (head[2] & 0xC0) != 0)
@@ -184,8 +197,8 @@ Packet::parse_header(const std::array<unsigned char, header_length> &head) noexc
     return {};
 }
 
-std::array<unsigned char, header_length>
-Packet::header() const noexcept
+header_buffer_type
+Packet::header_to_buffer() const noexcept
 {
     auto frame_data = m_frame_data_length;
     if (is_response())
@@ -193,7 +206,7 @@ Packet::header() const noexcept
         frame_data += response_length;
     }
     // make packet header
-    std::array<unsigned char, header_length> ret{
+    header_buffer_type ret{
         protocol_version,                                    // 0
         security_key_id,                                     // 1
         flag,                                                // 2
@@ -213,13 +226,13 @@ frame_buffer_type
 Packet::buffer() const noexcept
 {
     frame_buffer_type ret(header_length);
-    auto h = header();
+    auto h = header_to_buffer();
     std::copy(h.begin(), h.end(), ret.begin());
-    if (m_frame_data_length > 0)
+    auto f = frame_to_buffer();
+    if (!f.empty())
     {
-        ret.resize(header_length + m_frame_data_length + crc_data_length);
-        auto f = frame();
-        std::copy(f.begin(), f.end(), ret.begin());
+        ret.resize(h.size() + f.size());
+        std::copy(f.begin(), f.end(), ret.begin() + h.size());
     }
     return std::move(ret);
 }

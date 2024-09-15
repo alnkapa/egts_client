@@ -13,7 +13,7 @@ using Code = egts::v1::error::Code;
 TEST(PARSE_HEADER, BasicTests)
 {
     Packet pr{};
-    std::array<std::uint8_t, header_length> data1 = {'1', '0', '0', '0', '0', '0', '0', '0', '0'};
+    header_buffer_type data1 = {'1', '0', '0', '0', '0', '0', '0', '0', '0'};
 
     auto er = pr.parse_header(data1);
     if (er != Code::EGTS_PC_UNS_PROTOCOL)
@@ -123,7 +123,7 @@ TEST(PARSE_FRAME, BasicTests)
     Packet pr{};
     std::vector<std::uint8_t> frame = {'1', '1', '1', '1', '1', '1', '1', '1', '1'};
     std::uint16_t frame_data_length = frame.size();
-    std::array<std::uint8_t, header_length> header = {
+    header_buffer_type header = {
         protocol_version,                                  // 0  PRV
         0,                                                 // 1  SKID
         0,                                                 // 2  FLAG
@@ -173,7 +173,7 @@ TEST(PARSE_FRAME, BasicTests)
 TEST(SEND_RECEIVE, BasicTests)
 {
     Packet pr{};
-    auto header_buf = pr.header();
+    auto header_buf = pr.header_to_buffer();
 
     auto er = pr.parse_header(header_buf);
     if (er != Code::EGTS_PC_OK)
@@ -187,7 +187,7 @@ TEST(SEND_RECEIVE_1, BasicTests)
     auto fr = frame_buffer_type{1, 2, 3};
     auto frame_data_length = fr.size();
     Packet pr{};
-    std::array<std::uint8_t, header_length> header = {
+    header_buffer_type header = {
         protocol_version,                                  // 0  PRV
         0,                                                 // 1  SKID
         0,                                                 // 2  FLAG
@@ -216,7 +216,7 @@ TEST(SEND_RECEIVE_1, BasicTests)
         ADD_FAILURE() << "frame failed: error is: " << er.what();
     }
 
-    auto buf = pr.frame();
+    auto buf = pr.frame_to_buffer();
     if (buf != frame_buffer_type{
                    1,
                    2,
@@ -258,7 +258,7 @@ TEST(SEND_RECEIVE_1, BasicTests)
         ADD_FAILURE() << "frame failed: error is: " << er.what();
     }
 
-    buf = pr.frame();
+    buf = pr.frame_to_buffer();
     if (buf != frame_buffer_type{
                    1,
                    2,
@@ -268,6 +268,82 @@ TEST(SEND_RECEIVE_1, BasicTests)
     {
         ADD_FAILURE() << "frame 1 failed: error is: " << buf[0] << buf[1] << buf[2];
     }
+}
+
+TEST(FULL, BasicTests)
+{
+    Packet pr{};
+    pr.identifier(10);
+    pr.set_frame({1, 2, 3});
+    // send to ......
+    auto send_buf = pr.buffer();
+    //
+    // ................
+    //
+    Packet pr1{};
+    header_buffer_type h;
+    std::copy(send_buf.begin(), send_buf.begin() + header_length, h.begin());
+    auto err = pr1.parse_header(h);
+    if (err != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+
+    send_buf.erase(send_buf.begin(), send_buf.begin() + header_length);
+    err = pr1.parse_frame(std::move(send_buf));
+    if (err != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+    //
+    // .................
+    //
+    if (pr.identifier() != pr1.identifier())
+    {
+        ADD_FAILURE() << "error is: " << pr.identifier() << " != " << pr1.identifier();
+    }
+
+    if (pr.frame_to_buffer() != pr1.frame_to_buffer())
+    {
+        ADD_FAILURE() << "error is: " << pr.frame_to_buffer().size() << " != " << pr1.frame_to_buffer().size();
+    }
+    //
+    // .................
+    //
+    auto pr1_resp = pr1.make_response({Code::EGTS_PC_ID_NFOUND});
+    pr1_resp.set_frame({3, 4, 5});
+    pr1_resp.identifier(11);
+    // send to ......
+    send_buf = pr1_resp.buffer();
+    //
+    // .................
+    //
+    Packet pr2{};    
+    std::copy(send_buf.begin(), send_buf.begin() + header_length, h.begin());
+    err = pr2.parse_header(h);
+    if (err != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+
+    send_buf.erase(send_buf.begin(), send_buf.begin() + header_length);
+    err = pr2.parse_frame(std::move(send_buf));
+    if (err != Code::EGTS_PC_OK)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+    //
+    // .................
+    //
+    if (pr1_resp.identifier() != pr2.identifier())
+    {
+        ADD_FAILURE() << "error is: " << pr1_resp.identifier() << " != " << pr2.identifier();
+    }
+
+    if (pr1_resp.get_frame() != pr2.get_frame())
+    {
+        ADD_FAILURE() << "error is: " << pr1_resp.get_frame().size() << " != " << pr2.get_frame().size();
+    }    
 }
 
 int

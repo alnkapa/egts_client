@@ -14,6 +14,7 @@ namespace egts::v1::transport
 {
 
 using frame_buffer_type = std::vector<unsigned char>;
+
 // length crc of frame data
 const u_int8_t crc_data_length = 2;
 
@@ -28,6 +29,8 @@ const std::uint8_t protocol_version{0x1};
 // the length of the Transport Layer header in bytes, including the checksum
 // byte
 const std::uint8_t header_length{11};
+
+using header_buffer_type = std::array<unsigned char, header_length>;
 
 // the parameter SKID defines the identifier of the key used for encryption
 constexpr uint8_t security_key_id{0x0};
@@ -96,14 +99,20 @@ class Packet
     error::Error
     parse_frame(frame_buffer_type &&buffer) noexcept;
 
+    void
+    set_frame(frame_buffer_type &&buffer) noexcept;
+
+    frame_buffer_type &&
+    get_frame() noexcept;
+
     frame_buffer_type
-    frame() const noexcept;
+    frame_to_buffer() const noexcept;
 
     error::Error
-    parse_header(const std::array<unsigned char, header_length> &) noexcept;
+    parse_header(const header_buffer_type &) noexcept;
 
-    std::array<unsigned char, header_length>
-    header() const noexcept;
+    header_buffer_type
+    header_to_buffer() const noexcept;
 
     frame_buffer_type
     buffer() const noexcept;

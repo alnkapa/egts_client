@@ -52,7 +52,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
     void
-    async_do_read_header()
+    async_do_read_header_to_buffer()
     {
         std::array<unsigned char, egts::v1::transport::header_length> header;
         boost::asio::async_read(
@@ -84,7 +84,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             {
                                 auto rsp_pkg = pkg->make_response(err);
                                 self->m_queue.wait_for_push(std::move(rsp_pkg));
-                                self->async_do_read_header();
+                                self->async_do_read_header_to_buffer();
                             }
                         }
                     }
@@ -129,7 +129,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             if (resp.second.OK())
                             {
                                 self->m_queue.mark_as_confirmed(resp.first);
-                                self->async_do_read_header();
+                                self->async_do_read_header_to_buffer();
                             }
                             else
                             {
@@ -140,7 +140,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                         {
                             auto rsp_pkg = pkg->make_response(err);
                             self->m_queue.wait_for_push(std::move(rsp_pkg));
-                            self->async_do_read_header();
+                            self->async_do_read_header_to_buffer();
                         }
                     }
                     else
@@ -169,7 +169,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     start_client()
     {
         async_do_write();
-        async_do_read_header();
+        async_do_read_header_to_buffer();
     }
 };
 
