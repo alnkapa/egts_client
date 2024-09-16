@@ -13,7 +13,8 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
 {
   private:
     boost::asio::ip::tcp::socket m_socket;
-    Queue &m_queue;
+    boost::asio::io_context &m_io_context;
+    StateLessQueue &m_queue;
     std::atomic<std::uint16_t> packet_number{0};
 
     boost::system::error_code
@@ -25,12 +26,15 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
     void
-    async_do_write()
+    async_do_write(egts::v1::transport::Packet &&pkg)
     {
-        auto pkg = std::move(m_queue.wait_for_send());
         pkg.identifier(++packet_number);
         auto buf = std::move(pkg.buffer());
-        m_queue.wait_for_confirmed(std::move(pkg));
+        // m_queue.wait_for_confirmed(
+        //     [self = shared_from_this()](egts::v1::transport::Packet &&pkg)
+        //     {
+        //         self->async_do_write(std::move(pkg));
+        //     });
         boost::asio::async_write(
             m_socket,
             boost::asio::buffer(buf),
@@ -41,7 +45,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                 if (!ec)
                 {
                     std::cerr << "write header size: " << bytes_transferred << std::endl;
-                    self->async_do_write();
+                    // self->wait_for_send();
                 }
                 else
                 {
@@ -83,7 +87,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             else
                             {
                                 auto rsp_pkg = pkg->make_response(err);
-                                self->m_queue.wait_for_push(std::move(rsp_pkg));
+                                // self->m_queue.wait_for_push(std::move(rsp_pkg));
                                 self->async_do_read_header_to_buffer();
                             }
                         }
@@ -128,7 +132,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                             auto resp = pkg->response();
                             if (resp.second.OK())
                             {
-                                self->m_queue.mark_as_confirmed(resp.first);
+                                // self->m_queue.mark_as_confirmed(resp.first);
                                 self->async_do_read_header_to_buffer();
                             }
                             else
@@ -139,7 +143,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
                         else
                         {
                             auto rsp_pkg = pkg->make_response(err);
-                            self->m_queue.wait_for_push(std::move(rsp_pkg));
+                            // self->m_queue.wait_for_push(std::move(rsp_pkg));
                             self->async_do_read_header_to_buffer();
                         }
                     }
@@ -162,13 +166,19 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
   public:
-    StateLessReaderWriter(boost::asio::ip::tcp::socket socket, Queue &queue)
-        : m_socket(std::move(socket)), m_queue(queue) {}
+    StateLessReaderWriter(boost::asio::io_context &io_context, boost::asio::ip::tcp::socket socket, StateLessQueue &queue)
+        : m_io_context(io_context), m_socket(std::move(socket)), m_queue(queue)
+    {
+        m_queue.subscribe(
+            [self = shared_from_this()](egts::v1::transport::Packet &&pkg)
+            {
+                self->async_do_write(std::move(pkg));
+            });
+    }
 
     void
     start_client()
     {
-        async_do_write();
         async_do_read_header_to_buffer();
     }
 };
@@ -180,7 +190,7 @@ main(int argc, char *argv[])
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints;
     boost::asio::ip::tcp::socket socket(io_context);
-    Queue queue(io_context);
+    StateLessQueue queue(io_context);
 
     while (g_unsuccess_send_attempts < MAX_SEND_TRY)
     {
@@ -188,7 +198,7 @@ main(int argc, char *argv[])
         {
             endpoints = resolver.resolve("alfa.shatl-t.ru", "34329");
             boost::asio::connect(socket, endpoints);
-            std::make_shared<StateLessReaderWriter>(std::move(socket), queue)->start_client();
+            std::make_shared<StateLessReaderWriter>(io_context, std::move(socket), queue)->start_client();
             io_context.run();
         }
         catch (const std::exception &e)
