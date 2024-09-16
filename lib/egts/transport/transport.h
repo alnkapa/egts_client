@@ -82,7 +82,7 @@ class Packet
     identifier(uint16_t packet_identifier);
 
     uint16_t
-    identifier();
+    identifier() const;
 
     bool
     is_response() const;
@@ -116,7 +116,24 @@ class Packet
 
     frame_buffer_type
     buffer() const noexcept;
+
+    bool
+    operator==(const Packet &other) const;
 };
 
 } // namespace egts::v1::transport
+
+namespace std
+{
+template <>
+struct hash<egts::v1::transport::Packet>
+{
+    std::size_t
+    operator()(const egts::v1::transport::Packet &in) const
+    {
+        return static_cast<std::size_t>(in.identifier());
+    }
+};
+} // namespace std
+
 #endif /* TRANSPORT_H */

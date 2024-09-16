@@ -13,7 +13,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
 {
   private:
     boost::asio::ip::tcp::socket m_socket;
-    Queue<egts::v1::transport::Packet, std::uint16_t> m_queue;
+    Queue &m_queue;
     std::atomic<std::uint16_t> packet_number{0};
 
     boost::system::error_code
@@ -27,20 +27,20 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     void
     async_do_write()
     {
-        auto pkg = m_queue.wait_for_send();
-        auto number = ++packet_number;
-        pkg.identifier(number);
+        auto pkg = std::move(m_queue.wait_for_send());
+        pkg.identifier(++packet_number);
+        auto buf = std::move(pkg.buffer());
+        m_queue.wait_for_confirmed(std::move(pkg));
         boost::asio::async_write(
             m_socket,
-            boost::asio::buffer(pkg.buffer()),
-            [self = shared_from_this(), number](
+            boost::asio::buffer(buf),
+            [self = shared_from_this()](
                 const boost::system::error_code &ec,
                 std::size_t bytes_transferred)
             {
                 if (!ec)
                 {
                     std::cerr << "write header size: " << bytes_transferred << std::endl;
-                    self->m_queue.mark_as_sent(number);
                     self->async_do_write();
                 }
                 else
@@ -106,7 +106,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     void
     async_do_read_frame(std::unique_ptr<egts::v1::transport::Packet> pkg)
     {
-         egts::v1::transport::frame_buffer_type frame(
+        egts::v1::transport::frame_buffer_type frame(
             pkg->frame_data_length() +
                 egts::v1::transport::crc_data_length,
             0);
@@ -162,7 +162,7 @@ class StateLessReaderWriter : public std::enable_shared_from_this<StateLessReade
     }
 
   public:
-    StateLessReaderWriter(boost::asio::ip::tcp::socket socket, Queue<egts::v1::transport::Packet, std::uint16_t> queue)
+    StateLessReaderWriter(boost::asio::ip::tcp::socket socket, Queue &queue)
         : m_socket(std::move(socket)), m_queue(queue) {}
 
     void
@@ -180,7 +180,7 @@ main(int argc, char *argv[])
     boost::asio::ip::tcp::resolver resolver(io_context);
     boost::asio::ip::tcp::resolver::results_type endpoints;
     boost::asio::ip::tcp::socket socket(io_context);
-    Queue<egts::v1::transport::Packet, std::uint16_t> queue;
+    Queue queue(io_context);
 
     while (g_unsuccess_send_attempts < MAX_SEND_TRY)
     {

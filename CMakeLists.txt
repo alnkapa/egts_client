@@ -27,7 +27,7 @@ endif()
 
 add_subdirectory(lib/egts/transport)
 
-add_executable(egts_client main.cpp)
+add_executable(egts_client main.cpp queue.cpp)
 
 
 target_include_directories(

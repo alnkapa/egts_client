@@ -18,7 +18,7 @@ Packet::identifier(uint16_t packet_identifier)
 }
 
 uint16_t
-Packet::identifier()
+Packet::identifier() const
 {
     return m_packet_identifier;
 }
@@ -235,5 +235,11 @@ Packet::buffer() const noexcept
         std::copy(f.begin(), f.end(), ret.begin() + h.size());
     }
     return std::move(ret);
+}
+
+bool
+Packet::operator==(const Packet &other) const
+{
+    return m_packet_identifier == other.m_packet_identifier;
 }
 } // namespace egts::v1::transport
