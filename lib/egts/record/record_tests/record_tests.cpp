@@ -92,32 +92,6 @@ TEST(PARSE1, BasicTests)
             ADD_FAILURE() << "error: " << data[i] << " !=  " << rez1[i];
         };
     }
-    // data.resize(7 + 10);
-    // length = 10;
-    // data[0] = static_cast<std::uint8_t>(length);      // Младший байт
-    // data[1] = static_cast<std::uint8_t>(length >> 8); // Старший байт
-    // data[2] = static_cast<std::uint8_t>(33);          // Младший байт
-    // data[3] = static_cast<std::uint8_t>(33 >> 8);     // Старший байт
-    // data[4] = static_cast<std::uint8_t>(0);           // flag
-    // data[5] = static_cast<std::uint8_t>(1);           // SST
-    // data[6] = static_cast<std::uint8_t>(2);           // RST
-    // std::fill(data.begin() + 7, data.end(), 44);
-
-    // record::record_payload_type s2(data.cbegin(), data.cend());
-    // ptr = s2.begin();
-    // er = rd.parse(s2, ptr);
-    // if (er != error::Code::EGTS_PC_OK)
-    // {
-    //     ADD_FAILURE() << "error: " << er.what();
-    // }
-    // auto rez = rd.data();
-    // for (auto i = 0; i < 10; ++i)
-    // {
-    //     if (data[i + 7] != rez[i])
-    //     {
-    //         ADD_FAILURE() << "error: " << data[i + 7] << " !=  " << rez[i];
-    //     };
-    // }
 }
 
 int
