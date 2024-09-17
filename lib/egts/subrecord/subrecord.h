@@ -138,26 +138,16 @@ class SubRecord
     error::Error
     parse(record_payload_type, record_payload_type::iterator &) noexcept;
 
-    // uint16_t
-    // record_number() const;
+    Type
+    type() const;
 
-    // record_payload_type
-    // data() const;
-
-    // uint8_t
-    // source_service_type() const;
-
-    // uint8_t
-    // recipient_service_type() const;
+    record_payload_type
+    data() const;
 };
 
-// // make record buffer from subrecord buffer
-// frame_buffer_type
-// wrapper(
-//     uint16_t record_number,
-//     uint8_t source_service_type,
-//     uint8_t recipient_service_type,
-//     frame_buffer_type &&data);
+// make a subrecord buffer from a specific subrecord buffer.
+frame_buffer_type
+wrapper(Type type, frame_buffer_type &&data);
 
 } // namespace egts::v1::record::subrecord
 

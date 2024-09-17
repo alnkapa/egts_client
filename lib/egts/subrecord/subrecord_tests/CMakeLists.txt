@@ -13,6 +13,6 @@ target_include_directories(
 
 target_link_libraries(subrecord_tests GTest::GTest GTest::Main subrecord)
 
-# add_test(NAME PARSE COMMAND subrecord_tests)
+add_test(NAME PARSE COMMAND subrecord_tests)
 
-# add_test(NAME PARSE1 COMMAND subrecord_tests)
+add_test(NAME PARSE1 COMMAND subrecord_tests)
