@@ -2,7 +2,6 @@
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
 #include "../crc/crc.h"
-#include "../egts.h"
 #include "../error/error.h"
 #include <span>
 #include <array>
