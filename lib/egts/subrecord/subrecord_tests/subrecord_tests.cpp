@@ -68,7 +68,7 @@ TEST(PARSE1, BasicTests)
     }
     if (srd.type() != subrecord::Type::EGTS_SR_ABS_CNTR_DATA)
     {
-        ADD_FAILURE() << "error: " << srd.type() << " != " << subrecord::Type::EGTS_SR_ABS_CNTR_DATA;
+        ADD_FAILURE() << "error: " << static_cast<std::uint8_t>(srd.type()) << " != " << static_cast<std::uint8_t>(subrecord::Type::EGTS_SR_ABS_CNTR_DATA);
     }
 
     auto rez1 = srd.data();

@@ -1,5 +1,6 @@
 #include "lib/egts/error/error.h"
 #include "lib/egts/record/record.h"
+#include "lib/egts/subrecord/subrecord.h"
 #include "lib/egts/transport/transport.h"
 #include "queue.h"
 #include <atomic>
@@ -74,8 +75,19 @@ my_read(tcp::socket &socket) noexcept
                 std::cerr << "transport: record: error: " << err.what() << std::endl;
                 return;
             }
-            // subrecord
-            
+            // subrecord level
+            auto sub_buffer = rec.data();
+            auto sub_ptr = buffer.begin();
+            while (sub_ptr != sub_buffer.end())
+            {
+                record::subrecord::SubRecord s_rec{};
+                auto err = s_rec.parse(sub_buffer, sub_ptr);
+                if (err != error::Code::EGTS_PC_OK)
+                {
+                    std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
+                    return;
+                }
+            }
         }
     }
 }
