@@ -1,4 +1,5 @@
 #include "lib/egts/error/error.h"
+#include "lib/egts/record/record.h"
 #include "lib/egts/transport/transport.h"
 #include "queue.h"
 #include <atomic>
@@ -59,8 +60,22 @@ my_read(tcp::socket &socket) noexcept
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             return;
         }
+
         std::cout << "transport: read: size: " << transport::header_length + pkg.frame_data_length() + transport::crc_data_length << std::endl;
-        // TODO: call record parser
+        // record level
+        auto buffer = pkg.get_frame();
+        auto ptr = buffer.begin();
+        while (ptr != buffer.end())
+        {
+            record::Record rec{};
+            auto err = rec.parse(buffer, ptr);
+            if (err != error::Code::EGTS_PC_OK)
+            {
+                std::cerr << "transport: record: error: " << err.what() << std::endl;
+                return;
+            }
+            
+        }
     }
 }
 
@@ -96,7 +111,7 @@ main(int argc, char *argv[])
             g_running = false;
             std::cerr << "transport: write: error: " << ec.message() << std::endl;
             return EXIT_FAILURE;
-        }        
+        }
     }
     return EXIT_SUCCESS;
 }

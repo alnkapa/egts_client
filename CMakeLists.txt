@@ -26,6 +26,7 @@ endif()
 
 
 add_subdirectory(lib/egts/transport)
+add_subdirectory(lib/egts/record)
 
 add_executable(egts_client main.cpp queue.cpp)
 
@@ -39,39 +40,7 @@ target_include_directories(
 target_link_libraries(
     egts_client 
     PRIVATE 
-    transport 
+    transport
+    record
     ${Boost_LIBRARIES}
 )
-
-add_executable(1 1.cpp)
-
-target_include_directories(
-    1 
-    PRIVATE 
-    ${Boost_INCLUDE_DIRS}
-)
-
-target_link_libraries(
-    1
-    PRIVATE 
-    transport 
-    ${Boost_LIBRARIES}
-)
-
-
-# find_package(Boost REQUIRED COMPONENTS system)
-
-# target_link_libraries(egts_client transport)
-
-
-# add_subdirectory(lib)
-
-
-# if(BUILD_TESTING)
-#   # ... CMake code to create tests ...
-#     find_package(GTest REQUIRED)
-#     add_executable(test_endian test.cpp)
-#     target_link_libraries(test_endian GTest::gtest_main)
-#     add_test(reverse test_endian)
-#     enable_testing()
-# endif()

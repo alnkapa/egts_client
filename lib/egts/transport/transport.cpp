@@ -4,12 +4,9 @@
 #include <algorithm>
 #include <cassert>
 #include <iterator>
+#include <span>
 namespace egts::v1::transport
 {
-
-Packet::Packet() {}
-
-Packet::~Packet() {}
 
 void
 Packet::identifier(uint16_t packet_identifier)
@@ -97,10 +94,10 @@ Packet::set_frame(frame_buffer_type &&buffer) noexcept
     m_frame_data_length = mp_data.size();
 }
 
-frame_buffer_type &&
-Packet::get_frame() noexcept
+record_payload_type
+Packet::get_frame() const noexcept
 {
-    return std::move(mp_data);
+    return record_payload_type(mp_data.cbegin(), mp_data.cend());
 }
 
 frame_buffer_type

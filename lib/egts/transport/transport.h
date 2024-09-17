@@ -4,6 +4,7 @@
 #include "../crc/crc.h"
 #include "../egts.h"
 #include "../error/error.h"
+#include <span>
 #include <array>
 #include <cstdint>  // uint8_t
 #include <stddef.h> // size_t
@@ -14,6 +15,8 @@ namespace egts::v1::transport
 {
 
 using frame_buffer_type = std::vector<unsigned char>;
+
+using record_payload_type = std::span<const unsigned char>;
 
 // length crc of frame data
 const u_int8_t crc_data_length = 2;
@@ -74,9 +77,6 @@ class Packet
     error::Error m_processing_result{};
 
   public:
-    Packet();
-
-    virtual ~Packet();
 
     void
     identifier(uint16_t packet_identifier);
@@ -102,8 +102,8 @@ class Packet
     void
     set_frame(frame_buffer_type &&buffer) noexcept;
 
-    frame_buffer_type &&
-    get_frame() noexcept;
+    record_payload_type
+    get_frame() const noexcept;
 
     frame_buffer_type
     frame_to_buffer() const noexcept;
