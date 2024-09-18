@@ -48,7 +48,7 @@ Record::parse(record_payload_type buffer, record_payload_type::iterator &ptr) no
     // NO NEED
     // std::uint8_t rpp = (flag & 0x16) >> 3;
 
-    if (flag & 0x01 != 0) // OBFE
+    if ((flag & 0x01) != 0) // OBFE
     {
         if (!has_remaining_bytes(4))
         {
@@ -58,7 +58,7 @@ Record::parse(record_payload_type buffer, record_payload_type::iterator &ptr) no
         ptr += 4; // UINT
     }
 
-    if (flag & 0x02 != 0) // EVFE
+    if ((flag & 0x02) != 0) // EVFE
     {
         if (!has_remaining_bytes(4))
         {
@@ -68,7 +68,7 @@ Record::parse(record_payload_type buffer, record_payload_type::iterator &ptr) no
         ptr += 4; // UINT
     }
 
-    if (flag & 0x04 != 0) // tmfe
+    if ((flag & 0x04) != 0) // tmfe
     {
         if (!has_remaining_bytes(4))
         {
