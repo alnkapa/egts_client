@@ -29,6 +29,7 @@ add_subdirectory(lib/egts/transport)
 add_subdirectory(lib/egts/record)
 add_subdirectory(lib/egts/subrecord)
 add_subdirectory(lib/egts/subrecord/sr_record_response)
+add_subdirectory(lib/egts/subrecord/sr_result_code)
 
 add_executable(egts_client main.cpp queue.cpp)
 
@@ -46,5 +47,6 @@ target_link_libraries(
     record
     subrecord
     sr_record_response
+    sr_result_code
     ${Boost_LIBRARIES}
 )
