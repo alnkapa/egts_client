@@ -30,6 +30,17 @@ main(int argc, char *argv[])
     // run reader
     std::thread receiver(my_read, std::ref(socket));
 
+    // auth step
+    try
+    {
+        auth(socket);
+    }
+    catch (const std::exception &e)
+    {
+        // Смотреть на ошибку и, если необходимо, перезапустить клиента.
+        std::cerr << "error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    };
 
     // run sender
     boost::system::error_code ec;

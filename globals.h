@@ -8,10 +8,14 @@
 
 using boost::asio::ip::tcp;
 
-// inline std::atomic<bool> g_running(true);
+inline std::atomic<std::uint16_t> g_record_number(0);
+inline std::atomic<std::uint16_t> g_packet_identifier(0);
 inline MyPacketQueue g_send_queue{};
 
 void
 my_read(tcp::socket &socket) noexcept;
+
+void
+auth(tcp::socket &socket);
 
 #endif // GLOBALS_H

@@ -10,6 +10,31 @@
 namespace egts::v1::record
 {
 
+enum class ServiceType
+{
+    // This service type is used for the authentication procedure
+    // of the ASN (Authorized Terminal) on the Authorizing Terminal. When using the TCP/IP protocol as a transport,
+    // the ASN (Authorized Terminal) must undergo this procedure, and only after successful completion of this procedure
+    // does further interaction take place.
+    EGTS_AUTH_SERVICE = 1,
+
+    // This service is intended for processing telematics information
+    // (coordinate data, sensor activation data, etc.) received from the ASN.
+    // The service is described in Appendix B of this GOST.
+    EGTS_TELEDATA_SERVICE = 2,
+
+    // This service type is intended for processing control and configuration commands,
+    // informational messages, and statuses transmitted between the ASN, TP, and operators.
+    EGTS_COMMANDS_SERVICE = 4,
+
+    // This service is intended for transmitting configuration and the actual software
+    // (SW) of the hardware part of the ASN, as well as various peripheral equipment connected
+    // to the ASN that supports the possibility of remote software updates.
+    EGTS_FIRMWARE_SERVICE = 9,
+
+    EGTS_ECALL_SERVICE = 10
+};
+
 using frame_buffer_type = std::vector<unsigned char>;
 
 using record_payload_type = std::span<const unsigned char>;
@@ -32,8 +57,8 @@ class Record
     // The value of this field is used for record confirmation.
     uint16_t m_record_number{0};
 
-    uint8_t m_source_service_type{};
-    uint8_t m_recipient_service_type{};
+    ServiceType m_source_service_type{};
+    ServiceType m_recipient_service_type{};
 
     // record payload
     record_payload_type mp_data;
@@ -48,10 +73,10 @@ class Record
     record_payload_type
     data() const;
 
-    uint8_t
+    ServiceType
     source_service_type() const;
 
-    uint8_t
+    ServiceType
     recipient_service_type() const;
 };
 
@@ -59,8 +84,8 @@ class Record
 frame_buffer_type
 wrapper(
     uint16_t record_number,
-    uint8_t source_service_type,
-    uint8_t recipient_service_type,
+    ServiceType source_service_type,
+    ServiceType recipient_service_type,
     frame_buffer_type &&data);
 
 } // namespace egts::v1::record

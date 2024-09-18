@@ -82,8 +82,8 @@ Record::parse(record_payload_type buffer, record_payload_type::iterator &ptr) no
     {
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }
-    m_source_service_type = *ptr++;
-    m_recipient_service_type = *ptr++;
+    m_source_service_type = static_cast<ServiceType>(*ptr++);
+    m_recipient_service_type = static_cast<ServiceType>(*ptr++);
 
     if (!has_remaining_bytes(m_record_length))
     {
@@ -109,20 +109,20 @@ Record::data() const
     return mp_data;
 }
 
-uint8_t
+ServiceType
 Record::source_service_type() const
 {
     return m_source_service_type;
 }
 
-uint8_t
+ServiceType
 Record::recipient_service_type() const
 {
     return m_recipient_service_type;
 }
 
 frame_buffer_type
-wrapper(uint16_t record_number, uint8_t source_service_type, uint8_t recipient_service_type, frame_buffer_type &&data)
+wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType recipient_service_type, frame_buffer_type &&data)
 {
     if (data.size() > max_frame_size)
     {

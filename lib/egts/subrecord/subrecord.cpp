@@ -9,7 +9,7 @@ error::Error
 SubRecord::parse(record_payload_type buffer, record_payload_type::iterator &ptr) noexcept
 {
     auto begin = ptr;
-    
+
     if (!has_remaining_bytes(buffer, ptr, 3))
     {
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
@@ -23,7 +23,7 @@ SubRecord::parse(record_payload_type buffer, record_payload_type::iterator &ptr)
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }
 
-    if (!has_remaining_bytes(buffer, ptr,m_length))
+    if (!has_remaining_bytes(buffer, ptr, m_length))
     {
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }

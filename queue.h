@@ -1,3 +1,5 @@
+#include "lib/egts/subrecord/sr_record_response/sr_record_response.h"
+#include "lib/egts/subrecord/sr_result_code/sr_result_code.h"
 #include "lib/egts/transport/transport.h"
 #include <condition_variable>
 #include <mutex>

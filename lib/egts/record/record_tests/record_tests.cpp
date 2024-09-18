@@ -61,7 +61,7 @@ TEST(PARSE, BasicTests)
 TEST(PARSE1, BasicTests)
 {
 
-    auto rez = record::wrapper(10, 3, 5, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+    auto rez = record::wrapper(10, record::ServiceType::EGTS_AUTH_SERVICE, record::ServiceType::EGTS_COMMANDS_SERVICE, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
     record::Record rd{};
     record::record_payload_type s(rez.cbegin(), rez.cend());
     auto ptr = s.begin();
@@ -74,14 +74,14 @@ TEST(PARSE1, BasicTests)
     {
         ADD_FAILURE() << "error: " << rd.record_number() << " != " << 10;
     }
-    if (rd.source_service_type() != 3)
+    if (rd.source_service_type() != record::ServiceType::EGTS_AUTH_SERVICE)
     {
-        ADD_FAILURE() << "error: " << rd.source_service_type() << " != " << 3;
+        ADD_FAILURE() << "error: " << static_cast<std::uint8_t>(rd.source_service_type()) << " != " << static_cast<std::uint8_t>(record::ServiceType::EGTS_AUTH_SERVICE);
     }
 
-    if (rd.recipient_service_type() != 5)
+    if (rd.recipient_service_type() != record::ServiceType::EGTS_COMMANDS_SERVICE)
     {
-        ADD_FAILURE() << "error: " << rd.recipient_service_type() << " != " << 5;
+        ADD_FAILURE() << "error: " << static_cast<std::uint8_t>(rd.recipient_service_type()) << " != " << static_cast<std::uint8_t>(record::ServiceType::EGTS_COMMANDS_SERVICE);
     }
     auto rez1 = rd.data();
     auto data = std::vector{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};

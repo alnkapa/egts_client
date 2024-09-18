@@ -32,7 +32,7 @@ add_subdirectory(lib/egts/subrecord/sr_record_response)
 add_subdirectory(lib/egts/subrecord/sr_result_code)
 add_subdirectory(lib/egts/subrecord/sr_term_identity)
 
-add_executable(egts_client main.cpp reader.cpp queue.cpp)
+add_executable(egts_client main.cpp reader.cpp auth.cpp queue.cpp)
 
 
 target_include_directories(
