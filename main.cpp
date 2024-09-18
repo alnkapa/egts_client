@@ -1,5 +1,6 @@
 #include "lib/egts/error/error.h"
 #include "lib/egts/record/record.h"
+#include "lib/egts/subrecord/sr_record_response/sr_record_response.h"
 #include "lib/egts/subrecord/subrecord.h"
 #include "lib/egts/transport/transport.h"
 #include "queue.h"
@@ -86,7 +87,7 @@ my_read(tcp::socket &socket) noexcept
             while (sub_ptr != sub_buffer.end())
             {
                 subrecord::SubRecord s_rec{};
-                auto err = s_rec.parse(sub_buffer, sub_ptr);
+                err = s_rec.parse(sub_buffer, sub_ptr);
                 if (err != error::Code::EGTS_PC_OK)
                 {
                     // TODO: обработать ошибку
@@ -98,6 +99,8 @@ my_read(tcp::socket &socket) noexcept
                 switch (s_rec.type())
                 {
                 case subrecord::Type::EGTS_SR_RECORD_RESPONSE:
+                    subrecord::SRRecordResponse sub_rec;
+                    err = sub_rec.parse(s_rec.data());
                     break;
                 case subrecord::Type::EGTS_SR_RESULT_CODE:
                     break;
@@ -110,6 +113,13 @@ my_read(tcp::socket &socket) noexcept
                 default:
                     // The rest is simply ignored.
                     break;
+                }
+                if (err != error::Code::EGTS_PC_OK)
+                {
+                    // TODO: обработать ошибку
+                    g_running = false;
+                    std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
+                    return;
                 }
             }
         }
