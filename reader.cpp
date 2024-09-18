@@ -16,38 +16,30 @@ my_read(tcp::socket &socket) noexcept
     transport::header_buffer_type header_buffer{};
     boost::system::error_code ec;
     error::Error err;
-    while (g_running)
+    // read header
+    boost::asio::read(socket, boost::asio::buffer(header_buffer), boost::asio::transfer_all(), ec);
+    if (ec)
     {
-        // read header
-        boost::asio::read(socket, boost::asio::buffer(header_buffer), boost::asio::transfer_all(), ec);
-        if (ec)
-        {
-            // TODO: обработать ошибку
-            g_running = false;
-            std::cerr << "transport: read: error: " << ec.message() << std::endl;
-            return;
-        }
-        transport::Packet pkg{};
-        err = pkg.parse_header(header_buffer);
-        if (err != error::Code::EGTS_PC_OK)
-        {
-            // TODO: обработать ошибку
-            g_running = false;
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
-            return;
-        }
-        if (pkg.frame_data_length() == 0)
-        {
-            continue;
-        }
-
+        // TODO: обработать ошибку
+        std::cerr << "transport: read: error: " << ec.message() << std::endl;
+        return;
+    }
+    transport::Packet pkg{};
+    err = pkg.parse_header(header_buffer);
+    if (err != error::Code::EGTS_PC_OK)
+    {
+        // TODO: обработать ошибку
+        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        return;
+    }
+    if (pkg.frame_data_length() > 0)
+    {
         // read payload
         transport::frame_buffer_type frame_buffer(pkg.frame_data_length() + transport::crc_data_length, 0);
         boost::asio::read(socket, boost::asio::buffer(frame_buffer), boost::asio::transfer_all(), ec);
         if (ec)
         {
             // TODO: обработать ошибку
-            g_running = false;
             std::cerr << "transport: read: error: " << ec.message() << std::endl;
             return;
         }
@@ -55,7 +47,6 @@ my_read(tcp::socket &socket) noexcept
         if (err != error::Code::EGTS_PC_OK)
         {
             // TODO: обработать ошибку
-            g_running = false;
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             return;
         }
@@ -71,7 +62,6 @@ my_read(tcp::socket &socket) noexcept
             if (err != error::Code::EGTS_PC_OK)
             {
                 // TODO: обработать ошибку
-                g_running = false;
                 std::cerr << "transport: record: error: " << err.what() << std::endl;
                 return;
             }
@@ -86,7 +76,6 @@ my_read(tcp::socket &socket) noexcept
                 if (err != error::Code::EGTS_PC_OK)
                 {
                     // TODO: обработать ошибку
-                    g_running = false;
                     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
                     return;
                 }
@@ -117,7 +106,6 @@ my_read(tcp::socket &socket) noexcept
                 if (err != error::Code::EGTS_PC_OK)
                 {
                     // TODO: обработать ошибку
-                    g_running = false;
                     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
                     return;
                 }
