@@ -9,18 +9,8 @@ error::Error
 SubRecord::parse(record_payload_type buffer, record_payload_type::iterator &ptr) noexcept
 {
     auto begin = ptr;
-
-    //!! warning copy code !!
-    auto has_remaining_bytes = [&buffer, &ptr](std::size_t x)
-    {
-        if (ptr < buffer.begin() || ptr > buffer.end())
-        {
-            return false;
-        }
-        return std::distance(ptr, buffer.end()) >= x;
-    };
-
-    if (!has_remaining_bytes(3))
+    
+    if (!has_remaining_bytes(buffer, ptr, 3))
     {
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }
@@ -33,7 +23,7 @@ SubRecord::parse(record_payload_type buffer, record_payload_type::iterator &ptr)
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }
 
-    if (!has_remaining_bytes(m_length))
+    if (!has_remaining_bytes(buffer, ptr,m_length))
     {
         return error::Error(error::Code::EGTS_PC_INVDATALEN);
     }

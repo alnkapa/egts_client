@@ -36,6 +36,7 @@ my_read(tcp::socket &socket) noexcept
         if (err != error::Code::EGTS_PC_OK)
         {
             // TODO: обработать ошибку
+            g_running = false;
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             return;
         }
@@ -58,6 +59,7 @@ my_read(tcp::socket &socket) noexcept
         if (err != error::Code::EGTS_PC_OK)
         {
             // TODO: обработать ошибку
+            g_running = false;
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             return;
         }
@@ -72,20 +74,42 @@ my_read(tcp::socket &socket) noexcept
             auto err = rec.parse(buffer, ptr);
             if (err != error::Code::EGTS_PC_OK)
             {
+                // TODO: обработать ошибку
+                g_running = false;
                 std::cerr << "transport: record: error: " << err.what() << std::endl;
                 return;
             }
+            using namespace egts::v1::record;
             // subrecord level
             auto sub_buffer = rec.data();
             auto sub_ptr = buffer.begin();
             while (sub_ptr != sub_buffer.end())
             {
-                record::subrecord::SubRecord s_rec{};
+                subrecord::SubRecord s_rec{};
                 auto err = s_rec.parse(sub_buffer, sub_ptr);
                 if (err != error::Code::EGTS_PC_OK)
                 {
+                    // TODO: обработать ошибку
+                    g_running = false;
                     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
                     return;
+                }
+                // Only these subrecords may come from the server.
+                switch (s_rec.type())
+                {
+                case subrecord::Type::EGTS_SR_RECORD_RESPONSE:
+                    break;
+                case subrecord::Type::EGTS_SR_RESULT_CODE:
+                    break;
+                case subrecord::Type::EGTS_SR_SERVICE_PART_DATA:
+                    break;
+                case subrecord::Type::EGTS_SR_SERVICE_FULL_DATA:
+                    break;
+                case subrecord::Type::EGTS_SR_COMMAND_DATA:
+                    break;
+                default:
+                    // The rest is simply ignored.
+                    break;
                 }
             }
         }
