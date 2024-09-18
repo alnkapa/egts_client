@@ -1,6 +1,7 @@
 #include "lib/egts/error/error.h"
 #include "lib/egts/record/record.h"
 #include "lib/egts/subrecord/sr_record_response/sr_record_response.h"
+#include "lib/egts/subrecord/sr_result_code/sr_result_code.h"
 #include "lib/egts/subrecord/subrecord.h"
 #include "lib/egts/transport/transport.h"
 #include "queue.h"
@@ -99,16 +100,21 @@ my_read(tcp::socket &socket) noexcept
                 switch (s_rec.type())
                 {
                 case subrecord::Type::EGTS_SR_RECORD_RESPONSE:
-                    subrecord::SRRecordResponse sub_rec;
-                    err = sub_rec.parse(s_rec.data());
+                    subrecord::SRRecordResponse sub_rec_resp;
+                    err = sub_rec_resp.parse(s_rec.data());
                     break;
                 case subrecord::Type::EGTS_SR_RESULT_CODE:
+                    subrecord::SrResultCode sub_rec_code;
+                    err = sub_rec_code.parse(s_rec.data());
                     break;
                 case subrecord::Type::EGTS_SR_SERVICE_PART_DATA:
+                    // TODO
                     break;
                 case subrecord::Type::EGTS_SR_SERVICE_FULL_DATA:
+                    // TODO
                     break;
                 case subrecord::Type::EGTS_SR_COMMAND_DATA:
+                    // TODO
                     break;
                 default:
                     // The rest is simply ignored.
