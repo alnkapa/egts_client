@@ -28,7 +28,7 @@ SRRecordResponse::buffer() const noexcept
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number);      // 0
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number >> 8); // 1
     *ptr++ = static_cast<std::uint8_t>(record_status);                // 2
-    return std::move(buffer);
+    return buffer;
 }
 
 } // namespace egts::v1::record::subrecord

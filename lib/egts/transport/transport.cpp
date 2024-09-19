@@ -231,7 +231,7 @@ Packet::buffer() const noexcept
         ret.resize(h.size() + f.size());
         std::copy(f.begin(), f.end(), ret.begin() + h.size());
     }
-    return std::move(ret);
+    return ret;
 }
 
 bool

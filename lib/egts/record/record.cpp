@@ -140,7 +140,7 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
     *ptr++ = static_cast<std::uint8_t>(source_service_type);    // 5
     *ptr++ = static_cast<std::uint8_t>(recipient_service_type); // 6
     buffer.insert(ptr, std::make_move_iterator(data.begin()), std::make_move_iterator(data.end()));
-    return std::move(buffer);
+    return buffer;
 }
 
 } // namespace egts::v1::record

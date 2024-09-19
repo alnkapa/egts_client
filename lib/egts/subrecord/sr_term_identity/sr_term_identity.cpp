@@ -103,7 +103,7 @@ SrTermIdentity::buffer() const noexcept
     ptr += 15;                                            //
     *ptr++ = static_cast<std::uint8_t>(buffer_size);      // add BS
     *ptr++ = static_cast<std::uint8_t>(buffer_size >> 8); // add BS
-    return std::move(buffer);
+    return buffer;
 }
 
 } // namespace egts::v1::record::subrecord

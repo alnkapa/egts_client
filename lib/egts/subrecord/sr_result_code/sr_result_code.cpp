@@ -23,7 +23,7 @@ SrResultCode::buffer() const noexcept
     frame_buffer_type buffer(1, 0);
     auto ptr = buffer.begin();
     *ptr++ = static_cast<std::uint8_t>(record_status); // 0
-    return std::move(buffer);
+    return buffer;
 }
 
 } // namespace egts::v1::record::subrecord

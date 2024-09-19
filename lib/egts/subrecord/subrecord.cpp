@@ -64,7 +64,7 @@ wrapper(Type type, frame_buffer_type &&data)
     *ptr++ = static_cast<std::uint8_t>(record_length);      // 1
     *ptr++ = static_cast<std::uint8_t>(record_length >> 8); // 2
     buffer.insert(ptr, std::make_move_iterator(data.begin()), std::make_move_iterator(data.end()));
-    return std::move(buffer);
+    return buffer;
 }
 
 } // namespace egts::v1::record::subrecord

@@ -88,7 +88,7 @@ my_read(tcp::socket &socket) noexcept
                     break;
                 case subrecord::Type::EGTS_SR_RESULT_CODE:
                     subrecord::SrResultCode sub_rec_code;
-                    err = sub_rec_code.parse(s_rec.data());
+                    err = sub_rec_code.parse(s_rec.data());                    
                     break;
                 case subrecord::Type::EGTS_SR_SERVICE_PART_DATA:
                     // TODO

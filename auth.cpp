@@ -32,7 +32,7 @@ auth(tcp::socket &socket)
     boost::asio::write(socket, boost::asio::buffer(pkg.buffer()), boost::asio::transfer_all());
 
     // wait response    
-    auto pkg = std::move(g_send_queue.pop()); // lock
+    // auto pkg = std::move(g_send_queue.pop()); // lock
 
     
 }
