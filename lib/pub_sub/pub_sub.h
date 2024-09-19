@@ -42,8 +42,8 @@ class Publisher
   public:
     virtual ~Publisher() = default;
 
-    virtual Publisher(const Publisher &) = delete;
-    virtual Publisher &
+    Publisher(const Publisher &) = delete;
+    Publisher &
     operator=(const Publisher &) = delete;
 
     virtual void
