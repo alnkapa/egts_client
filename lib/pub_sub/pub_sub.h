@@ -42,6 +42,10 @@ class Publisher
   public:
     virtual ~Publisher() = default;
 
+    virtual Publisher(const Publisher &) = delete;
+    virtual Publisher &
+    operator=(const Publisher &) = delete;
+
     virtual void
     subscribe(std::weak_ptr<Subscriber> in)
     {
