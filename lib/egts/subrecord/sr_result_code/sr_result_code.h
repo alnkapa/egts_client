@@ -16,6 +16,7 @@ struct SrResultCode
     error::Code record_status;
 
     error::Error parse(record_payload_type) noexcept;
+    
     frame_buffer_type
     buffer() const noexcept;
 };
