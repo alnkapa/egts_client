@@ -4,6 +4,7 @@
 #include <error/error.h>
 #include <transport/transport.h>
 #include <record/record.h>
+#include <record/subrecord/subrecord.h>
 #include <iostream>
 #include <thread>
 #include <boost/asio.hpp>

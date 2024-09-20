@@ -7,7 +7,8 @@ add_library(record record.cpp)
 
 target_include_directories(
     record 
-    PUBLIC 
+    INTERFACE
+    subrecord
     ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
