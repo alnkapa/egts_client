@@ -1,30 +1,33 @@
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
-#include "crc.h"
-#include "error.h"
 #include <array>
+#include <crc/crc.h>
 #include <cstdint> // uint8_t
+#include <error/error.h>
+#include <globals.h>
 #include <initializer_list>
-#include <span>
 #include <stddef.h> // size_t
 #include <tuple>
-#include <vector>
 
 namespace egts::v1::transport
 {
 
-using frame_buffer_type = std::vector<unsigned char>;
+using frame_buffer_type = egts::v1::frame_buffer_type;
 
-using record_payload_type = std::span<const unsigned char>;
+using record_payload_type = egts::v1::record_payload_type;
+
+using Error = egts::v1::error::Error;
+
+using Code = egts::v1::error::Code;
 
 // length crc of frame data
-const u_int8_t crc_data_length = 2;
+const uint8_t crc_data_length = 2;
 
 // length crc of header data
-const u_int8_t crc_header_length = 1;
+const uint8_t crc_header_length = 1;
 
 // length response
-const u_int8_t response_length = 3;
+const uint8_t response_length = 3;
 
 // protocol version
 const std::uint8_t protocol_version{0x1};
@@ -73,7 +76,7 @@ class Packet
     // response packet number
     uint16_t m_response_packet_identifier{0};
 
-    error::Error m_processing_result{};
+    Error m_processing_result{};
 
   public:
     void
@@ -85,16 +88,16 @@ class Packet
     bool
     is_response() const;
 
-    std::pair<uint16_t, error::Error>
+    std::pair<uint16_t, Error>
     response() const;
 
     uint16_t
     frame_data_length() const;
 
     Packet
-    make_response(const egts::v1::error::Error &processing_result);
+    make_response(const Error &processing_result);
 
-    error::Error
+    Error
     parse_frame(frame_buffer_type &&buffer) noexcept;
 
     void
@@ -106,7 +109,7 @@ class Packet
     frame_buffer_type
     frame_to_buffer() const noexcept;
 
-    error::Error
+    Error
     parse_header(const header_buffer_type &) noexcept;
 
     header_buffer_type

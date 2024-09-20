@@ -37,7 +37,7 @@ Packet::frame_data_length() const
 }
 
 Packet
-Packet::make_response(const egts::v1::error::Error &processing_result)
+Packet::make_response(const Error &processing_result)
 {
     Packet response{};
     response.m_response_packet_identifier = m_packet_identifier;
@@ -45,9 +45,6 @@ Packet::make_response(const egts::v1::error::Error &processing_result)
     response.m_packet_type = Type::EGTS_PT_RESPONSE;
     return response;
 }
-
-using Error = egts::v1::error::Error;
-using Code = egts::v1::error::Code;
 
 Error
 Packet::parse_frame(frame_buffer_type &&buffer) noexcept

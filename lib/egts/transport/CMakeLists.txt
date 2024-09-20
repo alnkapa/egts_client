@@ -4,11 +4,11 @@ add_library(transport transport.cpp)
 
 target_include_directories(
     transport 
-    PRIVATE
-    ${CMAKE_SOURCE_DIR}/lib/egts/error
-    ${CMAKE_SOURCE_DIR}/lib/egts/crc
+    PUBLIC
+    ${CMAKE_SOURCE_DIR}/lib/egts
 )
-
+#    ${CMAKE_SOURCE_DIR}/lib/egts/error
+#    ${CMAKE_SOURCE_DIR}/lib/egts/crc
 message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
 message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/error")
 message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/crc")

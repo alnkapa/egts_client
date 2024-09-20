@@ -14,12 +14,11 @@ target_include_directories(
     crc
     error
     transport
+    .
 )
 
 target_link_libraries(
     egts
     INTERFACE
-    crc
-    error
     transport
 )
