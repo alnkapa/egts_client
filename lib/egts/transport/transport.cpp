@@ -114,9 +114,9 @@ Packet::frame_to_buffer() const noexcept
 
     if (is_response())
     {
-        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier);      // 0
-        *ptr++ = static_cast<std::uint8_t>(m_response_packet_identifier >> 8); // 1
-        *ptr++ = static_cast<std::uint8_t>(m_processing_result);               // 2
+        *ptr++ = static_cast<uint8_t>(m_response_packet_identifier);      // 0
+        *ptr++ = static_cast<uint8_t>(m_response_packet_identifier >> 8); // 1
+        *ptr++ = static_cast<uint8_t>(m_processing_result);               // 2
     }
 
     if (m_frame_data_length != 0)
@@ -126,8 +126,8 @@ Packet::frame_to_buffer() const noexcept
     }
 
     uint16_t crc16_val = egts::v1::crc16(ret.begin(), ptr);
-    *ptr++ = static_cast<std::uint8_t>(crc16_val);
-    *ptr++ = static_cast<std::uint8_t>(crc16_val >> 8);
+    *ptr++ = static_cast<uint8_t>(crc16_val);
+    *ptr++ = static_cast<uint8_t>(crc16_val >> 8);
 
     return ret;
 }
@@ -161,7 +161,7 @@ Packet::parse_header(const header_buffer_type &head) noexcept
         return Error(Code::EGTS_PC_INC_HEADERFORM);
     }
     // read packet identifier
-    if (head[9] > static_cast<std::uint8_t>(Type::EGTS_PT_APPDATA))
+    if (head[9] > static_cast<uint8_t>(Type::EGTS_PT_APPDATA))
     {
         return Error(Code::EGTS_PC_UNS_TYPE);
     }
@@ -199,16 +199,16 @@ Packet::header_to_buffer() const noexcept
     }
     // make packet header
     header_buffer_type ret{
-        protocol_version,                                    // 0
-        security_key_id,                                     // 1
-        flag,                                                // 2
-        header_length,                                       // 3
-        header_encoding,                                     // 4
-        static_cast<std::uint8_t>(frame_data),               // 5
-        static_cast<std::uint8_t>(frame_data >> 8),          // 6
-        static_cast<std::uint8_t>(m_packet_identifier),      // 7
-        static_cast<std::uint8_t>(m_packet_identifier >> 8), // 8
-        static_cast<uint8_t>(m_packet_type),                 // 9
+        protocol_version,                               // 0
+        security_key_id,                                // 1
+        flag,                                           // 2
+        header_length,                                  // 3
+        header_encoding,                                // 4
+        static_cast<uint8_t>(frame_data),               // 5
+        static_cast<uint8_t>(frame_data >> 8),          // 6
+        static_cast<uint8_t>(m_packet_identifier),      // 7
+        static_cast<uint8_t>(m_packet_identifier >> 8), // 8
+        static_cast<uint8_t>(m_packet_type),            // 9
     };
     ret[header_length - 1] = egts::v1::crc8(ret.begin(), ret.end() - crc_header_length); // 10
     return ret;

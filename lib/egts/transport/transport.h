@@ -20,6 +20,10 @@ using Error = egts::v1::error::Error;
 
 using Code = egts::v1::error::Code;
 
+using uint8_t = std::uint8_t;
+
+using uint16_t = std::uint16_t;
+
 // length crc of frame data
 const uint8_t crc_data_length = 2;
 
@@ -30,10 +34,10 @@ const uint8_t crc_header_length = 1;
 const uint8_t response_length = 3;
 
 // protocol version
-const std::uint8_t protocol_version{0x1};
+const uint8_t protocol_version{0x1};
 // the length of the Transport Layer header in bytes, including the checksum
 // byte
-const std::uint8_t header_length{11};
+const uint8_t header_length{11};
 
 using header_buffer_type = std::array<unsigned char, header_length>;
 
