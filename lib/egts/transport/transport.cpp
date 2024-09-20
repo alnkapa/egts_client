@@ -46,13 +46,13 @@ Packet::make_response(const Error &processing_result)
     return response;
 }
 
-Error
-Packet::parse_frame(frame_buffer_type &&buffer) noexcept
+void
+Packet::parse_frame(frame_buffer_type &&buffer)
 {
     // test size of frame size
     if (buffer.size() != m_frame_data_length + crc_data_length)
     {
-        return Error(Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     // test crc
     uint16_t crc16_val = egts::v1::crc16(buffer.begin(), buffer.end() - crc_data_length);
@@ -61,7 +61,7 @@ Packet::parse_frame(frame_buffer_type &&buffer) noexcept
 
     if (crc16_val != got_crc16_val)
     {
-        return Error(Code::EGTS_PC_DATACRC_ERROR);
+        throw Error(Code::EGTS_PC_DATACRC_ERROR);
     }
     // cut crc value
     buffer.resize(m_frame_data_length);
@@ -70,7 +70,7 @@ Packet::parse_frame(frame_buffer_type &&buffer) noexcept
     {
         if (m_frame_data_length < response_length)
         {
-            return Error(Code::EGTS_PC_INC_DATAFORM);
+            throw Error(Code::EGTS_PC_INC_DATAFORM);
         }
         m_response_packet_identifier = static_cast<std::uint16_t>(buffer[0]) |
                                        static_cast<std::uint16_t>(buffer[1]) << 8;
@@ -79,7 +79,6 @@ Packet::parse_frame(frame_buffer_type &&buffer) noexcept
     }
     m_frame_data_length = buffer.size();
     mp_data = std::move(buffer);
-    return {};
 }
 
 void
@@ -132,61 +131,58 @@ Packet::frame_to_buffer() const noexcept
     return ret;
 }
 
-Error
-Packet::parse_header(const header_buffer_type &head) noexcept
+void Packet::parse_header(const header_buffer_type &head)
 {
     // test protocol_version and PRF
     if (head[0] != protocol_version || (head[2] & 0xC0) != 0)
     {
-        return Error(Code::EGTS_PC_UNS_PROTOCOL);
+        throw Error(Code::EGTS_PC_UNS_PROTOCOL);
     }
     // test rte
     if ((head[2] & 0x20) != 0)
     {
-        return Error(Code::EGTS_PC_ROUTE_DENIED);
+        throw Error(Code::EGTS_PC_ROUTE_DENIED);
     }
     // test ENA
     if ((head[2] & 0x18) != 0)
     {
-        return Error(Code::EGTS_PC_DECRYPT_ERROR);
+        throw Error(Code::EGTS_PC_DECRYPT_ERROR);
     }
     // test CMP
     if ((head[2] & 0x04) != 0)
     {
-        return Error(Code::EGTS_PC_INC_DATAFORM);
+        throw Error(Code::EGTS_PC_INC_DATAFORM);
     }
     // test HL
     if (head[3] != header_length)
     {
-        return Error(Code::EGTS_PC_INC_HEADERFORM);
+        throw Error(Code::EGTS_PC_INC_HEADERFORM);
     }
     // read packet identifier
     if (head[9] > static_cast<uint8_t>(Type::EGTS_PT_APPDATA))
     {
-        return Error(Code::EGTS_PC_UNS_TYPE);
+        throw Error(Code::EGTS_PC_UNS_TYPE);
     }
     m_packet_type = static_cast<Type>(head[9]);
     // test crc
     if (head[header_length - 1] != egts::v1::crc8(head.begin(), head.end() - crc_header_length))
     {
-        return Error(Code::EGTS_PC_HEADERCRC_ERROR);
+        throw Error(Code::EGTS_PC_HEADERCRC_ERROR);
     }
     // read frame data length
     m_frame_data_length = static_cast<std::uint16_t>(head[5]) |
                           static_cast<std::uint16_t>(head[6]) << 8;
     if (m_frame_data_length > max_frame_size)
     {
-        return Error(Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     if (is_response() && m_frame_data_length < response_length)
     {
-        return Error(Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     // read packet identifier
     m_packet_identifier = static_cast<std::uint16_t>(head[7]) |
                           static_cast<std::uint16_t>(head[8]) << 8;
-
-    return {};
 }
 
 header_buffer_type

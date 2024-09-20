@@ -7,6 +7,7 @@
 #include <globals.h>
 #include <stddef.h> // size_t
 #include <tuple>
+#include <stdexcept>
 
 namespace egts::v1::transport
 {
@@ -100,8 +101,7 @@ class Packet
     Packet
     make_response(const Error &processing_result);
 
-    Error
-    parse_frame(frame_buffer_type &&buffer) noexcept;
+    void parse_frame(frame_buffer_type &&buffer);
 
     void
     set_frame(frame_buffer_type &&buffer) noexcept;
@@ -112,8 +112,8 @@ class Packet
     frame_buffer_type
     frame_to_buffer() const noexcept;
 
-    Error
-    parse_header(const header_buffer_type &) noexcept;
+    void
+    parse_header(const header_buffer_type &);
 
     header_buffer_type
     header_to_buffer() const noexcept;

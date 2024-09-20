@@ -1,15 +1,4 @@
-// #include "globals.h"
-// #include "lib/egts/error/error.h"
-// #include "lib/egts/record/record.h"
-// #include "lib/egts/subrecord/sr_record_response/sr_record_response.h"
-// #include "lib/egts/subrecord/sr_result_code/sr_result_code.h"
-// #include "lib/egts/subrecord/sr_term_identity/sr_term_identity.h"
-// #include "lib/egts/subrecord/subrecord.h"
-#include <error.h>
-#include <transport.h>
-#include <iostream>
-#include <thread>
-#include <boost/asio.hpp>
+#include "my_globals.h"
 
 int
 main(int argc, char *argv[])
@@ -31,8 +20,8 @@ main(int argc, char *argv[])
     };
     transport::Packet pkg{};
     pkg.buffer();
-    // // run reader
-    // std::thread receiver(my_read, std::ref(socket));
+    // run reader
+    std::thread reader(my_read, std::ref(socket));
 
     // // auth step
     // try
@@ -64,6 +53,6 @@ main(int argc, char *argv[])
     //         break;
     //     }
     // }
-    // receiver.join();
+    reader.join();
     return EXIT_SUCCESS;
 }

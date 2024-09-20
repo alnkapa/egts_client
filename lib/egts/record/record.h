@@ -71,8 +71,8 @@ class Record
     record_payload_type mp_data;
 
   public:
-    Error
-    parse(record_payload_type, record_payload_type::iterator &) noexcept;
+    void
+    parse(record_payload_type, record_payload_type::iterator &);
 
     uint16_t
     record_number() const;

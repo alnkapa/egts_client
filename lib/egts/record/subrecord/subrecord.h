@@ -2,17 +2,26 @@
 #ifndef SUB_RECORD_H
 #define SUB_RECORD_H
 
-#include <cstdint> // uint8_t
-#include <error.h>
-#include <span>
-#include <vector>
+#include <cstdint> // uint16_t, uint8_t
+#include <globals.h>
+#include <error/error.h>
+#include <iterator>
 
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::record::frame_buffer_type;
+using frame_buffer_type = egts::v1::frame_buffer_type;
 
-using record_payload_type = egts::v1::record::record_payload_type;
+using record_payload_type = egts::v1::record_payload_type;
+
+using uint16_t = std::uint16_t;
+
+using uint8_t = std::uint8_t;
+
+using Error = egts::v1::error::Error;
+
+using Code = egts::v1::error::Code;
+
 
 inline bool
 has_remaining_bytes(record_payload_type buffer, record_payload_type::iterator ptr, std::size_t x)
@@ -145,8 +154,8 @@ class SubRecord
     record_payload_type mp_data;
 
   public:
-    error::Error
-    parse(record_payload_type, record_payload_type::iterator &) noexcept;
+  
+    void parse(record_payload_type, record_payload_type::iterator &);
 
     Type
     type() const;
@@ -167,8 +176,8 @@ struct SubRec
     buffer() const noexcept = 0;
 };
 
-Record
-make_package(std::initializer_list<frame_buffer_type> args);
+// Record
+// make_package(std::initializer_list<frame_buffer_type> args);
 
 } // namespace egts::v1::record::subrecord
 
