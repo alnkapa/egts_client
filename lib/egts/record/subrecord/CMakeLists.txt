@@ -13,3 +13,12 @@ target_include_directories(
 if(BUILD_TESTING)
     add_subdirectory(subrecord_tests)
 endif()
+
+
+#    ${CMAKE_SOURCE_DIR}/lib/egts/error
+#    ${CMAKE_SOURCE_DIR}/lib/egts/crc
+message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
+message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/error")
+message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/crc")
+get_target_property(INCLUDE_DIRS transport INCLUDE_DIRECTORIES)
+message(STATUS "Include directories for my_library: ${INCLUDE_DIRS}")

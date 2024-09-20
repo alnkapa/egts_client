@@ -2,10 +2,9 @@
 #define TRANSPORT_H
 #include <array>
 #include <crc/crc.h>
-#include <cstdint> // uint8_t
+#include <cstdint> // uint8_t, uint16_t
 #include <error/error.h>
 #include <globals.h>
-#include <initializer_list>
 #include <stddef.h> // size_t
 #include <tuple>
 

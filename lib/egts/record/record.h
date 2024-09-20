@@ -1,11 +1,10 @@
-#pragma once
 #ifndef RECORD_H
 #define RECORD_H
 
-#include <error.h>
-#include <cstdint> // uint8_t
-#include <span>
-#include <vector>
+#include <cstdint> // uint16_t, uint8_t
+#include <globals.h>
+#include <error/error.h>
+
 
 namespace egts::v1::record
 {
@@ -35,9 +34,17 @@ enum class ServiceType
     EGTS_ECALL_SERVICE = 10
 };
 
-using frame_buffer_type = std::vector<unsigned char>;
+using frame_buffer_type = egts::v1::frame_buffer_type;
 
-using record_payload_type = std::span<const unsigned char>;
+using record_payload_type = egts::v1::record_payload_type;
+
+using uint16_t = std::uint16_t;
+
+using uint8_t = std::uint8_t;
+
+using Error = egts::v1::error::Error;
+
+using Code = egts::v1::error::Code;
 
 // maximum size of the frame data
 constexpr uint16_t max_frame_size{65498};
@@ -64,7 +71,7 @@ class Record
     record_payload_type mp_data;
 
   public:
-    error::Error
+    Error
     parse(record_payload_type, record_payload_type::iterator &) noexcept;
 
     uint16_t

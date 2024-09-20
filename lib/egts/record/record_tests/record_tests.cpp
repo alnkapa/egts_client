@@ -5,7 +5,7 @@
 
 using namespace egts::v1;
 
-TEST(PARSE, BasicTests)
+TEST(RECORD_PARSE, BasicTests)
 {
     record::Record rd{};
     record::frame_buffer_type data(2, 0);
@@ -58,7 +58,7 @@ TEST(PARSE, BasicTests)
     }
 }
 
-TEST(PARSE1, BasicTests)
+TEST(RECORD_PARSE1, BasicTests)
 {
 
     auto rez = record::wrapper(10, record::ServiceType::EGTS_AUTH_SERVICE, record::ServiceType::EGTS_COMMANDS_SERVICE, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
