@@ -1,15 +1,13 @@
-#include "error.h"
-#include "transport.h"
+#include "error/error.h"
+#include "transport/transport.h"
 #include <algorithm> // Для std::fill
 #include <array>
 #include <gtest/gtest.h>
 #include <vector>
 
 using namespace egts::v1::transport;
-using Error = egts::v1::error::Error;
-using Code = egts::v1::error::Code;
 
-TEST(PARSE_HEADER, BasicTests)
+TEST(TRANSPORT_PARSE_HEADER, BasicTests)
 {
     Packet pr{};
     header_buffer_type data1 = {'1', '0', '0', '0', '0', '0', '0', '0', '0'};
@@ -117,7 +115,7 @@ TEST(PARSE_HEADER, BasicTests)
     }
 }
 
-TEST(PARSE_FRAME, BasicTests)
+TEST(TRANSPORT_PARSE_FRAME, BasicTests)
 {
     Packet pr{};
     std::vector<std::uint8_t> frame = {'1', '1', '1', '1', '1', '1', '1', '1', '1'};
@@ -169,7 +167,7 @@ TEST(PARSE_FRAME, BasicTests)
     }
 }
 
-TEST(SEND_RECEIVE, BasicTests)
+TEST(TRANSPORT_SEND_RECEIVE, BasicTests)
 {
     Packet pr{};
     auto header_buf = pr.header_to_buffer();
@@ -181,7 +179,7 @@ TEST(SEND_RECEIVE, BasicTests)
     }
 }
 
-TEST(SEND_RECEIVE_1, BasicTests)
+TEST(TRANSPORT_SEND_RECEIVE_1, BasicTests)
 {
     auto fr = frame_buffer_type{1, 2, 3};
     auto frame_data_length = fr.size();
@@ -269,7 +267,7 @@ TEST(SEND_RECEIVE_1, BasicTests)
     }
 }
 
-TEST(FULL, BasicTests)
+TEST(TRANSPORT_FULL, BasicTests)
 {
     Packet pr{};
     pr.identifier(10);
