@@ -25,30 +25,30 @@ else()
 endif()
 
 
-add_subdirectory(lib/egts/transport)
-add_subdirectory(lib/egts/record)
-add_subdirectory(lib/egts/record/subrecord)
-add_subdirectory(lib/egts/record/subrecord/sr_record_response)
-add_subdirectory(lib/egts/record/subrecord/sr_result_code)
-add_subdirectory(lib/egts/record/subrecord/sr_term_identity)
+add_subdirectory(lib/egts)
+# add_subdirectory(lib/egts/record)
+# add_subdirectory(lib/egts/record/subrecord)
+# add_subdirectory(lib/egts/record/subrecord/sr_record_response)
+# add_subdirectory(lib/egts/record/subrecord/sr_result_code)
+# add_subdirectory(lib/egts/record/subrecord/sr_term_identity)
 
 add_executable(egts_client main.cpp reader.cpp auth.cpp queue.cpp)
 
 
 target_include_directories(
     egts_client 
-    PRIVATE 
+    PRIVATE
+    egts
     ${Boost_INCLUDE_DIRS}
 )
 
 target_link_libraries(
     egts_client 
-    PRIVATE 
-    transport
-    record
-    subrecord
-    sr_record_response
-    sr_result_code
-    sr_term_identity
+    PRIVATE
+    egts
+    # subrecord
+    # sr_record_response
+    # sr_result_code
+    # sr_term_identity
     ${Boost_LIBRARIES}
 )

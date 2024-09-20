@@ -1,6 +1,4 @@
 #include "transport.h"
-#include "crc.h"
-#include "error.h"
 #include <algorithm>
 #include <cassert>
 #include <iterator>

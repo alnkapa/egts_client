@@ -2,7 +2,7 @@
 #ifndef SR_RESULT_CODE_H
 #define SR_RESULT_CODE_H
 
-#include "../../../error/error.h"
+#include <error.h>
 #include "../subrecord.h"
 #include <cstdint>
 

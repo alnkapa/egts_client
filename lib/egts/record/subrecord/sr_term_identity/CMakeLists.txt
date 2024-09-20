@@ -4,7 +4,7 @@ add_library(sr_term_identity sr_term_identity.cpp)
 
 target_include_directories(
     sr_term_identity 
-    PUBLIC 
+    PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts/error
 )
 

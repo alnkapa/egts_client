@@ -1,8 +1,7 @@
-#pragma once
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
-#include "../crc/crc.h"
-#include "../error/error.h"
+#include "crc.h"
+#include "error.h"
 #include <array>
 #include <cstdint> // uint8_t
 #include <initializer_list>

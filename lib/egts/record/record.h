@@ -2,7 +2,7 @@
 #ifndef RECORD_H
 #define RECORD_H
 
-#include "../error/error.h"
+#include <error.h>
 #include <cstdint> // uint8_t
 #include <span>
 #include <vector>

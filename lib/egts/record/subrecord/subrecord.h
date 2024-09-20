@@ -2,9 +2,8 @@
 #ifndef SUB_RECORD_H
 #define SUB_RECORD_H
 
-#include "../../error/error.h"
-#include "../record.h"
 #include <cstdint> // uint8_t
+#include <error.h>
 #include <span>
 #include <vector>
 
@@ -13,7 +12,7 @@ namespace egts::v1::record::subrecord
 
 using frame_buffer_type = egts::v1::record::frame_buffer_type;
 
-using record_payload_type = std::span<const unsigned char>;
+using record_payload_type = egts::v1::record::record_payload_type;
 
 inline bool
 has_remaining_bytes(record_payload_type buffer, record_payload_type::iterator ptr, std::size_t x)
@@ -168,8 +167,8 @@ struct SubRec
     buffer() const noexcept = 0;
 };
 
-// Packet
-// make_package(std::initializer_list<frame_buffer_type> args);
+Record
+make_package(std::initializer_list<frame_buffer_type> args);
 
 } // namespace egts::v1::record::subrecord
 

@@ -4,10 +4,11 @@ add_library(subrecord subrecord.cpp)
 
 target_include_directories(
     subrecord 
-    PUBLIC 
+    PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts/error
 )
 
+# target_link_libraries(subrecord record)
 
 if(BUILD_TESTING)
     add_subdirectory(subrecord_tests)
