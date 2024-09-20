@@ -5,19 +5,17 @@
 namespace egts::v1::record::subrecord
 {
 
-error::Error
-SRRecordResponse::parse(record_payload_type buffer) noexcept
+void SRRecordResponse::parse(record_payload_type buffer)
 {
     auto ptr = buffer.begin();
     if (!has_remaining_bytes(buffer, ptr, 3))
     {
-        return error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw(error::Error(error::Code::EGTS_PC_INVDATALEN));
     }
     confirmed_record_number = static_cast<std::uint16_t>(*ptr++) |     // 0
                               static_cast<std::uint16_t>(*ptr++) << 8; // 1
 
     record_status = static_cast<error::Code>(*ptr++); // 2
-    return {};
 }
 
 frame_buffer_type

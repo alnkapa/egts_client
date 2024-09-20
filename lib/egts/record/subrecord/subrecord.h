@@ -2,7 +2,8 @@
 #ifndef SUB_RECORD_H
 #define SUB_RECORD_H
 
-#include "../error/error.h"
+#include "../../error/error.h"
+#include "../record.h"
 #include <cstdint> // uint8_t
 #include <span>
 #include <vector>
@@ -10,7 +11,7 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = std::vector<unsigned char>;
+using frame_buffer_type = egts::v1::record::frame_buffer_type;
 
 using record_payload_type = std::span<const unsigned char>;
 
@@ -158,6 +159,17 @@ class SubRecord
 // make a subrecord buffer from a specific subrecord buffer.
 frame_buffer_type
 wrapper(Type type, frame_buffer_type &&data);
+
+struct SubRec
+{
+    virtual ~SubRec() = default;
+    virtual void parse(record_payload_type) = 0;
+    virtual frame_buffer_type
+    buffer() const noexcept = 0;
+};
+
+// Packet
+// make_package(std::initializer_list<frame_buffer_type> args);
 
 } // namespace egts::v1::record::subrecord
 

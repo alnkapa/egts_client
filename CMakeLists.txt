@@ -27,10 +27,10 @@ endif()
 
 add_subdirectory(lib/egts/transport)
 add_subdirectory(lib/egts/record)
-add_subdirectory(lib/egts/subrecord)
-add_subdirectory(lib/egts/subrecord/sr_record_response)
-add_subdirectory(lib/egts/subrecord/sr_result_code)
-add_subdirectory(lib/egts/subrecord/sr_term_identity)
+add_subdirectory(lib/egts/record/subrecord)
+add_subdirectory(lib/egts/record/subrecord/sr_record_response)
+add_subdirectory(lib/egts/record/subrecord/sr_result_code)
+add_subdirectory(lib/egts/record/subrecord/sr_term_identity)
 
 add_executable(egts_client main.cpp reader.cpp auth.cpp queue.cpp)
 

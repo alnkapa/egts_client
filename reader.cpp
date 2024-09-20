@@ -1,10 +1,10 @@
 #include "globals.h"
 #include "lib/egts/error/error.h"
 #include "lib/egts/record/record.h"
-#include "lib/egts/subrecord/sr_record_response/sr_record_response.h"
-#include "lib/egts/subrecord/sr_result_code/sr_result_code.h"
-#include "lib/egts/subrecord/sr_term_identity/sr_term_identity.h"
-#include "lib/egts/subrecord/subrecord.h"
+#include "lib/egts/record/subrecord/sr_record_response/sr_record_response.h"
+#include "lib/egts/record/subrecord/sr_result_code/sr_result_code.h"
+#include "lib/egts/record/subrecord/sr_term_identity/sr_term_identity.h"
+#include "lib/egts/record/subrecord/subrecord.h"
 #include "lib/egts/transport/transport.h"
 #include <iostream>
 
@@ -79,31 +79,52 @@ my_read(tcp::socket &socket) noexcept
                     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
                     return;
                 }
-                // Only these subrecords may come from the server.
-                switch (s_rec.type())
+                try
                 {
-                case subrecord::Type::EGTS_SR_RECORD_RESPONSE:
-                    subrecord::SRRecordResponse sub_rec_resp;
-                    err = sub_rec_resp.parse(s_rec.data());
+                    // Only these subrecords may come from the server.
+                    switch (s_rec.type())
+                    {
+                    case subrecord::Type::EGTS_SR_RECORD_RESPONSE:
+                    {
+                        auto sub_rec_resp = std::make_unique<subrecord::SRRecordResponse>();
+                        sub_rec_resp->parse(s_rec.data());
+                        //g_sub_record_response.notify(sub_rec_resp.get());
+                    }
                     break;
-                case subrecord::Type::EGTS_SR_RESULT_CODE:
-                    subrecord::SrResultCode sub_rec_code;
-                    err = sub_rec_code.parse(s_rec.data());                    
+                    case subrecord::Type::EGTS_SR_RESULT_CODE:
+                    {
+                        // subrecord::SrResultCode sub_rec_code;
+                        // err = sub_rec_code.parse(s_rec.data());
+                        // if (err != error::Code::EGTS_PC_OK)
+                        // {
+                        //     // TODO: обработать ошибку
+                        //     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
+                        //     return;
+                        // }
+                        // g_sub_result_code.notify(std::move(sub_rec_code));
+                    }
                     break;
-                case subrecord::Type::EGTS_SR_SERVICE_PART_DATA:
-                    // TODO
-                    break;
-                case subrecord::Type::EGTS_SR_SERVICE_FULL_DATA:
-                    // TODO
-                    break;
-                case subrecord::Type::EGTS_SR_COMMAND_DATA:
-                    // TODO
-                    break;
-                default:
-                    // The rest is simply ignored.
-                    break;
+                    case subrecord::Type::EGTS_SR_SERVICE_PART_DATA:
+                        // TODO
+                        break;
+                    case subrecord::Type::EGTS_SR_SERVICE_FULL_DATA:
+                        // TODO
+                        break;
+                    case subrecord::Type::EGTS_SR_COMMAND_DATA:
+                        // TODO
+                        break;
+                    default:
+                        // The rest is simply ignored.
+                        break;
+                    }
                 }
-                if (err != error::Code::EGTS_PC_OK)
+                catch (const error::Error &err)
+                {
+                    // TODO: обработать ошибку
+                    std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
+                    return;
+                }
+                catch (...)
                 {
                     // TODO: обработать ошибку
                     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;

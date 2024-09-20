@@ -8,7 +8,7 @@ target_include_directories(
     sr_record_response_tests 
     PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts/error
-    ${CMAKE_SOURCE_DIR}/lib/egts/subrecord/sr_record_response
+    ${CMAKE_SOURCE_DIR}/lib/egts/record/subrecord/sr_record_response
 )
 
 target_link_libraries(sr_record_response_tests GTest::GTest GTest::Main sr_record_response)

@@ -9,18 +9,20 @@ using namespace egts::v1::error;
 TEST(PARSE, BasicTests)
 {
     SRRecordResponse rd{};
-    rd.confirmed_record_number =10;
-    rd.record_status=Code::EGTS_PC_ALREADY_EXISTS;
+    rd.confirmed_record_number = 10;
+    rd.record_status = Code::EGTS_PC_ALREADY_EXISTS;
     auto buf = rd.buffer();
 
     SRRecordResponse rd1{};
-    auto err = rd1.parse(buf);
-    if (err != Code::EGTS_PC_OK)
+    try
+    {
+        rd1.parse(buf);
+    }
+    catch (const Error &err)
     {
         ADD_FAILURE() << "error: " << err.what();
     }    
 }
-
 
 int
 main(int argc, char **argv)

@@ -3,9 +3,10 @@
 #define TRANSPORT_H
 #include "../crc/crc.h"
 #include "../error/error.h"
-#include <span>
 #include <array>
-#include <cstdint>  // uint8_t
+#include <cstdint> // uint8_t
+#include <initializer_list>
+#include <span>
 #include <stddef.h> // size_t
 #include <tuple>
 #include <vector>
@@ -76,7 +77,6 @@ class Packet
     error::Error m_processing_result{};
 
   public:
-
     void
     identifier(uint16_t packet_identifier);
 

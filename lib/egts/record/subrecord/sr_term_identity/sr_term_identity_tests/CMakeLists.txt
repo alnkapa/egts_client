@@ -8,7 +8,7 @@ target_include_directories(
     sr_term_identity_tests 
     PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts/error
-    ${CMAKE_SOURCE_DIR}/lib/egts/subrecord/sr_term_identity
+    ${CMAKE_SOURCE_DIR}/lib/egts/record/subrecord/sr_term_identity
 )
 
 target_link_libraries(sr_term_identity_tests GTest::GTest GTest::Main sr_term_identity)
