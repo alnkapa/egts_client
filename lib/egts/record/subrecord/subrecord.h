@@ -23,16 +23,6 @@ using Error = egts::v1::error::Error;
 using Code = egts::v1::error::Code;
 
 
-inline bool
-has_remaining_bytes(record_payload_type buffer, record_payload_type::iterator ptr, std::size_t x)
-{
-    if (ptr < buffer.begin() || ptr > buffer.end())
-    {
-        return false;
-    }
-    return std::distance(ptr, buffer.end()) >= x;
-};
-
 enum class Type
 {
     // This sub-record is used to confirm the processing of

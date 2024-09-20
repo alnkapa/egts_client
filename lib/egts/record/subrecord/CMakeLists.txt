@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.5)
 
+
+add_subdirectory(sr_record_response)
+
 add_library(subrecord subrecord.cpp)
 
 target_include_directories(
@@ -7,18 +10,10 @@ target_include_directories(
     PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts
 )
+# sr_record_response
 
-target_link_libraries(subrecord record)
+# target_link_libraries(subrecord sr_record_response)
 
 if(BUILD_TESTING)
     add_subdirectory(subrecord_tests)
 endif()
-
-
-#    ${CMAKE_SOURCE_DIR}/lib/egts/error
-#    ${CMAKE_SOURCE_DIR}/lib/egts/crc
-# message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}")
-# message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/error")
-# message(" CMAKE_SOURCE_DIR = ${CMAKE_SOURCE_DIR}/lib/egts/crc")
-# get_target_property(INCLUDE_DIRS transport INCLUDE_DIRECTORIES)
-# message(STATUS "Include directories for my_library: ${INCLUDE_DIRS}")

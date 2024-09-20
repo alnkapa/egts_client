@@ -1,6 +1,4 @@
 #include "sr_record_response.h"
-#include <iterator>
-#include <span>
 
 namespace egts::v1::record::subrecord
 {

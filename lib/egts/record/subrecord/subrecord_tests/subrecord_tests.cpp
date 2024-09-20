@@ -1,5 +1,5 @@
-#include "error.h"
-#include "subrecord.h"
+#include <error/error.h>
+#include <record/subrecord/subrecord.h>
 #include <algorithm> // Для std::fill
 #include <gtest/gtest.h>
 

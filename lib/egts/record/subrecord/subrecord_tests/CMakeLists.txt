@@ -7,11 +7,10 @@ add_executable(subrecord_tests subrecord_tests.cpp)
 target_include_directories(
     subrecord_tests 
     PRIVATE 
-    ${CMAKE_SOURCE_DIR}/lib/egts/error
-    ${CMAKE_SOURCE_DIR}/lib/egts/record/subrecord
+    ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
-target_link_libraries(subrecord_tests GTest::GTest GTest::Main subrecord)
+target_link_libraries(subrecord_tests GTest::GTest GTest::Main egts)
 
 add_test(NAME PARSE COMMAND subrecord_tests)
 
