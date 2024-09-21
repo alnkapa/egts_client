@@ -68,6 +68,7 @@ main(int argc, char *argv[])
                 else
                 {
                     // запустить чтение файла NMIE
+                    std::cout << "transport: auth: ok" << std::endl;
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
