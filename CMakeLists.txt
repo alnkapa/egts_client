@@ -27,8 +27,9 @@ endif()
 
 
 add_subdirectory(lib/egts)
+add_subdirectory(lib/pub_sub)
 
-add_executable(egts_client main.cpp my_reader.cpp)
+add_executable(egts_client main.cpp my_reader.cpp queue.cpp)
 
 # auth.cpp queue.cpp
 
@@ -37,6 +38,7 @@ target_include_directories(
     egts_client 
     PRIVATE
     egts
+    pub_sub
     ${Boost_INCLUDE_DIRS}
 )
 
@@ -44,5 +46,6 @@ target_link_libraries(
     egts_client 
     PRIVATE
     egts
+    pub_sub
     ${Boost_LIBRARIES}
 )

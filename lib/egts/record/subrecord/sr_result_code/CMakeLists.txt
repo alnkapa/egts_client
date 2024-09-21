@@ -4,8 +4,8 @@ add_library(sr_result_code sr_result_code.cpp)
 
 target_include_directories(
     sr_result_code 
-    PRIVATE 
-    ${CMAKE_SOURCE_DIR}/lib/egts/error
+    PUBLIC 
+    ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
 

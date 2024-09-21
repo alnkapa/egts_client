@@ -1,4 +1,6 @@
 #include "my_globals.h"
+#include <cstdint>
+#include <vector>
 
 // subrecord level
 void
@@ -15,22 +17,16 @@ my_sub_record_level(egts::v1::record_payload_type sub_buffer)
         {
         case Type::EGTS_SR_RECORD_RESPONSE:
         {
-            // auto sub_rec_resp = std::make_unique<subrecord::SRRecordResponse>();
-            // sub_rec_resp->parse(s_rec.data());
-            // g_sub_record_response.notify(sub_rec_resp.get());
+            egts::v1::record::subrecord::SRRecordResponse rsp;
+            rsp.parse(s_rec.data());
+            g_pub_record.notify(rsp);
         }
         break;
         case Type::EGTS_SR_RESULT_CODE:
         {
-            // subrecord::SrResultCode sub_rec_code;
-            // err = sub_rec_code.parse(s_rec.data());
-            // if (err != error::Code::EGTS_PC_OK)
-            // {
-            //     // TODO: обработать ошибку
-            //     std::cerr << "transport: subrecord: error: " << err.what() << std::endl;
-            //     return;
-            // }
-            // g_sub_result_code.notify(std::move(sub_rec_code));
+            egts::v1::record::subrecord::SrResultCode rsp;
+            rsp.parse(s_rec.data());
+            g_pub_result_code.notify(rsp);
         }
         break;
         case Type::EGTS_SR_SERVICE_PART_DATA:
@@ -50,18 +46,32 @@ my_sub_record_level(egts::v1::record_payload_type sub_buffer)
 }
 
 // record level
-void
+//
+// It will return the numbers of the received (service<<8|record)=uint32.
+std::vector<std::uint32_t>
 my_record_level(egts::v1::record_payload_type buffer)
 {
     auto ptr = buffer.begin();
+    std::vector<std::uint32_t> rez{};
+    rez.reserve(20);
     while (ptr != buffer.end())
     {
         egts::v1::record::Record rec{};
         rec.parse(buffer, ptr);
+        rez.emplace_back(
+            ((static_cast<std::uint32_t>(rec.source_service_type()) << 8) & 0xFF00) // service
+            |
+            (static_cast<std::uint32_t>(rec.record_number()) & 0x00FF) // record
+        );
         my_sub_record_level(rec.data());
-        // TODO: ответить на запись!!
-        rec.record_number();
     }
+    return rez;
+}
+
+frame_buffer_type
+my_make_record_records(std::span<std::uint32_t>)
+{
+    return {};
 }
 
 // transport level
@@ -69,16 +79,17 @@ void
 my_read(tcp::socket &socket) noexcept
 {
     egts::v1::transport::header_buffer_type header_buffer{};
-    try
+    std::vector<std::uint32_t> received_records{};
+    while (true)
     {
-        while (true)
+        egts::v1::transport::Packet pkg{};
+        try
         {
             boost::asio::read(
                 socket,
                 boost::asio::buffer(header_buffer),
                 boost::asio::transfer_all());
 
-            egts::v1::transport::Packet pkg{};
             pkg.parse_header(header_buffer);
 
             if (pkg.frame_data_length() > 0)
@@ -93,27 +104,47 @@ my_read(tcp::socket &socket) noexcept
                     boost::asio::transfer_all());
 
                 pkg.parse_frame(std::move(frame_buffer));
-                my_record_level(pkg.get_frame());
+                received_records = my_record_level(pkg.get_frame());
             }
 
             if (!pkg.is_response())
             {
-                // TODO: на пакет ответить !!
                 auto resp_pkg = pkg.make_response({});
-                // TODO: добавить в очередь на ответ
+                if (!received_records.empty())
+                {
+                    auto rec_buffer = my_make_record_records(received_records);
+                    resp_pkg.set_frame(std::move(rec_buffer));
+                    received_records.clear();
+                }
+                g_send_queue.push(std::move(resp_pkg));
+            }
+            else if (!received_records.empty())
+            {
+                egts::v1::transport::Packet new_pkg{};
+                auto rec_buffer = my_make_record_records(received_records);
+                new_pkg.set_frame(std::move(rec_buffer));
+                received_records.clear();
+                g_send_queue.push(std::move(new_pkg));
             }
         }
-    }
-    catch (const egts::v1::error::Error &err) // Protocol errors
-    {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
-    }
-    catch (const boost::system::error_code &err) // Connection errors
-    {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
-    }
-    catch (const std::exception &err) // Other errors
-    {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        catch (const egts::v1::error::Error &err) // Protocol errors
+        {
+            if (!pkg.is_response())
+            {
+                auto resp_pkg = pkg.make_response(err);
+                g_send_queue.push(std::move(resp_pkg));
+            }
+            std::cerr << "transport: read: error: " << err.what() << std::endl;
+        }
+        catch (const boost::system::error_code &err) // Connection errors
+        {
+            // определить  ошибку соединение, и есть надо завершить цикл
+            std::cerr << "transport: read: error: " << err.what() << std::endl;
+        }
+        catch (const std::exception &err) // Other errors
+        {
+            // завершить цикл
+            std::cerr << "transport: read: error: " << err.what() << std::endl;
+        }
     }
 }
