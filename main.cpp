@@ -1,5 +1,6 @@
 #include "boost/asio/write.hpp"
 #include "my_globals.h"
+#include <cstdlib>
 #include <memory>
 
 int
@@ -27,19 +28,6 @@ main(int argc, char *argv[])
     std::thread reader(my_read, std::ref(socket));
     reader.detach();
 
-    // subscribe for auth result
-    auto sr_result_code_callback = std::make_shared<G_PUB_RESULT_CODE_TYPE::Function>(
-        [](const egts::v1::record::subrecord::SrResultCode &rez) {
-
-        });
-    g_pub_result_code.subscribe(sr_result_code_callback);
-
-    // Subscribe to the status of sent records
-    auto sr_record_response_callback = std::make_shared<G_PUB_RECORD_TYPE::Function>(
-        [](const egts::v1::record::subrecord::SRRecordResponse &rez) {
-
-        });
-    g_pub_record.subscribe(sr_record_response_callback);
     try
     {
         {
@@ -59,14 +47,42 @@ main(int argc, char *argv[])
         // Main
         while (true)
         {
-            auto pkg = std::move(g_send_queue.pop()); // lock
-
-            boost::asio::write(
-                socket,
-                boost::asio::buffer(pkg.buffer()),
-                boost::asio::transfer_all());
-
-            // wait for sr_result_code
+            auto mes = std::move(g_send_queue.pop()); // lock
+            if (std::holds_alternative<egts::v1::transport::Packet>(mes))
+            {
+                const auto &pkg = std::get<egts::v1::transport::Packet>(mes);
+                boost::asio::write(
+                    socket,
+                    boost::asio::buffer(pkg.buffer()),
+                    boost::asio::transfer_all());
+            }
+            else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
+            {
+                const auto &rez = std::get<egts::v1::record::subrecord::SrResultCode>(mes);
+                auto err = rez.error();
+                if (!err.OK())
+                {
+                    std::cerr << "transport: auth: error: " << err.what() << std::endl;
+                    break;
+                }
+                else
+                {
+                    // запустить чтение файла NMIE
+                }
+            }
+            else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
+            {
+                const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
+                // подтверждение отправленной записи, можно слать еще
+            }
+            else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
+            {
+                break;
+            }
+            else
+            {
+                // ?
+            }
         }
     }
     catch (const egts::v1::error::Error &err) // Protocol errors
@@ -80,6 +96,10 @@ main(int argc, char *argv[])
     catch (const std::exception &err) // Other errors
     {
         std::cerr << "transport: read: error: " << err.what() << std::endl;
+    }
+    if (socket.is_open())
+    {
+        socket.close(); // reader will finish execution.
     }
     return EXIT_SUCCESS;
 }

@@ -1,4 +1,5 @@
 #include "my_globals.h"
+#include "queue.h"
 #include <cstdint>
 #include <vector>
 
@@ -19,14 +20,14 @@ my_sub_record_level(egts::v1::record_payload_type sub_buffer)
         {
             egts::v1::record::subrecord::SRRecordResponse rsp;
             rsp.parse(s_rec.data());
-            g_pub_record.notify(rsp);
+            g_send_queue.push(std::move(rsp));
         }
         break;
         case Type::EGTS_SR_RESULT_CODE:
         {
             egts::v1::record::subrecord::SrResultCode rsp;
             rsp.parse(s_rec.data());
-            g_pub_result_code.notify(rsp);
+            g_send_queue.push(std::move(rsp));
         }
         break;
         case Type::EGTS_SR_SERVICE_PART_DATA:
@@ -68,7 +69,7 @@ my_record_level(egts::v1::record_payload_type buffer)
     return rez;
 }
 
-frame_buffer_type
+egts::v1::frame_buffer_type
 my_make_record_records(std::span<std::uint32_t>)
 {
     return {};
@@ -147,4 +148,5 @@ my_read(tcp::socket &socket) noexcept
             std::cerr << "transport: read: error: " << err.what() << std::endl;
         }
     }
+    g_send_queue.push(Done{});
 }

@@ -17,7 +17,9 @@
 
 using boost::asio::ip::tcp;
 
-inline MyPacketQueue g_send_queue{};
+inline MyQueue g_send_queue{};
+
+
 
 void
 my_read(tcp::socket &socket) noexcept;
