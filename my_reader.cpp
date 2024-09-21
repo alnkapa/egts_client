@@ -91,6 +91,12 @@ my_read(tcp::socket &socket) noexcept
                 boost::asio::buffer(header_buffer),
                 boost::asio::transfer_all());
 
+            std::cout << "read: " << std::endl;
+            for (auto v : header_buffer)
+            {
+                std::cout << std::hex << static_cast<int>(v);
+            }
+            std::cout << std::endl;
             pkg.parse_header(header_buffer);
 
             if (pkg.frame_data_length() > 0)
@@ -136,16 +142,19 @@ my_read(tcp::socket &socket) noexcept
                 g_send_queue.push(std::move(resp_pkg));
             }
             std::cerr << "transport: read: error: " << err.what() << std::endl;
+            break;
         }
         catch (const boost::system::error_code &err) // Connection errors
         {
             // определить  ошибку соединение, и есть надо завершить цикл
             std::cerr << "transport: read: error: " << err.what() << std::endl;
+            break;
         }
         catch (const std::exception &err) // Other errors
         {
             // завершить цикл
             std::cerr << "transport: read: error: " << err.what() << std::endl;
+            break;
         }
     }
     g_send_queue.push(Done{});
