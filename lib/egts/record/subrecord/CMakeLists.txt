@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 
 
 add_subdirectory(sr_record_response)
+add_subdirectory(sr_term_identity)
 
 add_library(subrecord subrecord.cpp)
 

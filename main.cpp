@@ -4,7 +4,6 @@ int
 main(int argc, char *argv[])
 {
     using boost::asio::ip::tcp;
-    using namespace egts::v1;
     boost::asio::io_context io_context{};
     tcp::socket socket(io_context);
     try
@@ -18,10 +17,20 @@ main(int argc, char *argv[])
         std::cerr << "error: " << e.what() << std::endl;
         return EXIT_FAILURE;
     };
-    transport::Packet pkg{};
-    pkg.buffer();
+
     // run reader
+    // To exit, you need to close the socket.
     std::thread reader(my_read, std::ref(socket));
+    reader.detach();
+
+    // Authorization stage
+    egts::v1::record::subrecord::SrTermIdentity i{};
+    i.IMEI = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    i.buffer_size = 512;
+
+    egts::v1::record::subrecord::wrapper(
+        egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
+        i.buffer());
 
     // // auth step
     // try
@@ -53,6 +62,5 @@ main(int argc, char *argv[])
     //         break;
     //     }
     // }
-    reader.join();
     return EXIT_SUCCESS;
 }

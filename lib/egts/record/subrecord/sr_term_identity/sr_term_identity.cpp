@@ -1,18 +1,16 @@
 #include "sr_term_identity.h"
 #include <algorithm>
-#include <iterator>
-#include <span>
 
 namespace egts::v1::record::subrecord
 {
 
-error::Error
-SrTermIdentity::parse(record_payload_type buffer) noexcept
+void
+SrTermIdentity::parse(record_payload_type buffer)
 {
     auto ptr = buffer.begin();
     if (!has_remaining_bytes(buffer, ptr, 5))
     {
-        return error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     // skip Terminal Identifier
     ptr += 4;
@@ -21,7 +19,7 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 2))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // NO NEED Home Dispatcher Identifier
         ptr += 2; // USHORT
@@ -31,7 +29,7 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 15))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // IMEI
         std::copy_n(ptr, 15, IMEI.begin());
@@ -42,7 +40,7 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 16))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // NO NEED International Mobile Subscriber Identity
         ptr += 16; // CHAR[16]
@@ -52,7 +50,7 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 3))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // NO NEED Language Code
         ptr += 3; // CHAR[3]
@@ -62,7 +60,7 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 3))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // NO NEED Network Identifier
         ptr += 3; // CHAR[3]
@@ -72,24 +70,22 @@ SrTermIdentity::parse(record_payload_type buffer) noexcept
     {
         if (!has_remaining_bytes(buffer, ptr, 2))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // Buffer Size
-        buffer_size = static_cast<std::uint16_t>(*ptr++) |     // 0
-                      static_cast<std::uint16_t>(*ptr++) << 8; // 1
+        buffer_size = static_cast<uint16_t>(*ptr++) |     // 0
+                      static_cast<uint16_t>(*ptr++) << 8; // 1
     }
 
     if ((flag & 0x80) != 0) // MNE
     {
         if (!has_remaining_bytes(buffer, ptr, 15))
         {
-            return error::Error(error::Code::EGTS_PC_INVDATALEN);
+            throw Error(Code::EGTS_PC_INVDATALEN);
         }
         // NO NEED Mobile Station Integrated Services Digital Network Number
         ptr += 15; // CHAR[15]
     }
-
-    return {};
 }
 
 frame_buffer_type
@@ -97,12 +93,12 @@ SrTermIdentity::buffer() const noexcept
 {
     frame_buffer_type buffer(5 + 15 + 2, 0);
     auto ptr = buffer.begin();
-    ptr += 4;                                             // skip TID
-    *ptr++ = static_cast<std::uint8_t>(0x02 | 0x40);      // set flag IMEIE and BSE
-    std::copy(IMEI.begin(), IMEI.end(), ptr);             // add IMEI
-    ptr += 15;                                            //
-    *ptr++ = static_cast<std::uint8_t>(buffer_size);      // add BS
-    *ptr++ = static_cast<std::uint8_t>(buffer_size >> 8); // add BS
+    ptr += 4;                                        // skip TID
+    *ptr++ = static_cast<uint8_t>(0x02 | 0x40);      // set flag IMEIE and BSE
+    std::copy(IMEI.begin(), IMEI.end(), ptr);        // add IMEI
+    ptr += 15;                                       //
+    *ptr++ = static_cast<uint8_t>(buffer_size);      // add BS
+    *ptr++ = static_cast<uint8_t>(buffer_size >> 8); // add BS
     return buffer;
 }
 

@@ -59,7 +59,7 @@ my_record_level(egts::v1::record_payload_type buffer)
         egts::v1::record::Record rec{};
         rec.parse(buffer, ptr);
         my_sub_record_level(rec.data());
-        // TODO: ответить !!
+        // TODO: ответить на запись!!
         rec.record_number();
     }
 }
@@ -98,7 +98,7 @@ my_read(tcp::socket &socket) noexcept
 
             if (!pkg.is_response())
             {
-                // TODO: ответить !!
+                // TODO: на пакет ответить !!
                 auto resp_pkg = pkg.make_response({});
                 // TODO: добавить в очередь на ответ
             }

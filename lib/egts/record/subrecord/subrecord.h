@@ -158,16 +158,6 @@ class SubRecord
 frame_buffer_type
 wrapper(Type type, frame_buffer_type &&data);
 
-struct SubRec
-{
-    virtual ~SubRec() = default;
-    virtual void parse(record_payload_type) = 0;
-    virtual frame_buffer_type
-    buffer() const noexcept = 0;
-};
-
-// Record
-// make_package(std::initializer_list<frame_buffer_type> args);
 
 } // namespace egts::v1::record::subrecord
 
