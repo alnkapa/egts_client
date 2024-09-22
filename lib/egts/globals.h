@@ -2,7 +2,9 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include <iomanip> // std::hex
 #include <iostream>
+#include <iterator> // std::distance
 #include <span>
 #include <vector>
 
@@ -25,9 +27,9 @@ has_remaining_bytes(payload_type buffer, payload_type::iterator ptr, std::size_t
 } // namespace egts::v1
 
 inline std::ostream &
-operator<<(std::ostream &os, const egts::v1::buffer_type &buffer)
+operator<<(std::ostream &os, egts::v1::payload_type buffer)
 {
-    os << "Buffer: [";
+    os << "[";
     for (size_t i = 0; i < buffer.size(); ++i)
     {
         os << std::hex << static_cast<int>(buffer[i]);
@@ -36,16 +38,15 @@ operator<<(std::ostream &os, const egts::v1::buffer_type &buffer)
     return os;
 }
 
-inline std::ostream &
-operator<<(std::ostream &os, const egts::v1::payload_type &buffer)
+inline egts::v1::buffer_type
+operator+=(egts::v1::buffer_type &lhs, egts::v1::buffer_type &&rhs)
 {
-    os << "Payload: [";
-    for (size_t i = 0; i < buffer.size(); ++i)
-    {
-        os << std::hex << static_cast<int>(buffer[i]);
-    }
-    os << std::dec << "]";
-    return os;
+    lhs.insert(
+        lhs.end(),
+        std::make_move_iterator(rhs.begin()),
+        std::make_move_iterator(rhs.end()));
+
+    return lhs;
 }
 
 #endif // GLOBALS_H

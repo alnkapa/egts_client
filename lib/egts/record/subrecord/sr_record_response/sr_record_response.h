@@ -33,6 +33,10 @@ struct SRRecordResponse
 
     frame_buffer_type
     buffer() const noexcept;
+    
+    SRRecordResponse();
+
+    SRRecordResponse(uint16_t confirmed_record_number, Code record_status);
 };
 
 } // namespace egts::v1::record::subrecord

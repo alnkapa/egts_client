@@ -6,7 +6,7 @@ namespace egts::v1::record
 {
 
 void
-Record::parse(record_payload_type buffer, record_payload_type::iterator &ptr)
+Record::parse(payload_type buffer, payload_type::iterator &ptr)
 {
     auto begin = ptr;
 
@@ -101,7 +101,7 @@ Record::record_number() const
     return m_record_number;
 }
 
-record_payload_type
+payload_type
 Record::data() const
 {
     return mp_data;
@@ -119,8 +119,8 @@ Record::recipient_service_type() const
     return m_recipient_service_type;
 }
 
-frame_buffer_type
-wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType recipient_service_type, frame_buffer_type &&data)
+buffer_type
+wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType recipient_service_type, buffer_type &&data)
 {
     if (data.size() > max_frame_size)
     {
@@ -128,7 +128,7 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
     }
     auto record_length = data.size();
     const std::size_t size = 5 + 2;
-    frame_buffer_type buffer(size, 0);
+    buffer_type buffer(size, 0);
     buffer.reserve(size + record_length);
     auto ptr = buffer.begin();
     *ptr++ = static_cast<uint8_t>(record_length);          // 0

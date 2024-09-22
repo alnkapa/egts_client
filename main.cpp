@@ -34,16 +34,14 @@ main(int argc, char *argv[])
     {
         // send sr_term_identity
         egts::v1::record::subrecord::SrTermIdentity i{};
-        i.IMEI = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+        // "863921034878280" -- АИмитатор 109
+        // TODO: ask from cmd line
+        i.IMEI = {'8', '6', '3', '9', '2', '1', '0', '3', '4', '8', '7', '8', '2', '8', '0'};
         i.buffer_size = 512;
 
-        std::cout << "SrTermIdentity:" << i.buffer() << std::endl;
-        
         auto sub = egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
-
-        std::cout << "subrecord:"  << sub << std::endl;        
 
         auto record_number = g_record_number++;
 
@@ -53,14 +51,10 @@ main(int argc, char *argv[])
             egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
             std::move(sub));
 
-        std::cout << "record:"  << sub << std::endl;        
-
         egts::v1::transport::Packet new_pkg{};
         new_pkg.identifier(g_packet_identifier++);
 
         new_pkg.set_frame(std::move(rec));
-
-        std::cout << "pkg:" << new_pkg.buffer() << std::endl;        
 
         boost::asio::write(
             socket,
@@ -70,10 +64,12 @@ main(int argc, char *argv[])
     catch (const boost::system::error_code &err) // Connection errors
     {
         std::cerr << "transport: read: error: " << err.what() << std::endl;
+        return EXIT_FAILURE;
     }
     catch (const std::exception &err) // Other errors
     {
         std::cerr << "transport: read: error: " << err.what() << std::endl;
+        return EXIT_FAILURE;
     }
 
     // Main
@@ -104,12 +100,13 @@ main(int argc, char *argv[])
                 {
                     // запустить чтение файла NMIE
                     std::cout << "transport: auth: ok" << std::endl;
+                    
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
             {
                 const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
-                // подтверждение отправленной записи, можно слать еще
+                // TODO: для загрузки файлов, будет нужно потом
             }
             else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
             {

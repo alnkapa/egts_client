@@ -3,7 +3,8 @@
 namespace egts::v1::record::subrecord
 {
 
-void SRRecordResponse::parse(payload_type buffer)
+void
+SRRecordResponse::parse(payload_type buffer)
 {
     auto ptr = buffer.begin();
     if (!has_remaining_bytes(buffer, ptr, 3))
@@ -26,5 +27,10 @@ SRRecordResponse::buffer() const noexcept
     *ptr++ = static_cast<std::uint8_t>(record_status);                // 2
     return buffer;
 }
+
+SRRecordResponse::SRRecordResponse(){};
+
+SRRecordResponse::SRRecordResponse(uint16_t confirmed_record_number, Code record_status)
+    : confirmed_record_number(confirmed_record_number), record_status(record_status){};
 
 } // namespace egts::v1::record::subrecord

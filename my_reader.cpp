@@ -1,6 +1,9 @@
 #include "my_globals.h"
 #include "queue.h"
+#include "record.h"
+#include "sr_record_response/sr_record_response.h"
 #include <cstdint>
+#include <unordered_map>
 #include <vector>
 
 // subrecord level
@@ -69,10 +72,57 @@ my_record_level(egts::v1::payload_type buffer)
     return rez;
 }
 
+// create records for confirming received records.
 egts::v1::buffer_type
-my_make_record_records(std::span<std::uint32_t>)
+my_make_record(std::span<std::uint32_t> in)
 {
-    return {};
+    using vec_t = std::vector<egts::v1::record::subrecord::SRRecordResponse>;
+
+    std::unordered_map<
+        egts::v1::record::ServiceType,
+        vec_t>
+        responce_sub_records_by_service_type{};
+
+    // Here we reviewed the incoming records for the services.
+    for (const auto &v : in)
+    {
+        auto current_service = static_cast<egts::v1::record::ServiceType>((v & 0xFF00) >> 8);
+        auto record_number = static_cast<std::uint16_t>((v & 0x00FF));
+
+        auto sub_rec_res = egts::v1::record::subrecord::SRRecordResponse(
+            record_number,
+            {});
+
+        auto it = responce_sub_records_by_service_type.find(current_service);
+        if (it != responce_sub_records_by_service_type.end())
+        {
+            it->second.emplace_back(std::move(sub_rec_res));
+        }
+        else
+        {
+            responce_sub_records_by_service_type.emplace(
+                current_service,
+                vec_t{sub_rec_res});
+        }
+    }
+
+    egts::v1::buffer_type record_buf;
+    for (auto &[k, vec] : responce_sub_records_by_service_type)
+    {
+        egts::v1::buffer_type buf;
+        for (auto &v : vec)
+        {
+            buf += v.buffer();
+        };
+
+        auto record_number = g_record_number++;
+        record_buf += egts::v1::record::wrapper(
+            record_number,
+            k,
+            k,
+            std::move(buf));
+    }
+    return record_buf;
 }
 
 // transport level
@@ -91,12 +141,6 @@ my_read(tcp::socket &socket) noexcept
                 boost::asio::buffer(header_buffer),
                 boost::asio::transfer_all());
 
-            std::cout << "read: " << std::endl;
-            for (auto v : header_buffer)
-            {
-                std::cout << std::hex << static_cast<int>(v);
-            }
-            std::cout << std::endl;
             pkg.parse_header(header_buffer);
 
             if (pkg.frame_data_length() > 0)
@@ -119,7 +163,7 @@ my_read(tcp::socket &socket) noexcept
                 auto resp_pkg = pkg.make_response({});
                 if (!received_records.empty())
                 {
-                    auto rec_buffer = my_make_record_records(received_records);
+                    auto rec_buffer = my_make_record(received_records);
                     resp_pkg.set_frame(std::move(rec_buffer));
                     received_records.clear();
                 }
@@ -128,7 +172,7 @@ my_read(tcp::socket &socket) noexcept
             else if (!received_records.empty())
             {
                 egts::v1::transport::Packet new_pkg{};
-                auto rec_buffer = my_make_record_records(received_records);
+                auto rec_buffer = my_make_record(received_records);
                 new_pkg.set_frame(std::move(rec_buffer));
                 received_records.clear();
                 g_send_queue.push(std::move(new_pkg));

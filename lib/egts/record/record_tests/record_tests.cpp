@@ -8,11 +8,11 @@ using namespace egts::v1;
 TEST(RECORD_PARSE, BasicTests)
 {
     record::Record rd{};
-    record::frame_buffer_type data(2, 0);
+    record::buffer_type data(2, 0);
 
     try
     {
-        record::record_payload_type s(data.cbegin(), data.cend());
+        record::payload_type s(data.cbegin(), data.cend());
         auto ptr = s.begin();
         rd.parse(s, ptr);
     }
@@ -29,7 +29,7 @@ TEST(RECORD_PARSE, BasicTests)
         std::uint16_t length = record::max_frame_size + 1;
         data[0] = static_cast<std::uint8_t>(length);      // Младший байт
         data[1] = static_cast<std::uint8_t>(length >> 8); // Старший байт
-        record::record_payload_type s1(data.cbegin(), data.cend());
+        record::payload_type s1(data.cbegin(), data.cend());
         auto ptr = s1.begin();
         rd.parse(s1, ptr);
     }
@@ -53,7 +53,7 @@ TEST(RECORD_PARSE, BasicTests)
         data[6] = static_cast<std::uint8_t>(2);           // RST
         std::fill(data.begin() + 7, data.end(), 44);
 
-        record::record_payload_type s2(data.cbegin(), data.cend());
+        record::payload_type s2(data.cbegin(), data.cend());
         auto ptr = s2.begin();
         rd.parse(s2, ptr);
     }
@@ -79,7 +79,7 @@ TEST(RECORD_PARSE1, BasicTests)
     record::Record rd{};
     try
     {
-        record::record_payload_type s(rez.cbegin(), rez.cend());
+        record::payload_type s(rez.cbegin(), rez.cend());
         auto ptr = s.begin();
         rd.parse(s, ptr);
     }
