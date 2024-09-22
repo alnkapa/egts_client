@@ -1,4 +1,3 @@
-#include "boost/asio/write.hpp"
 #include "my_globals.h"
 
 int
@@ -10,6 +9,7 @@ main(int argc, char *argv[])
     try
     {
         tcp::resolver resolver(io_context);
+        // TODO: ask from cmd line
         boost::asio::connect(socket, resolver.resolve("alfa.shatl-t.ru", "36329"));
         // boost::asio::connect(socket, resolver.resolve("localhost", "12345"));
     }
