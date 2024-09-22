@@ -1,5 +1,5 @@
 mkdir -p build
 cd build
-rm -rf *
-cmake ..
+# rm -rf *
+# cmake ..
 cmake --build .
