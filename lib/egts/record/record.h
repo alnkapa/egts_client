@@ -2,8 +2,10 @@
 #define RECORD_H
 
 #include <cstdint> // uint16_t, uint8_t
+#include <stddef.h> // size_t
 #include <globals.h>
 #include <error/error.h>
+#include <stdexcept>
 
 
 namespace egts::v1::record

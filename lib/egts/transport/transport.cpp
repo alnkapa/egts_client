@@ -24,10 +24,10 @@ Packet::is_response() const
     return m_packet_type == Type::EGTS_PT_RESPONSE;
 }
 
-std::pair<uint16_t, error::Error>
+std::pair<uint16_t, Error>
 Packet::response() const
 {
-    return std::pair<uint16_t, error::Error>();
+    return std::pair<uint16_t, Error>();
 }
 
 uint16_t
@@ -56,8 +56,8 @@ Packet::parse_frame(frame_buffer_type &&buffer)
     }
     // test crc
     uint16_t crc16_val = egts::v1::crc16(buffer.begin(), buffer.end() - crc_data_length);
-    uint16_t got_crc16_val = static_cast<std::uint16_t>(buffer[m_frame_data_length]) |
-                             static_cast<std::uint16_t>(buffer[m_frame_data_length + 1]) << 8;
+    uint16_t got_crc16_val = static_cast<uint16_t>(buffer[m_frame_data_length]) |
+                             static_cast<uint16_t>(buffer[m_frame_data_length + 1]) << 8;
 
     if (crc16_val != got_crc16_val)
     {
@@ -72,8 +72,8 @@ Packet::parse_frame(frame_buffer_type &&buffer)
         {
             throw Error(Code::EGTS_PC_INC_DATAFORM);
         }
-        m_response_packet_identifier = static_cast<std::uint16_t>(buffer[0]) |
-                                       static_cast<std::uint16_t>(buffer[1]) << 8;
+        m_response_packet_identifier = static_cast<uint16_t>(buffer[0]) |
+                                       static_cast<uint16_t>(buffer[1]) << 8;
         m_processing_result = Error(static_cast<Code>(buffer[2]));
         buffer.erase(buffer.begin(), buffer.begin() + response_length);
     }
@@ -131,7 +131,8 @@ Packet::frame_to_buffer() const noexcept
     return ret;
 }
 
-void Packet::parse_header(const header_buffer_type &head)
+void
+Packet::parse_header(const header_buffer_type &head)
 {
     // test protocol_version and PRF
     if (head[0] != protocol_version || (head[2] & 0xC0) != 0)
@@ -170,8 +171,8 @@ void Packet::parse_header(const header_buffer_type &head)
         throw Error(Code::EGTS_PC_HEADERCRC_ERROR);
     }
     // read frame data length
-    m_frame_data_length = static_cast<std::uint16_t>(head[5]) |
-                          static_cast<std::uint16_t>(head[6]) << 8;
+    m_frame_data_length = static_cast<uint16_t>(head[5]) |
+                          static_cast<uint16_t>(head[6]) << 8;
     if (m_frame_data_length > max_frame_size)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
@@ -181,8 +182,8 @@ void Packet::parse_header(const header_buffer_type &head)
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
     // read packet identifier
-    m_packet_identifier = static_cast<std::uint16_t>(head[7]) |
-                          static_cast<std::uint16_t>(head[8]) << 8;
+    m_packet_identifier = static_cast<uint16_t>(head[7]) |
+                          static_cast<uint16_t>(head[8]) << 8;
 }
 
 header_buffer_type
