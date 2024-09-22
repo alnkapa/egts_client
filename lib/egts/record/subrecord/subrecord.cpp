@@ -52,9 +52,11 @@ wrapper(Type type, frame_buffer_type &&data)
     }
     auto record_length = data.size();
 
-    std::size_t size = 3 + record_length;
+    const std::size_t size = 3;
 
     frame_buffer_type buffer(size, 0);
+    buffer.reserve(size + record_length);
+
     auto ptr = buffer.begin();
     *ptr++ = static_cast<uint8_t>(type);               // 0
     *ptr++ = static_cast<uint8_t>(record_length);      // 1

@@ -127,8 +127,9 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
     auto record_length = data.size();
-    std::size_t size = 5 + 2 + record_length;
+    const std::size_t size = 5 + 2;
     frame_buffer_type buffer(size, 0);
+    buffer.reserve(size + record_length);
     auto ptr = buffer.begin();
     *ptr++ = static_cast<uint8_t>(record_length);          // 0
     *ptr++ = static_cast<uint8_t>(record_length >> 8);     // 1

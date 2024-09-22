@@ -37,14 +37,25 @@ main(int argc, char *argv[])
         i.IMEI = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
         i.buffer_size = 512;
 
-        egts::v1::transport::Packet new_pkg{};
-        new_pkg.identifier(g_packet_identifier++);
-
-        auto record_number = g_record_number++;
+        std::cout << "SrTermIdentity:" << std::endl;
+        for (auto v : i.buffer())
+        {
+            std::cout << std::hex << static_cast<int>(v);
+        }
+        std::cout << std::endl;
 
         auto sub = egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
+
+        std::cout << "subrecord:" << std::endl;
+        for (auto v : sub)
+        {
+            std::cout << std::hex << static_cast<int>(v);
+        }
+        std::cout << std::endl;
+
+        auto record_number = g_record_number++;
 
         auto rec = egts::v1::record::wrapper(
             record_number,
@@ -52,9 +63,20 @@ main(int argc, char *argv[])
             egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
             std::move(sub));
 
+        std::cout << "record:" << std::endl;
+        for (auto v : sub)
+        {
+            std::cout << std::hex << static_cast<int>(v);
+        }
+        std::cout << std::endl;
+
+        egts::v1::transport::Packet new_pkg{};
+        new_pkg.identifier(g_packet_identifier++);
+        
         new_pkg.set_frame(std::move(rec));
 
-        std::cout << new_pkg.buffer().size() << std::endl;
+        std::cout << "pkg:"
+                  << " : " << new_pkg.buffer().size() << std::endl;
         for (auto v : new_pkg.buffer())
         {
             std::cout << std::hex << static_cast<int>(v);
