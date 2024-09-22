@@ -1,8 +1,5 @@
 #include "boost/asio/write.hpp"
 #include "my_globals.h"
-#include <cstdlib>
-#include <ios>
-#include <memory>
 
 int
 main(int argc, char *argv[])
@@ -98,9 +95,17 @@ main(int argc, char *argv[])
                 }
                 else
                 {
-                    // запустить чтение файла NMIE
                     std::cout << "transport: auth: ok" << std::endl;
-                    
+                    // run file reader
+                    // TODO: ask from cmd line
+                    auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
+                    if (!file_ptr->is_open())
+                    {
+                        std::cerr << "transport: error open file nmea.txt" << std::endl;
+                        break;
+                    }
+                    std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
+                    reader.detach();
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
@@ -133,7 +138,7 @@ main(int argc, char *argv[])
             break;
         }
     }
-
+    g_keep_running = false; // read_file will finish execution.
     if (socket.is_open())
     {
         socket.close(); // reader will finish execution.

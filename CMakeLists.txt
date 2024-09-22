@@ -15,7 +15,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(BOOST_ROOT_PREFIX ${CMAKE_SOURCE_DIR}/lib/boost)
 set(CMAKE_PREFIX_PATH ${BOOST_ROOT_PREFIX})
 
-# Найдите Boost
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/nmea.txt
+    ${CMAKE_CURRENT_BINARY_DIR}/nmea.txt
+    COPYONLY
+)
+
 find_package(Boost REQUIRED)
 
 if(Boost_FOUND)
@@ -28,8 +33,9 @@ endif()
 
 add_subdirectory(lib/egts)
 add_subdirectory(lib/pub_sub)
+add_subdirectory(lib/nmea)
 
-add_executable(egts_client main.cpp my_reader.cpp queue.cpp)
+add_executable(egts_client main.cpp my_reader.cpp queue.cpp my_file_reader.cpp)
 
 # auth.cpp queue.cpp
 
@@ -39,6 +45,7 @@ target_include_directories(
     PRIVATE
     egts
     pub_sub
+    nmea
     ${Boost_INCLUDE_DIRS}
 )
 
@@ -47,5 +54,6 @@ target_link_libraries(
     PRIVATE
     egts
     pub_sub
+    nmea
     ${Boost_LIBRARIES}
 )
