@@ -4,7 +4,7 @@ namespace egts::v1::record::subrecord
 {
 
 void
-SubRecord::parse(record_payload_type buffer, record_payload_type::iterator &ptr)
+SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
 {
     auto begin = ptr;
 
@@ -37,7 +37,7 @@ SubRecord::type() const
     return m_type;
 }
 
-record_payload_type
+payload_type
 SubRecord::data() const
 {
     return mp_data;

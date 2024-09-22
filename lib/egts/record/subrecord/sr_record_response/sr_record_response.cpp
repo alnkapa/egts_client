@@ -3,7 +3,7 @@
 namespace egts::v1::record::subrecord
 {
 
-void SRRecordResponse::parse(record_payload_type buffer)
+void SRRecordResponse::parse(payload_type buffer)
 {
     auto ptr = buffer.begin();
     if (!has_remaining_bytes(buffer, ptr, 3))

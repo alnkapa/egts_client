@@ -11,7 +11,7 @@ TEST(PARSE, BasicTests)
     subrecord::SubRecord srd{};
     subrecord::frame_buffer_type data(2, 0);
 
-    subrecord::record_payload_type s(data.cbegin(), data.cend());
+    subrecord::payload_type s(data.cbegin(), data.cend());
     // auto ptr = s.begin();
     // auto er = srd.parse(s, ptr);
     // if (er != error::Code::EGTS_PC_INVDATALEN)
@@ -59,7 +59,7 @@ TEST(PARSE1, BasicTests)
 
     auto rez = subrecord::wrapper(subrecord::Type::EGTS_SR_ABS_CNTR_DATA, {1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
     subrecord::SubRecord srd{};
-    subrecord::record_payload_type s(rez.cbegin(), rez.cend());
+    subrecord::payload_type s(rez.cbegin(), rez.cend());
     auto ptr = s.begin();
     // auto er = srd.parse(s, ptr);
     // if (er != error::Code::EGTS_PC_OK)

@@ -12,9 +12,9 @@
 namespace egts::v1::transport
 {
 
-using frame_buffer_type = egts::v1::frame_buffer_type;
+using frame_buffer_type = egts::v1::buffer_type;
 
-using record_payload_type = egts::v1::record_payload_type;
+using payload_type = egts::v1::payload_type;
 
 using Error = egts::v1::error::Error;
 
@@ -106,7 +106,7 @@ class Packet
     void
     set_frame(frame_buffer_type &&buffer) noexcept;
 
-    record_payload_type
+    payload_type
     get_frame() const noexcept;
 
     frame_buffer_type

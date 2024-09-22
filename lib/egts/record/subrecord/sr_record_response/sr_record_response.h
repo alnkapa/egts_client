@@ -9,9 +9,9 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::frame_buffer_type;
+using frame_buffer_type = egts::v1::buffer_type;
 
-using record_payload_type = egts::v1::record_payload_type;
+using payload_type = egts::v1::payload_type;
 
 using uint16_t = std::uint16_t;
 
@@ -29,7 +29,7 @@ struct SRRecordResponse
     // The status of the record processing.
     Code record_status;
 
-    void parse(record_payload_type);
+    void parse(payload_type);
 
     frame_buffer_type
     buffer() const noexcept;

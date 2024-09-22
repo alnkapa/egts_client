@@ -36,9 +36,9 @@ enum class ServiceType
     EGTS_ECALL_SERVICE = 10
 };
 
-using frame_buffer_type = egts::v1::frame_buffer_type;
+using frame_buffer_type = egts::v1::buffer_type;
 
-using record_payload_type = egts::v1::record_payload_type;
+using record_payload_type = egts::v1::payload_type;
 
 using uint16_t = std::uint16_t;
 

@@ -5,7 +5,7 @@ namespace egts::v1::record::subrecord
 {
 
 void
-SrTermIdentity::parse(record_payload_type buffer)
+SrTermIdentity::parse(payload_type buffer)
 {
     auto ptr = buffer.begin();
     if (!has_remaining_bytes(buffer, ptr, 5))

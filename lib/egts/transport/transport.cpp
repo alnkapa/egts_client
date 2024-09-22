@@ -89,10 +89,10 @@ Packet::set_frame(frame_buffer_type &&buffer) noexcept
     m_frame_data_length = mp_data.size();
 }
 
-record_payload_type
+payload_type
 Packet::get_frame() const noexcept
 {
-    return record_payload_type(mp_data.cbegin(), mp_data.cend());
+    return payload_type(mp_data.cbegin(), mp_data.cend());
 }
 
 frame_buffer_type

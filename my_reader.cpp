@@ -5,7 +5,7 @@
 
 // subrecord level
 void
-my_sub_record_level(egts::v1::record_payload_type sub_buffer)
+my_sub_record_level(egts::v1::payload_type sub_buffer)
 {
     using egts::v1::record::subrecord::Type;
     auto sub_ptr = sub_buffer.begin();
@@ -50,7 +50,7 @@ my_sub_record_level(egts::v1::record_payload_type sub_buffer)
 //
 // It will return the numbers of the received (service<<8|record)=uint32.
 std::vector<std::uint32_t>
-my_record_level(egts::v1::record_payload_type buffer)
+my_record_level(egts::v1::payload_type buffer)
 {
     auto ptr = buffer.begin();
     std::vector<std::uint32_t> rez{};
@@ -69,7 +69,7 @@ my_record_level(egts::v1::record_payload_type buffer)
     return rez;
 }
 
-egts::v1::frame_buffer_type
+egts::v1::buffer_type
 my_make_record_records(std::span<std::uint32_t>)
 {
     return {};

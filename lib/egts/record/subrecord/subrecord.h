@@ -10,9 +10,9 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::frame_buffer_type;
+using frame_buffer_type = egts::v1::buffer_type;
 
-using record_payload_type = egts::v1::record_payload_type;
+using payload_type = egts::v1::payload_type;
 
 using uint16_t = std::uint16_t;
 
@@ -141,16 +141,16 @@ class SubRecord
     // Length of data in bytes for the entry in the SRD field.
     uint16_t m_length{0};
     // record payload
-    record_payload_type mp_data;
+    payload_type mp_data;
 
   public:
   
-    void parse(record_payload_type, record_payload_type::iterator &);
+    void parse(payload_type, payload_type::iterator &);
 
     Type
     type() const;
 
-    record_payload_type
+    payload_type
     data() const;
 };
 
