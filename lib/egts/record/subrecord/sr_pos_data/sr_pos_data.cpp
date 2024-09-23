@@ -36,12 +36,11 @@ SrPosData::parse(payload_type buffer)
                                                             //
     odometer = static_cast<uint32_t>(*ptr++) |              // 16
                static_cast<uint32_t>(*ptr++) << 8 |         // 17
-               static_cast<uint32_t>(*ptr++) << 16 |        // 18
-               static_cast<uint32_t>(*ptr++) << 24;         // 19
+               static_cast<uint32_t>(*ptr++) << 16;         // 18
                                                             //
-    digital_inputs = static_cast<uint8_t>(*ptr++);          // 20
+    digital_inputs = static_cast<uint8_t>(*ptr++);          // 19
                                                             //
-    source = static_cast<uint8_t>(*ptr++);                  // 21
+    source = static_cast<uint8_t>(*ptr++);                  // 20
 
     if ((flags & 0x80) != 0) // ALTH
     {
@@ -66,7 +65,7 @@ SrPosData::buffer() const noexcept
 {
     size_t buffer_size = 21;
 
-    if ((flags & 0x80) != 0)
+    if ((flags & 0x80) != 0) // ALTH
     {
         buffer_size += 3;
     }
@@ -103,11 +102,10 @@ SrPosData::buffer() const noexcept
     *ptr++ = static_cast<uint8_t>(odometer);              // 16
     *ptr++ = static_cast<uint8_t>(odometer >> 8);         // 17
     *ptr++ = static_cast<uint8_t>(odometer >> 16);        // 18
-    *ptr++ = static_cast<uint8_t>(odometer >> 24);        // 19
                                                           //
-    *ptr++ = static_cast<uint8_t>(digital_inputs);        // 20
+    *ptr++ = static_cast<uint8_t>(digital_inputs);        // 19
                                                           //
-    *ptr++ = static_cast<uint8_t>(source);                // 21
+    *ptr++ = static_cast<uint8_t>(source);                // 20
 
     if ((flags & 0x80) != 0)
     {
