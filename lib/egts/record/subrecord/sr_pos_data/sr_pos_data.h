@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SR_RESULT_CODE_H
-#define SR_RESULT_CODE_H
+#ifndef SR_POS_DATA_H
+#define SR_POS_DATA_H
 
 #include <cstdint> // uint16_t, uint8_t, uint32_t
 #include <error/error.h>

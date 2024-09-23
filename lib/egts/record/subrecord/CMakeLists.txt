@@ -16,6 +16,7 @@ target_include_directories(
 
 target_link_libraries(
     subrecord 
+    PUBLIC
     sr_record_response
     sr_result_code
     sr_term_identity

@@ -1,52 +1,108 @@
 #include "my_globals.h"
+#include "nmea/object/status.hpp"
+#include <chrono>
+#include <cstdint>
 #include <nmea/message/gga.hpp>
+#include <nmea/message/gsv.hpp>
+#include <nmea/message/rmc.hpp>
 #include <nmea/sentence.hpp>
 #include <string>
 #include <string_view>
 
-void
-my_parse_string(std::string_view str)
+
+long
+get_time()
 {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    return static_cast<long>(now_c - g_start_time_t);
+}
+
+uint32_t
+convert(double lat)
+{
+    auto degrees = static_cast<uint32_t>(lat / 100);
+    auto minutes = static_cast<uint32_t>(lat * 10000) % 1000000;
+    return (degrees * 10000000) + (minutes * 100 / 6);
+}
+
+bool
+my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd)
+{
+    bool ready_for_send{false};
     try
     {
         nmea::sentence sentence(str.data());
-        if (sentence.type() == "GGA")
+        if (sentence.type() == "GGA") // Global Positioning System Fix Data
         {
             nmea::gga gga(sentence);
+            rd.altitude = static_cast<uint16_t>(gga.altitude.get());
+            rd.flags |= 1 << 7; // ALTE
 
-            std::cout << "UTC: " << std::fixed << std::setprecision(2) << gga.utc.get() << std::endl;
+            // gga.satellite_count.get();
+            // gga.hdop.get() * 10;
 
-            if (gga.latitude.exists())
+            switch (gga.fix.get())
             {
-                std::cout << "Latitude: " << std::fixed << std::setprecision(6) << gga.latitude.get() << std::endl;
+            case nmea::gga::fix_type::DGPS:
+                rd.flags |= 1 << 1; // FIX
+                break;
+            default:
+                break;
             }
-
-            if (gga.longitude.exists())
+        }
+        else if (sentence.type() == "GSV") // GPS Satellites in View
+        {
+            nmea::gsv gsv(sentence);
+            gsv.satellite_count.get();
+        }
+        else if (sentence.type() == "RMC") // Recommended Minimum Specific GPS/Transit Data
+        {
+            nmea::rmc rmc(sentence);
+            if (rmc.latitude.get() < 0) // S
             {
-                std::cout << "Longitude: " << std::fixed << std::setprecision(6) << gga.longitude.get() << std::endl;
+                rd.flags |= 1 << 5; // LAHS
             }
+            rd.latitude = convert(rmc.latitude.get());
+            if (rmc.longitude.get() < 0) // W
+            {
+                rd.flags |= 1 << 6; // LOHS
+            }
+            rd.longitude = convert(rmc.longitude.get());
+            rd.speed = static_cast<uint16_t>(rmc.speed.get() * 1.85200);
+            rd.direction = static_cast<uint8_t>(rmc.track_angle.get());
+            // TODO: DIRH ??
+            if (rmc.status.get() == nmea::status::ACTIVE)
+            {
+                rd.flags |= 1; // VLD
+            }
+            rd.navigation_time = get_time();
+            ready_for_send = true;
         }
     }
     catch (const std::exception &err)
     {
         std::cerr << "nmea: error: " << err.what() << std::endl;
     }
+    return ready_for_send;
 }
 
 void
 my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 {
     std::string line;
+    egts::v1::record::subrecord::SrPosData rd{};
     while (g_keep_running)
     {
         try
         {
-            std::cerr << "read_file: begin " << file->tellg() << std::endl;
             while (g_keep_running && std::getline(*file, line))
             {
-                my_parse_string(line);
+                if (my_parse_string(line, rd))
+                {
+                    // TODO: send
+                };
             }
-            std::cerr << "read_file: end " << file->tellg() << std::endl;
             if (file->eof())
             {
                 file->clear();

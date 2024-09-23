@@ -30,7 +30,7 @@ SrPosData::parse(payload_type buffer)
     flags = static_cast<uint8_t>(*ptr++);                   // 12
                                                             //
     speed = static_cast<uint16_t>(*ptr++) |                 // 13
-            static_cast<uint16_t>(*ptr++) << 8;             // 14
+            static_cast<uint16_t>(*ptr++ & 0x3f) << 8;      // 14
                                                             //
     direction = static_cast<uint8_t>(*ptr++);               // 15
                                                             //
@@ -95,7 +95,7 @@ SrPosData::buffer() const noexcept
     *ptr++ = static_cast<uint8_t>(flags);                 // 12
                                                           //
     *ptr++ = static_cast<uint8_t>(speed);                 // 13
-    *ptr++ = static_cast<uint8_t>(speed >> 8);            // 14
+    *ptr++ = static_cast<uint8_t>((speed >> 8) & 0x3f);   // 14
                                                           //
     *ptr++ = static_cast<uint8_t>(direction);             // 15
                                                           //

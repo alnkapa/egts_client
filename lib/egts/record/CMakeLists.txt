@@ -4,7 +4,6 @@ add_subdirectory(subrecord)
 
 add_library(
     record 
-    SHARED 
     record.cpp
 )
 
