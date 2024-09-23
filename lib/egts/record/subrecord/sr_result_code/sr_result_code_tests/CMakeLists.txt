@@ -7,11 +7,10 @@ add_executable(sr_result_code_tests sr_result_code_tests.cpp)
 target_include_directories(
     sr_result_code_tests 
     PRIVATE 
-    ${CMAKE_SOURCE_DIR}/lib/egts/error
-    ${CMAKE_SOURCE_DIR}/lib/egts/record/subrecord/sr_result_code
+    ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
-target_link_libraries(sr_result_code_tests GTest::GTest GTest::Main sr_result_code)
+target_link_libraries(sr_result_code_tests GTest::GTest GTest::Main egts)
 
-add_test(NAME PARSE COMMAND sr_result_code_tests)
+add_test(NAME SR_RESULT_CODE_PARSE COMMAND sr_result_code_tests)
 

@@ -10,7 +10,7 @@ SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
 
     if (!has_remaining_bytes(buffer, ptr, 3))
     {
-        throw error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     m_type = static_cast<Type>(*ptr++);                 // 0
     m_length = static_cast<std::uint16_t>(*ptr++) |     // 1
@@ -18,12 +18,12 @@ SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
 
     if (m_length > max_frame_size)
     {
-        throw error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
 
     if (!has_remaining_bytes(buffer, ptr, m_length))
     {
-        throw error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     auto offset = std::distance(buffer.begin(), begin);
     offset += std::distance(begin, ptr);
@@ -48,7 +48,7 @@ wrapper(Type type, frame_buffer_type &&data)
 {
     if (data.size() > max_frame_size)
     {
-        throw error::Error(error::Code::EGTS_PC_INVDATALEN);
+        throw Error(Code::EGTS_PC_INVDATALEN);
     }
     auto record_length = data.size();
 

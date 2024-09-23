@@ -1,9 +1,7 @@
 #include "error/error.h"
 #include "transport/transport.h"
 #include <algorithm> // Для std::fill
-#include <array>
 #include <gtest/gtest.h>
-#include <stdexcept>
 #include <vector>
 
 using namespace egts::v1::transport;

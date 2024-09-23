@@ -11,10 +11,11 @@ SRRecordResponse::parse(payload_type buffer)
     {
         throw(error::Error(error::Code::EGTS_PC_INVDATALEN));
     }
+
     confirmed_record_number = static_cast<std::uint16_t>(*ptr++) |     // 0
                               static_cast<std::uint16_t>(*ptr++) << 8; // 1
-
-    record_status = static_cast<error::Code>(*ptr++); // 2
+                                                                       //
+    record_status = static_cast<error::Code>(*ptr++);                  // 2
 }
 
 frame_buffer_type

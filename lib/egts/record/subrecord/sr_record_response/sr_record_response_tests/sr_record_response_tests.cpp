@@ -1,27 +1,23 @@
 #include "error.h"
-#include "sr_record_response.h"
-#include <algorithm> // Для std::fill
 #include <gtest/gtest.h>
+#include <record/subrecord/sr_record_response/sr_record_response.h>
 
-using namespace egts::v1::record::subrecord;
-using namespace egts::v1::error;
-
-TEST(PARSE, BasicTests)
+TEST(SR_RECORD_RESPONSE_PARSE, BasicTests)
 {
-    SRRecordResponse rd{};
+    egts::v1::record::subrecord::SRRecordResponse rd{};
     rd.confirmed_record_number = 10;
-    rd.record_status = Code::EGTS_PC_ALREADY_EXISTS;
+    rd.record_status = egts::v1::error::Code::EGTS_PC_ALREADY_EXISTS;
     auto buf = rd.buffer();
 
-    SRRecordResponse rd1{};
+    egts::v1::record::subrecord::SRRecordResponse rd1{};
     try
     {
         rd1.parse(buf);
     }
-    catch (const Error &err)
+    catch (const egts::v1::error::Error &err)
     {
         ADD_FAILURE() << "error: " << err.what();
-    }    
+    }
 }
 
 int

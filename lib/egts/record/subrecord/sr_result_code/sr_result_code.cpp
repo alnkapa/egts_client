@@ -1,5 +1,4 @@
 #include "sr_result_code.h"
-#include <iterator>
 #include <span>
 
 namespace egts::v1::record::subrecord

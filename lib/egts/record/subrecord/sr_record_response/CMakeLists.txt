@@ -4,7 +4,7 @@ add_library(sr_record_response sr_record_response.cpp)
 
 target_include_directories(
     sr_record_response 
-    PUBLIC 
+    PRIVATE 
     ${CMAKE_SOURCE_DIR}/lib/egts
 )
 

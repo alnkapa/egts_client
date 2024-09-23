@@ -5,7 +5,6 @@
 #include <error/error.h>
 #include <globals.h>
 #include <stddef.h> // size_t
-#include <stdexcept>
 
 namespace egts::v1::record
 {

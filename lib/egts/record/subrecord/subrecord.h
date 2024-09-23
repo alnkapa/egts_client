@@ -5,7 +5,6 @@
 #include <cstdint> // uint16_t, uint8_t
 #include <globals.h>
 #include <error/error.h>
-#include <iterator>
 
 namespace egts::v1::record::subrecord
 {
