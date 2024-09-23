@@ -1,5 +1,4 @@
 #include "error.h"
-#include <algorithm> // Для std::fill
 #include <gtest/gtest.h>
 #include <record/subrecord/sr_pos_data/sr_pos_data.h>
 
