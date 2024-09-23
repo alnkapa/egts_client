@@ -10,7 +10,7 @@ target_include_directories(
     ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
-target_link_libraries(sr_pos_data_tests GTest::GTest GTest::Main sr_pos_data)
+target_link_libraries(sr_pos_data_tests GTest::GTest GTest::Main egts)
 
-# add_test(NAME PARSE COMMAND sr_pos_data_tests)
+add_test(NAME SR_POS_DATA_PARSE COMMAND sr_pos_data_tests)
 

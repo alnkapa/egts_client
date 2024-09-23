@@ -1,5 +1,4 @@
 #include "sr_pos_data.h"
-#include <iterator>
 #include <span>
 
 namespace egts::v1::record::subrecord

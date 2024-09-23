@@ -1,23 +1,23 @@
 #include "error.h"
-#include <record/subrecord/sr_pos_data/sr_pos_data.h>
 #include <algorithm> // Для std::fill
 #include <gtest/gtest.h>
-
-using namespace egts::v1::record::subrecord;
-using namespace egts::v1::error;
+#include <record/subrecord/sr_pos_data/sr_pos_data.h>
 
 TEST(SR_POS_DATA_PARSE, BasicTests)
 {
-    // SrResultCode rd{};
-    // rd.record_status=Code::EGTS_PC_ALREADY_EXISTS;
-    // auto buf = rd.buffer();
+    egts::v1::record::subrecord::SrPosData rd{};
+    //rd.record_status = egts::v1::error::Code::EGTS_PC_ALREADY_EXISTS;
+    auto buf = rd.buffer();
 
-    // SrResultCode rd1{};
-    // auto err = rd1.parse(buf);
-    // if (err != Code::EGTS_PC_OK)
-    // {
-    //     ADD_FAILURE() << "error: " << err.what();
-    // }
+    egts::v1::record::subrecord::SrPosData rd1{};
+    try
+    {
+        rd1.parse(buf);
+    }
+    catch (const egts::v1::error::Error &err)
+    {
+        ADD_FAILURE() << "error: " << err.what();
+    }    
 }
 
 int

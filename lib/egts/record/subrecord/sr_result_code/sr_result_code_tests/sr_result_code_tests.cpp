@@ -1,18 +1,15 @@
 #include "error.h"
-#include <record/subrecord/sr_result_code/sr_result_code.h>
 #include <gtest/gtest.h>
-
-using namespace egts::v1::record::subrecord;
-using namespace egts::v1::error;
+#include <record/subrecord/sr_result_code/sr_result_code.h>
 
 TEST(SR_RESULT_CODE_PARSE, BasicTests)
 {
-    SrResultCode rd{};
-    rd.record_status=Code::EGTS_PC_ALREADY_EXISTS;
+    egts::v1::record::subrecord::SrResultCode rd{};
+    rd.record_status = egts::v1::error::Code::EGTS_PC_ALREADY_EXISTS;
     auto buf = rd.buffer();
 
-    SrResultCode rd1{};
-    
+    egts::v1::record::subrecord::SrResultCode rd1{};
+
     try
     {
         rd1.parse(buf);
@@ -20,9 +17,8 @@ TEST(SR_RESULT_CODE_PARSE, BasicTests)
     catch (const egts::v1::error::Error &err)
     {
         ADD_FAILURE() << "error: " << err.what();
-    }    
+    }
 }
-
 
 int
 main(int argc, char **argv)
