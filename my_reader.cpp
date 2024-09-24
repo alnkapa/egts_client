@@ -106,14 +106,16 @@ my_make_record(std::span<std::uint32_t> in)
         }
     }
 
+    // Records are created for each service, and corresponding subrecords are added to each record
     egts::v1::buffer_type record_buf;
     for (auto &[k, vec] : responce_sub_records_by_service_type)
     {
+
         egts::v1::buffer_type buf;
         for (auto &v : vec)
         {
             buf += v.buffer();
-        };
+        }
 
         auto record_number = g_record_number++;
         record_buf += egts::v1::record::wrapper(
@@ -163,17 +165,17 @@ my_read(tcp::socket &socket) noexcept
                 auto resp_pkg = pkg.make_response({});
                 if (!received_records.empty())
                 {
-                    auto rec_buffer = my_make_record(received_records);
-                    resp_pkg.set_frame(std::move(rec_buffer));
-                    received_records.clear();
+                    // auto rec_buffer = my_make_record(received_records);
+                    // resp_pkg.set_frame(std::move(rec_buffer));
+                    // received_records.clear();
                 }
                 g_send_queue.push(std::move(resp_pkg));
             }
             else if (!received_records.empty())
             {
                 egts::v1::transport::Packet new_pkg{};
-                auto rec_buffer = my_make_record(received_records);
-                new_pkg.set_frame(std::move(rec_buffer));
+                // auto rec_buffer = my_make_record(received_records);
+                // new_pkg.set_frame(std::move(rec_buffer));
                 received_records.clear();
                 g_send_queue.push(std::move(new_pkg));
             }

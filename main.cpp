@@ -78,11 +78,13 @@ main(int argc, char *argv[])
             if (std::holds_alternative<egts::v1::transport::Packet>(mes))
             {
                 auto &pkg = std::get<egts::v1::transport::Packet>(mes);
-                pkg.identifier(g_packet_identifier++);
+                pkg.identifier(g_packet_identifier++);                
                 boost::asio::write(
                     socket,
                     boost::asio::buffer(pkg.buffer()),
                     boost::asio::transfer_all());
+                std::cout << "send: size:" << pkg.buffer()    
+
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
             {

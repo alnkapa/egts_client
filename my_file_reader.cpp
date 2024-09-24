@@ -92,15 +92,16 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 {
     std::string line;
     egts::v1::record::subrecord::SrPosData rd{};
+    int count{0};
     while (g_keep_running)
     {
         try
         {
             while (g_keep_running && std::getline(*file, line))
             {
-                std::cout << "line:" << line << std::endl;
                 if (my_parse_string(line, rd))
                 {
+
                     auto sub = egts::v1::record::subrecord::wrapper(
                         egts::v1::record::subrecord::Type::EGTS_SR_POS_DATA,
                         rd.buffer());
@@ -115,8 +116,16 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 
                     egts::v1::transport::Packet new_pkg{};
                     new_pkg.set_frame(std::move(rec));
-                    g_send_queue.push(std::move(new_pkg));
+                    if (count < 10)
+                    {
+                        g_send_queue.push(std::move(new_pkg));
+                        std::cout << "line:" << line << std::endl;
+                        //g_keep_running = false;
+                    }
+                    count++;
+                    std::this_thread::sleep_for(std::chrono::seconds(5));
                 };
+                
             }
             if (file->eof())
             {
