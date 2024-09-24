@@ -6,9 +6,9 @@
 #include <nmea/message/gsv.hpp>
 #include <nmea/message/rmc.hpp>
 #include <nmea/sentence.hpp>
+#include <ostream>
 #include <string>
 #include <string_view>
-
 
 long
 get_time()
@@ -98,9 +98,24 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
         {
             while (g_keep_running && std::getline(*file, line))
             {
+                std::cout << "line:" << line << std::endl;
                 if (my_parse_string(line, rd))
                 {
-                    // TODO: send
+                    auto sub = egts::v1::record::subrecord::wrapper(
+                        egts::v1::record::subrecord::Type::EGTS_SR_POS_DATA,
+                        rd.buffer());
+
+                    auto record_number = g_record_number++;
+
+                    auto rec = egts::v1::record::wrapper(
+                        record_number,
+                        egts::v1::record::ServiceType::EGTS_TELEDATA_SERVICE,
+                        egts::v1::record::ServiceType::EGTS_TELEDATA_SERVICE,
+                        std::move(sub));
+
+                    egts::v1::transport::Packet new_pkg{};
+                    new_pkg.set_frame(std::move(rec));
+                    g_send_queue.push(std::move(new_pkg));
                 };
             }
             if (file->eof())

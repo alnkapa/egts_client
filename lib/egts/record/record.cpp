@@ -138,7 +138,10 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
     *ptr++ = 1 << 7;                                       // 4 set SSOD. We are on the client side.
     *ptr++ = static_cast<uint8_t>(source_service_type);    // 5
     *ptr++ = static_cast<uint8_t>(recipient_service_type); // 6
-    buffer.insert(ptr, std::make_move_iterator(data.begin()), std::make_move_iterator(data.end()));
+    buffer.insert(
+        ptr,
+        std::make_move_iterator(data.begin()),
+        std::make_move_iterator(data.end()));
     return buffer;
 }
 
