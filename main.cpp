@@ -40,20 +40,12 @@ main(int argc, char *argv[])
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
 
-        // sub += egts::v1::record::subrecord::wrapper(
-        //     egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
-        //     i.buffer());
-
-        // sub += egts::v1::record::subrecord::wrapper(
-        //     egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
-        //     i.buffer());
-
         auto record_number = g_record_number++;
 
         auto rec = egts::v1::record::wrapper(
             record_number,
-            egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
-            egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
+            egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
+            egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
             std::move(sub));
 
         egts::v1::transport::Packet new_pkg{};
