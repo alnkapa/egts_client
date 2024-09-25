@@ -371,6 +371,29 @@ TEST(TRANSPORT_FULL, BasicTests)
     }
 }
 
+TEST(TRANSPORT_PARSE_BUFFER, BasicTests)
+{
+    try
+    {
+
+        frame_buffer_type buffer{0x1, 0x0, 0x0, 0xb, 0x0, 0xd, 0x0, 0x2, 0x0, 0x0, 0x6a, 0x1, 0x0, 0x0, 0x3, 0x0, 0x2, 0x0, 0x80, 0x1, 0x1, 0x1, 0x0, 0x0, 0xf3, 0x6c};
+
+        header_buffer_type header{};
+
+        std::copy_n(buffer.begin(), 11, header.begin());
+        Packet pr{};
+        pr.parse_header(header);
+        buffer.erase(buffer.begin(), buffer.begin() + 11);
+        pr.parse_frame(std::move(buffer));
+        
+        // ADD_FAILURE() << "TRANSPORT_PARSE_BUFFER:" << pr.get_frame() << std::endl;
+    }
+    catch (const egts::v1::error::Error &err)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+}
+
 int
 main(int argc, char **argv)
 {

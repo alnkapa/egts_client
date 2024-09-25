@@ -22,3 +22,5 @@ add_test(NAME TRANSPORT_SEND_RECEIVE COMMAND transport_tests)
 add_test(NAME TRANSPORT_SEND_RECEIVE_1 COMMAND transport_tests)
 
 add_test(NAME TRANSPORT_FULL COMMAND transport_tests)
+
+add_test(NAME TRANSPORT_PARSE_BUFFER COMMAND transport_tests)

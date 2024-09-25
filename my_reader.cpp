@@ -16,7 +16,7 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
     while (sub_ptr != sub_buffer.end())
     {
         egts::v1::record::subrecord::SubRecord s_rec{};
-        s_rec.parse(sub_buffer, sub_ptr);        
+        s_rec.parse(sub_buffer, sub_ptr);
         // Only these subrecords may come from the server.
         switch (s_rec.type())
         {
@@ -62,7 +62,7 @@ my_record_level(egts::v1::payload_type buffer)
     while (ptr != buffer.end())
     {
         egts::v1::record::Record rec{};
-        rec.parse(buffer, ptr);        
+        rec.parse(buffer, ptr);
         rez.emplace_back(
             ((static_cast<std::uint32_t>(rec.source_service_type()) << 8) & 0xFF00) // service
             |
@@ -82,7 +82,7 @@ my_make_record(std::span<std::uint32_t> in)
     std::unordered_map<
         egts::v1::record::ServiceType,
         vec_t>
-        responce_sub_records_by_service_type{};
+        response_sub_records_by_service_type{};
 
     // Here we reviewed the incoming records for the services.
     for (const auto &v : in)
@@ -94,14 +94,14 @@ my_make_record(std::span<std::uint32_t> in)
             record_number,
             {});
 
-        auto it = responce_sub_records_by_service_type.find(current_service);
-        if (it != responce_sub_records_by_service_type.end())
+        auto it = response_sub_records_by_service_type.find(current_service);
+        if (it != response_sub_records_by_service_type.end())
         {
             it->second.emplace_back(std::move(sub_rec_res));
         }
         else
         {
-            responce_sub_records_by_service_type.emplace(
+            response_sub_records_by_service_type.emplace(
                 current_service,
                 vec_t{sub_rec_res});
         }
@@ -109,13 +109,15 @@ my_make_record(std::span<std::uint32_t> in)
 
     // Records are created for each service, and corresponding subrecords are added to each record
     egts::v1::buffer_type record_buf;
-    for (auto &[k, vec] : responce_sub_records_by_service_type)
+    for (auto &[k, vec] : response_sub_records_by_service_type)
     {
 
         egts::v1::buffer_type buf;
         for (auto &v : vec)
         {
-            buf += v.buffer();
+            buf += egts::v1::record::subrecord::wrapper(
+                egts::v1::record::subrecord::Type::EGTS_SR_RECORD_RESPONSE,
+                v.buffer());
         }
 
         auto record_number = g_record_number++;
@@ -168,24 +170,32 @@ my_read(tcp::socket &socket) noexcept
                 received_records = my_record_level(pkg.get_frame());
             }
 
+            egts::v1::buffer_type rec_buffer;
+            if (!received_records.empty())
+            {
+                std::cout << "my_make_record\n"
+                          << std::endl;
+                rec_buffer = my_make_record(received_records);
+                received_records.clear();
+            }
             if (!pkg.is_response())
             {
+                std::cout << "SEND pkg\n"
+                          << std::endl;
                 auto resp_pkg = pkg.make_response({});
-                if (!received_records.empty())
+                if (!rec_buffer.empty())
                 {
-                    auto rec_buffer = my_make_record(received_records);
                     resp_pkg.set_frame(std::move(rec_buffer));
-                    received_records.clear();
                 }
-                //g_send_queue.push(std::move(resp_pkg));
+                g_send_queue.push(std::move(resp_pkg));
             }
-            else if (!received_records.empty())
+            else if (!rec_buffer.empty())
             {
-                // egts::v1::transport::Packet new_pkg{};
-                // auto rec_buffer = my_make_record(received_records);
-                // new_pkg.set_frame(std::move(rec_buffer));
-                // received_records.clear();
-                // g_send_queue.push(std::move(new_pkg));
+                std::cout << "SEND new_pkg\n"
+                          << std::endl;
+                egts::v1::transport::Packet new_pkg{};
+                new_pkg.set_frame(std::move(rec_buffer));
+                g_send_queue.push(std::move(new_pkg));
             }
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
@@ -193,7 +203,7 @@ my_read(tcp::socket &socket) noexcept
             if (!pkg.is_response())
             {
                 auto resp_pkg = pkg.make_response(err);
-                //g_send_queue.push(std::move(resp_pkg));
+                // g_send_queue.push(std::move(resp_pkg));
             }
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             break;

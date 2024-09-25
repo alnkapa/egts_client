@@ -114,6 +114,26 @@ TEST(RECORD_PARSE1, BasicTests)
     }
 }
 
+TEST(RECORD_PARSE_BUFFER, BasicTests)
+{
+    try
+    {
+
+        record::buffer_type buffer{0x3, 0x0, 0x2, 0x0, 0x80, 0x1, 0x1, 0x1, 0x0, 0x0};
+        record::payload_type s(buffer.cbegin(), buffer.cend());
+        auto ptr = s.begin();
+        while (ptr != s.end())
+        {
+            record::Record rd{};
+            rd.parse(s, ptr);
+        }
+    }
+    catch (const egts::v1::error::Error &err)
+    {
+        ADD_FAILURE() << "error is: " << err.what();
+    }
+}
+
 int
 main(int argc, char **argv)
 {

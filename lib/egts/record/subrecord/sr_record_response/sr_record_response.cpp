@@ -16,6 +16,8 @@ SRRecordResponse::parse(payload_type buffer)
                               static_cast<std::uint16_t>(*ptr++) << 8; // 1
                                                                        //
     record_status = static_cast<error::Code>(*ptr++);                  // 2
+
+    std::cout << "parse SRRecordResponse confirmed_record_number: " << confirmed_record_number << " record_status: " << record_status << std::endl;
 }
 
 frame_buffer_type
@@ -26,6 +28,8 @@ SRRecordResponse::buffer() const noexcept
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number);      // 0
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number >> 8); // 1
     *ptr++ = static_cast<std::uint8_t>(record_status);                // 2
+
+    std::cout << "buffer SRRecordResponse: confirmed_record_number: " << confirmed_record_number << " record_status: " << record_status << "\ndata: " << buffer << std::endl;
     return buffer;
 }
 

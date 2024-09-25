@@ -15,3 +15,5 @@ target_link_libraries(record_tests GTest::GTest GTest::Main egts)
 add_test(NAME RECORD_PARSE COMMAND record_tests)
 
 add_test(NAME RECORD_PARSE1 COMMAND record_tests)
+
+add_test(NAME RECORD_PARSE_BUFFER COMMAND record_tests)
