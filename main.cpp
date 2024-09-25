@@ -113,14 +113,14 @@ main(int argc, char *argv[])
 
                     // run file reader
                     // TODO: ask from cmd line
-                    // auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
-                    // if (!file_ptr->is_open())
-                    // {
-                    //     std::cerr << "transport: error open file nmea.txt" << std::endl;
-                    //     break;
-                    // }
-                    // std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
-                    // reader.detach();
+                    auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
+                    if (!file_ptr->is_open())
+                    {
+                        std::cerr << "transport: error open file nmea.txt" << std::endl;
+                        break;
+                    }
+                    std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
+                    reader.detach();
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records

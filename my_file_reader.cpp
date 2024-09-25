@@ -2,6 +2,7 @@
 #include "nmea/object/status.hpp"
 #include <chrono>
 #include <cstdint>
+#include <iostream>
 #include <nmea/message/gga.hpp>
 #include <nmea/message/gsv.hpp>
 #include <nmea/message/rmc.hpp>
@@ -18,13 +19,7 @@ get_time()
     return static_cast<long>(now_c - g_start_time_t);
 }
 
-uint32_t
-convert(double lat)
-{
-    auto degrees = static_cast<uint32_t>(lat / 100);
-    auto minutes = static_cast<uint32_t>(lat * 10000) % 1000000;
-    return (degrees * 10000000) + (minutes * 100 / 6);
-}
+constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
 
 bool
 my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd)
@@ -36,45 +31,61 @@ my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd
         if (sentence.type() == "GGA") // Global Positioning System Fix Data
         {
             nmea::gga gga(sentence);
-            rd.altitude = static_cast<uint16_t>(gga.altitude.get());
-            rd.flags |= 1 << 7; // ALTE
+            // rd.altitude = static_cast<uint16_t>(gga.altitude.get());
+            // rd.flags |= 1 << 7; // ALTE
 
-            // gga.satellite_count.get();
-            // gga.hdop.get() * 10;
+            // // gga.satellite_count.get();
+            // // gga.hdop.get() * 10;
 
-            switch (gga.fix.get())
-            {
-            case nmea::gga::fix_type::DGPS:
-                rd.flags |= 1 << 1; // FIX
-                break;
-            default:
-                break;
-            }
+            // switch (gga.fix.get())
+            // {
+            // case nmea::gga::fix_type::DGPS:
+            //     rd.flags |= 1 << 1; // FIX
+            //     break;
+            // default:
+            //     break;
+            // }
         }
         else if (sentence.type() == "GSV") // GPS Satellites in View
         {
             nmea::gsv gsv(sentence);
-            gsv.satellite_count.get();
+            // gsv.satellite_count.get();
         }
         else if (sentence.type() == "RMC") // Recommended Minimum Specific GPS/Transit Data
         {
             nmea::rmc rmc(sentence);
-            if (rmc.latitude.get() < 0) // S
-            {
-                rd.flags |= 1 << 5; // LAHS
-            }
-            rd.latitude = convert(rmc.latitude.get());
-            if (rmc.longitude.get() < 0) // W
-            {
-                rd.flags |= 1 << 6; // LOHS
-            }
-            rd.longitude = convert(rmc.longitude.get());
-            rd.speed = static_cast<uint16_t>(rmc.speed.get() * 1.85200);
-            rd.direction = static_cast<uint8_t>(rmc.track_angle.get());
-            // TODO: DIRH ??
+
             if (rmc.status.get() == nmea::status::ACTIVE)
             {
                 rd.flags |= 1; // VLD
+
+                if (rmc.longitude.get() < 0) // W
+                {
+                    rd.flags |= 1 << 6; // LOHS
+                }
+
+                std::cout << rmc.longitude.get() << std::endl;
+
+                rd.longitude = static_cast<uint32_t>((rmc.longitude.get() / 180.0) * maxUint32);
+
+                std::cout << rd.longitude << std::endl;
+
+                if (rmc.latitude.get() < 0) // S
+                {
+                    rd.flags |= 1 << 5; // LAHS
+                }
+
+                std::cout << rmc.latitude.get() << std::endl;
+
+                rd.latitude = static_cast<uint32_t>((rmc.latitude.get() / 90.0) * maxUint32);
+
+                std::cout << rd.latitude << std::endl;
+
+                rd.speed = static_cast<uint16_t>(rmc.speed.get() * 1.85200) & 0x7FFF;
+
+                rd.direction = static_cast<uint8_t>(rmc.track_angle.get());
+                // TODO: DIRH ??
+            
             }
             rd.navigation_time = get_time();
             ready_for_send = true;
@@ -92,7 +103,6 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 {
     std::string line;
     egts::v1::record::subrecord::SrPosData rd{};
-    int count{0};
     while (g_keep_running)
     {
         try
@@ -116,16 +126,8 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 
                     egts::v1::transport::Packet new_pkg{};
                     new_pkg.set_frame(std::move(rec));
-                    if (count < 10)
-                    {
-                        g_send_queue.push(std::move(new_pkg));
-#ifdef MY_DEBUG
-                        std::cout << "line:" << line << std::endl;
-#endif
-                        // g_keep_running = false;
-                    }
-                    count++;
-                    std::this_thread::sleep_for(std::chrono::seconds(5));
+                    g_send_queue.push(std::move(new_pkg));
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
                 };
             }
             if (file->eof())
