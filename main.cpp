@@ -61,7 +61,9 @@ main(int argc, char *argv[])
             throw std::runtime_error("send size error");
         }
 
+#ifdef MY_DEBUG
         std::cout << "SEND: " << new_pkg.buffer() << std::endl;
+#endif
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
@@ -92,7 +94,9 @@ main(int argc, char *argv[])
                     throw std::runtime_error("send size error");
                 };
 
+#ifdef MY_DEBUG
                 std::cout << "SEND: " << pkg.buffer() << std::endl;
+#endif
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
             {
@@ -106,6 +110,7 @@ main(int argc, char *argv[])
                 else
                 {
                     std::cout << "transport: auth: ok" << std::endl;
+
                     // run file reader
                     // TODO: ask from cmd line
                     // auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");

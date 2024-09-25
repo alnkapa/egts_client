@@ -1,5 +1,4 @@
 #include "../pub_sub.h"
-#include <atomic>
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -16,6 +15,7 @@ class MySubscriber : public pubsub::Publisher<int>::Subscriber
     callback(int value) override
     {
         std::cout << "Subscriber " << id << " received: " << value << std::endl;
+
         receivedCount++;
     }
 

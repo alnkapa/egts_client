@@ -119,13 +119,14 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                     if (count < 10)
                     {
                         g_send_queue.push(std::move(new_pkg));
+#ifdef MY_DEBUG
                         std::cout << "line:" << line << std::endl;
-                        //g_keep_running = false;
+#endif
+                        // g_keep_running = false;
                     }
                     count++;
                     std::this_thread::sleep_for(std::chrono::seconds(5));
                 };
-                
             }
             if (file->eof())
             {

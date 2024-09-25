@@ -148,7 +148,9 @@ my_read(tcp::socket &socket) noexcept
             {
                 throw std::runtime_error("read size error");
             }
+#ifdef MY_DEBUG
             std::cout << "RESPONSE H: " << header_buffer << std::endl;
+#endif
 
             pkg.parse_header(header_buffer);
 
@@ -164,7 +166,9 @@ my_read(tcp::socket &socket) noexcept
                 {
                     throw std::runtime_error("read size error");
                 }
+#ifdef MY_DEBUG
                 std::cout << "RESPONSE F: " << frame_buffer << std::endl;
+#endif
 
                 pkg.parse_frame(std::move(frame_buffer));
                 received_records = my_record_level(pkg.get_frame());
@@ -173,15 +177,21 @@ my_read(tcp::socket &socket) noexcept
             egts::v1::buffer_type rec_buffer;
             if (!received_records.empty())
             {
+#ifdef MY_DEBUG
                 std::cout << "my_make_record\n"
                           << std::endl;
+#endif
+
                 rec_buffer = my_make_record(received_records);
                 received_records.clear();
             }
             if (!pkg.is_response())
             {
+#ifdef MY_DEBUG
                 std::cout << "SEND pkg\n"
                           << std::endl;
+#endif
+
                 auto resp_pkg = pkg.make_response({});
                 if (!rec_buffer.empty())
                 {
@@ -191,8 +201,11 @@ my_read(tcp::socket &socket) noexcept
             }
             else if (!rec_buffer.empty())
             {
+#ifdef MY_DEBUG
                 std::cout << "SEND new_pkg\n"
                           << std::endl;
+#endif
+
                 egts::v1::transport::Packet new_pkg{};
                 new_pkg.set_frame(std::move(rec_buffer));
                 g_send_queue.push(std::move(new_pkg));

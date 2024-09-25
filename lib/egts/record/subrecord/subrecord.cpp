@@ -7,7 +7,6 @@ namespace egts::v1::record::subrecord
 void
 SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
 {
-    std::cout << "parse sub record: data: " << buffer << "\n";
     auto begin = ptr;
 
     if (!has_remaining_bytes(buffer, ptr, 3))
@@ -32,7 +31,9 @@ SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
     mp_data = buffer.subspan(offset, m_length);
     ptr += m_length;
 
+#ifdef MY_DEBUG
     std::cout << "parse sub record type: " << m_type << " length: " << static_cast<int>(m_length) << "\ndata: " << mp_data << std::endl;
+#endif
 }
 
 Type
@@ -76,7 +77,9 @@ wrapper(Type type, frame_buffer_type &&data)
         std::make_move_iterator(data.begin()),
         std::make_move_iterator(data.end()));
 
+#ifdef MY_DEBUG
     std::cout << "wrapper sub record: " << type << " length: " << static_cast<int>(record_length) << "\ndata: " << buffer << std::endl;
+#endif
     return buffer;
 }
 

@@ -8,7 +8,6 @@ namespace egts::v1::record
 void
 Record::parse(payload_type buffer, payload_type::iterator &ptr)
 {
-    std::cout << "parse record: data: " << buffer << "\n";
 
     auto begin = ptr;
 
@@ -96,8 +95,9 @@ Record::parse(payload_type buffer, payload_type::iterator &ptr)
     mp_data = buffer.subspan(offset, m_length);
     ptr += m_length;
 
+#ifdef MY_DEBUG
     std::cout << "parse record number: " << static_cast<int>(m_number) << " source serv: " << m_source_service_type << " receive serv: " << m_recipient_service_type << " length: " << static_cast<int>(m_length) << "\ndata: " << mp_data << std::endl;
-    // std::cout << "read: record number: " << rec.record_number() << " source serv: " << rec.source_service_type() << " receive serv: " << rec.recipient_service_type() << " length: " << rec.length() << std::endl;
+#endif
 }
 
 uint16_t
@@ -126,7 +126,7 @@ Record::recipient_service_type() const
 
 buffer_type
 wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType recipient_service_type, buffer_type &&data)
-{    
+{
     if (data.size() > max_frame_size)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
@@ -148,7 +148,9 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
         std::make_move_iterator(data.begin()),
         std::make_move_iterator(data.end()));
 
+#ifdef MY_DEBUG
     std::cout << "wrapper record: " << static_cast<int>(record_number) << " source serv: " << source_service_type << " receive serv: " << recipient_service_type << " length: " << static_cast<int>(record_length) << "\ndata: " << buffer << std::endl;
+#endif
     return buffer;
 }
 
