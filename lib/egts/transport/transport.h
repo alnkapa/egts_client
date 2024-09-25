@@ -6,8 +6,6 @@
 #include <error/error.h>
 #include <globals.h>
 #include <stddef.h> // size_t
-#include <tuple>
-#include <stdexcept>
 
 namespace egts::v1::transport
 {
@@ -80,7 +78,7 @@ class Packet
     // response packet number
     uint16_t m_response_packet_identifier{0};
 
-    Error m_processing_result{};
+    Code m_processing_result{};
 
   public:
     void
@@ -92,16 +90,17 @@ class Packet
     bool
     is_response() const;
 
-    std::pair<uint16_t, Error>
+    std::pair<uint16_t, Code>
     response() const;
 
     uint16_t
     frame_data_length() const;
 
     Packet
-    make_response(const Error &processing_result);
+    make_response(const Code &processing_result);
 
-    void parse_frame(frame_buffer_type &&buffer);
+    void
+    parse_frame(frame_buffer_type &&buffer);
 
     void
     set_frame(frame_buffer_type &&buffer) noexcept;
@@ -126,6 +125,9 @@ class Packet
 };
 
 } // namespace egts::v1::transport
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::transport::Type &type);
 
 namespace std
 {

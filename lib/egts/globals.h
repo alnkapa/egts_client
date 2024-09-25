@@ -32,9 +32,12 @@ operator<<(std::ostream &os, egts::v1::payload_type buffer)
     os << "[";
     for (size_t i = 0; i < buffer.size(); ++i)
     {
-        os << std::hex << static_cast<int>(buffer[i]);
+        os << std::setw(2) << std::setfill('0') << std::hex << static_cast<int>(buffer[i]);
+        if (i+1 < buffer.size()) {
+            os << " ";
+        }
     }
-    os << std::dec << "]";
+    os << "]";
     return os;
 }
 

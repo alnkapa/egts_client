@@ -55,7 +55,7 @@ class Record
 {
   private:
     // The parameter defines the size of the data from the RD field.
-    uint16_t m_record_length{0};
+    uint16_t m_length{0};
     // Record number.
     //
     // The values in this field change according to the rules
@@ -63,7 +63,7 @@ class Record
     // meaning that when the value reaches 65535,
     // the next value should be 0.
     // The value of this field is used for record confirmation.
-    uint16_t m_record_number{0};
+    uint16_t m_number{0};
 
     ServiceType m_source_service_type{ServiceType::UNDEFINED};
     ServiceType m_recipient_service_type{ServiceType::UNDEFINED};
@@ -86,6 +86,9 @@ class Record
 
     ServiceType
     recipient_service_type() const;
+
+    uint16_t
+    length() const;
 };
 
 // make record buffer from subrecord buffer
@@ -97,5 +100,8 @@ wrapper(
     buffer_type &&data);
 
 } // namespace egts::v1::record
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::record::ServiceType &serviceType);
 
 #endif

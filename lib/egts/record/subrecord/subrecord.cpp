@@ -1,4 +1,5 @@
 #include "subrecord.h"
+#include <ostream>
 
 namespace egts::v1::record::subrecord
 {
@@ -6,6 +7,7 @@ namespace egts::v1::record::subrecord
 void
 SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
 {
+    std::cout << "parse sub record: data: " << buffer << "\n";
     auto begin = ptr;
 
     if (!has_remaining_bytes(buffer, ptr, 3))
@@ -29,6 +31,8 @@ SubRecord::parse(payload_type buffer, payload_type::iterator &ptr)
     offset += std::distance(begin, ptr);
     mp_data = buffer.subspan(offset, m_length);
     ptr += m_length;
+
+    std::cout << "parse sub record type: " << m_type << " length: " << static_cast<int>(m_length) << "\ndata: " << mp_data << std::endl;
 }
 
 Type
@@ -41,6 +45,12 @@ payload_type
 SubRecord::data() const
 {
     return mp_data;
+}
+
+uint16_t
+SubRecord::length() const
+{
+    return m_length;
 }
 
 frame_buffer_type
@@ -65,7 +75,97 @@ wrapper(Type type, frame_buffer_type &&data)
         ptr,
         std::make_move_iterator(data.begin()),
         std::make_move_iterator(data.end()));
+
+    std::cout << "wrapper sub record: " << type << " length: " << static_cast<int>(record_length) << "\ndata: " << buffer << std::endl;
     return buffer;
 }
 
 } // namespace egts::v1::record::subrecord
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::record::subrecord::Type &type)
+{
+    using egts::v1::record::subrecord::Type;
+    switch (type)
+    {
+    case Type::EGTS_SR_RECORD_RESPONSE:
+        os << "EGTS_SR_RECORD_RESPONSE";
+        break;
+    case Type::EGTS_SR_TERM_IDENTITY:
+        os << "EGTS_SR_TERM_IDENTITY";
+        break;
+    case Type::EGTS_SR_MODULE_DATA:
+        os << "EGTS_SR_MODULE_DATA";
+        break;
+    case Type::EGTS_SR_VEHICLE_DATA:
+        os << "EGTS_SR_VEHICLE_DATA";
+        break;
+    case Type::EGTS_SR_DISPATCHER_IDENTITY:
+        os << "EGTS_SR_DISPATCHER_IDENTITY";
+        break;
+    case Type::EGTS_SR_AUTH_PARAMS:
+        os << "EGTS_SR_AUTH_PARAMS";
+        break;
+    case Type::EGTS_SR_AUTH_INFO:
+        os << "EGTS_SR_AUTH_INFO";
+        break;
+    case Type::EGTS_SR_SERVICE_INFO:
+        os << "EGTS_SR_SERVICE_INFO";
+        break;
+    case Type::EGTS_SR_RESULT_CODE:
+        os << "EGTS_SR_RESULT_CODE";
+        break;
+    case Type::EGTS_SR_POS_DATA:
+        os << "EGTS_SR_POS_DATA";
+        break;
+    case Type::EGTS_SR_EXT_POS_DATA:
+        os << "EGTS_SR_EXT_POS_DATA";
+        break;
+    case Type::EGTS_SR_AD_SENSORS_DATA:
+        os << "EGTS_SR_AD_SENSORS_DATA";
+        break;
+    case Type::EGTS_SR_COUNTERS_DATA:
+        os << "EGTS_SR_COUNTERS_DATA";
+        break;
+    case Type::EGTS_SR_STATE_DATA:
+        os << "EGTS_SR_STATE_DATA";
+        break;
+    case Type::EGTS_SR_ACCEL_DATA:
+        os << "EGTS_SR_ACCEL_DATA";
+        break;
+    case Type::EGTS_SR_LOOPIN_DATA:
+        os << "EGTS_SR_LOOPIN_DATA";
+        break;
+    case Type::EGTS_SR_ABS_DIG_SENS_DATA:
+        os << "EGTS_SR_ABS_DIG_SENS_DATA";
+        break;
+    case Type::EGTS_SR_ABS_AN_SENS_DATA:
+        os << "EGTS_SR_ABS_AN_SENS_DATA";
+        break;
+    case Type::EGTS_SR_ABS_CNTR_DATA:
+        os << "EGTS_SR_ABS_CNTR_DATA";
+        break;
+    case Type::EGTS_SR_ABS_LOOPIN_DATA:
+        os << "EGTS_SR_ABS_LOOPIN_DATA";
+        break;
+    case Type::EGTS_SR_LIQUID_LEVEL_SENSOR:
+        os << "EGTS_SR_LIQUID_LEVEL_SENSOR";
+        break;
+    case Type::EGTS_SR_PASSENGERS_COUNTERS:
+        os << "EGTS_SR_PASSENGERS_COUNTERS";
+        break;
+    case Type::EGTS_SR_SERVICE_PART_DATA:
+        os << "EGTS_SR_SERVICE_PART_DATA";
+        break;
+    case Type::EGTS_SR_SERVICE_FULL_DATA:
+        os << "EGTS_SR_SERVICE_FULL_DATA";
+        break;
+    case Type::EGTS_SR_COMMAND_DATA:
+        os << "EGTS_SR_COMMAND_DATA";
+        break;
+    default:
+        os << "Unknown Type";
+        break;
+    }
+    return os;
+}

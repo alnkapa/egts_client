@@ -4,6 +4,7 @@
 
 #include <cstdint> // uint8_t
 #include <exception>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -183,5 +184,135 @@ class Error : public std::exception
 };
 
 } // namespace egts::v1::error
+
+inline std::ostream &
+operator<<(std::ostream &os, const egts::v1::error::Code &code)
+{
+    using egts::v1::error::Code;
+    switch (code)
+    {
+    case Code::EGTS_PC_OK:
+        os << "EGTS_PC_OK";
+        break;
+    case Code::EGTS_PC_IN_PROGRESS:
+        os << "EGTS_PC_IN_PROGRESS";
+        break;
+    case Code::EGTS_PC_UNS_PROTOCOL:
+        os << "EGTS_PC_UNS_PROTOCOL";
+        break;
+    case Code::EGTS_PC_DECRYPT_ERROR:
+        os << "EGTS_PC_DECRYPT_ERROR";
+        break;
+    case Code::EGTS_PC_PROC_DENIED:
+        os << "EGTS_PC_PROC_DENIED";
+        break;
+    case Code::EGTS_PC_INC_HEADERFORM:
+        os << "EGTS_PC_INC_HEADERFORM";
+        break;
+    case Code::EGTS_PC_INC_DATAFORM:
+        os << "EGTS_PC_INC_DATAFORM";
+        break;
+    case Code::EGTS_PC_UNS_TYPE:
+        os << "EGTS_PC_UNS_TYPE";
+        break;
+    case Code::EGTS_PC_NOTEN_PARAMS:
+        os << "EGTS_PC_NOTEN_PARAMS";
+        break;
+    case Code::EGTS_PC_DBL_PROC:
+        os << "EGTS_PC_DBL_PROC";
+        break;
+    case Code::EGTS_PC_PROC_SRC_DENIED:
+        os << "EGTS_PC_PROC_SRC_DENIED";
+        break;
+    case Code::EGTS_PC_HEADERCRC_ERROR:
+        os << "EGTS_PC_HEADERCRC_ERROR";
+        break;
+    case Code::EGTS_PC_DATACRC_ERROR:
+        os << "EGTS_PC_DATACRC_ERROR";
+        break;
+    case Code::EGTS_PC_INVDATALEN:
+        os << "EGTS_PC_INVDATALEN";
+        break;
+    case Code::EGTS_PC_ROUTE_NFOUND:
+        os << "EGTS_PC_ROUTE_NFOUND";
+        break;
+    case Code::EGTS_PC_ROUTE_CLOSED:
+        os << "EGTS_PC_ROUTE_CLOSED";
+        break;
+    case Code::EGTS_PC_ROUTE_DENIED:
+        os << "EGTS_PC_ROUTE_DENIED";
+        break;
+    case Code::EGTS_PC_INVADDR:
+        os << "EGTS_PC_INVADDR";
+        break;
+    case Code::EGTS_PC_TTLEXPIRED:
+        os << "EGTS_PC_TTLEXPIRED";
+        break;
+    case Code::EGTS_PC_NO_ACK:
+        os << "EGTS_PC_NO_ACK";
+        break;
+    case Code::EGTS_PC_OBJ_NFOUND:
+        os << "EGTS_PC_OBJ_NFOUND";
+        break;
+    case Code::EGTS_PC_EVNT_NFOUND:
+        os << "EGTS_PC_EVNT_NFOUND";
+        break;
+    case Code::EGTS_PC_SRVC_NFOUND:
+        os << "EGTS_PC_SRVC_NFOUND";
+        break;
+    case Code::EGTS_PC_SRVC_DENIED:
+        os << "EGTS_PC_SRVC_DENIED";
+        break;
+    case Code::EGTS_PC_SRVC_UNKN:
+        os << "EGTS_PC_SRVC_UNKN";
+        break;
+    case Code::EGTS_PC_AUTH_DENIED:
+        os << "EGTS_PC_AUTH_DENIED";
+        break;
+    case Code::EGTS_PC_ALREADY_EXISTS:
+        os << "EGTS_PC_ALREADY_EXISTS";
+        break;
+    case Code::EGTS_PC_ID_NFOUND:
+        os << "EGTS_PC_ID_NFOUND";
+        break;
+    case Code::EGTS_PC_INC_DATETIME:
+        os << "EGTS_PC_INC_DATETIME";
+        break;
+    case Code::EGTS_PC_IO_ERROR:
+        os << "EGTS_PC_IO_ERROR";
+        break;
+    case Code::EGTS_PC_NO_RES_AVAIL:
+        os << "EGTS_PC_NO_RES_AVAIL";
+        break;
+    case Code::EGTS_PC_MODULE_FAULT:
+        os << "EGTS_PC_MODULE_FAULT";
+        break;
+    case Code::EGTS_PC_MODULE_PWR_FLT:
+        os << "EGTS_PC_MODULE_PWR_FLT";
+        break;
+    case Code::EGTS_PC_MODULE_PROC_FLT:
+        os << "EGTS_PC_MODULE_PROC_FLT";
+        break;
+    case Code::EGTS_PC_MODULE_SW_FLT:
+        os << "EGTS_PC_MODULE_SW_FLT";
+        break;
+    case Code::EGTS_PC_MODULE_FW_FLT:
+        os << "EGTS_PC_MODULE_FW_FLT";
+        break;
+    case Code::EGTS_PC_MODULE_IO_FLT:
+        os << "EGTS_PC_MODULE_IO_FLT";
+        break;
+    case Code::EGTS_PC_MODULE_MEM_FLT:
+        os << "EGTS_PC_MODULE_MEM_FLT";
+        break;
+    case Code::EGTS_PC_TEST_FAILED:
+        os << "EGTS_PC_TEST_FAILED";
+        break;
+    default:
+        os << "Unknown Code";
+        break;
+    }
+    return os;
+}
 
 #endif /* ERROR_HPP */

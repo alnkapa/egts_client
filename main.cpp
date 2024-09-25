@@ -40,6 +40,14 @@ main(int argc, char *argv[])
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
 
+        // sub += egts::v1::record::subrecord::wrapper(
+        //     egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
+        //     i.buffer());
+
+        // sub += egts::v1::record::subrecord::wrapper(
+        //     egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
+        //     i.buffer());
+
         auto record_number = g_record_number++;
 
         auto rec = egts::v1::record::wrapper(
@@ -53,10 +61,15 @@ main(int argc, char *argv[])
 
         new_pkg.set_frame(std::move(rec));
 
-        boost::asio::write(
-            socket,
-            boost::asio::buffer(new_pkg.buffer()),
-            boost::asio::transfer_all());
+        if (boost::asio::write(
+                socket,
+                boost::asio::buffer(new_pkg.buffer()),
+                boost::asio::transfer_all()) != new_pkg.buffer().size())
+        {
+            throw std::runtime_error("send size error");
+        }
+
+        std::cout << "SEND: " << new_pkg.buffer() << std::endl;
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
@@ -78,13 +91,16 @@ main(int argc, char *argv[])
             if (std::holds_alternative<egts::v1::transport::Packet>(mes))
             {
                 auto &pkg = std::get<egts::v1::transport::Packet>(mes);
-                pkg.identifier(g_packet_identifier++);                
-                boost::asio::write(
-                    socket,
-                    boost::asio::buffer(pkg.buffer()),
-                    boost::asio::transfer_all());
-                std::cout << "send: size:" << pkg.buffer()    
+                pkg.identifier(g_packet_identifier++);
+                if (boost::asio::write(
+                        socket,
+                        boost::asio::buffer(pkg.buffer()),
+                        boost::asio::transfer_all()) != pkg.buffer().size())
+                {
+                    throw std::runtime_error("send size error");
+                };
 
+                std::cout << "SEND: " << pkg.buffer() << std::endl;
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
             {
@@ -100,14 +116,14 @@ main(int argc, char *argv[])
                     std::cout << "transport: auth: ok" << std::endl;
                     // run file reader
                     // TODO: ask from cmd line
-                    auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
-                    if (!file_ptr->is_open())
-                    {
-                        std::cerr << "transport: error open file nmea.txt" << std::endl;
-                        break;
-                    }
-                    std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
-                    reader.detach();
+                    // auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
+                    // if (!file_ptr->is_open())
+                    // {
+                    //     std::cerr << "transport: error open file nmea.txt" << std::endl;
+                    //     break;
+                    // }
+                    // std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
+                    // reader.detach();
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records

@@ -3,8 +3,8 @@
 #define SUB_RECORD_H
 
 #include <cstdint> // uint16_t, uint8_t
-#include <globals.h>
 #include <error/error.h>
+#include <globals.h>
 
 namespace egts::v1::record::subrecord
 {
@@ -20,7 +20,6 @@ using uint8_t = std::uint8_t;
 using Error = egts::v1::error::Error;
 
 using Code = egts::v1::error::Code;
-
 
 enum class Type
 {
@@ -143,21 +142,26 @@ class SubRecord
     payload_type mp_data;
 
   public:
-  
-    void parse(payload_type, payload_type::iterator &);
+    void
+    parse(payload_type, payload_type::iterator &);
 
     Type
     type() const;
 
     payload_type
     data() const;
+
+    uint16_t
+    length() const;
 };
 
 // make a subrecord buffer from a specific subrecord buffer.
 frame_buffer_type
 wrapper(Type type, frame_buffer_type &&data);
 
-
 } // namespace egts::v1::record::subrecord
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::record::subrecord::Type &type);
 
 #endif

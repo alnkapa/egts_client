@@ -3,6 +3,7 @@
 #include "record.h"
 #include "sr_record_response/sr_record_response.h"
 #include <cstdint>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -15,7 +16,7 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
     while (sub_ptr != sub_buffer.end())
     {
         egts::v1::record::subrecord::SubRecord s_rec{};
-        s_rec.parse(sub_buffer, sub_ptr);
+        s_rec.parse(sub_buffer, sub_ptr);        
         // Only these subrecords may come from the server.
         switch (s_rec.type())
         {
@@ -61,7 +62,7 @@ my_record_level(egts::v1::payload_type buffer)
     while (ptr != buffer.end())
     {
         egts::v1::record::Record rec{};
-        rec.parse(buffer, ptr);
+        rec.parse(buffer, ptr);        
         rez.emplace_back(
             ((static_cast<std::uint32_t>(rec.source_service_type()) << 8) & 0xFF00) // service
             |
@@ -138,23 +139,30 @@ my_read(tcp::socket &socket) noexcept
         egts::v1::transport::Packet pkg{};
         try
         {
-            boost::asio::read(
-                socket,
-                boost::asio::buffer(header_buffer),
-                boost::asio::transfer_all());
+            if (boost::asio::read(
+                    socket,
+                    boost::asio::buffer(header_buffer),
+                    boost::asio::transfer_all()) != header_buffer.size())
+            {
+                throw std::runtime_error("read size error");
+            }
+            std::cout << "RESPONSE H: " << header_buffer << std::endl;
 
             pkg.parse_header(header_buffer);
 
             if (pkg.frame_data_length() > 0)
             {
-                egts::v1::transport::frame_buffer_type frame_buffer(
-                    pkg.frame_data_length() + egts::v1::transport::crc_data_length,
-                    0);
+                std::size_t size = pkg.frame_data_length() + egts::v1::transport::crc_data_length;
+                egts::v1::transport::frame_buffer_type frame_buffer(size, 0);
 
-                boost::asio::read(
-                    socket,
-                    boost::asio::buffer(frame_buffer),
-                    boost::asio::transfer_all());
+                if (boost::asio::read(
+                        socket,
+                        boost::asio::buffer(frame_buffer),
+                        boost::asio::transfer_all()) != size)
+                {
+                    throw std::runtime_error("read size error");
+                }
+                std::cout << "RESPONSE F: " << frame_buffer << std::endl;
 
                 pkg.parse_frame(std::move(frame_buffer));
                 received_records = my_record_level(pkg.get_frame());
@@ -165,19 +173,19 @@ my_read(tcp::socket &socket) noexcept
                 auto resp_pkg = pkg.make_response({});
                 if (!received_records.empty())
                 {
-                    // auto rec_buffer = my_make_record(received_records);
-                    // resp_pkg.set_frame(std::move(rec_buffer));
-                    // received_records.clear();
+                    auto rec_buffer = my_make_record(received_records);
+                    resp_pkg.set_frame(std::move(rec_buffer));
+                    received_records.clear();
                 }
-                g_send_queue.push(std::move(resp_pkg));
+                //g_send_queue.push(std::move(resp_pkg));
             }
             else if (!received_records.empty())
             {
-                egts::v1::transport::Packet new_pkg{};
+                // egts::v1::transport::Packet new_pkg{};
                 // auto rec_buffer = my_make_record(received_records);
                 // new_pkg.set_frame(std::move(rec_buffer));
-                received_records.clear();
-                g_send_queue.push(std::move(new_pkg));
+                // received_records.clear();
+                // g_send_queue.push(std::move(new_pkg));
             }
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
@@ -185,7 +193,7 @@ my_read(tcp::socket &socket) noexcept
             if (!pkg.is_response())
             {
                 auto resp_pkg = pkg.make_response(err);
-                g_send_queue.push(std::move(resp_pkg));
+                //g_send_queue.push(std::move(resp_pkg));
             }
             std::cerr << "transport: read: error: " << err.what() << std::endl;
             break;

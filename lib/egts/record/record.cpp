@@ -8,6 +8,8 @@ namespace egts::v1::record
 void
 Record::parse(payload_type buffer, payload_type::iterator &ptr)
 {
+    std::cout << "parse record: data: " << buffer << "\n";
+
     auto begin = ptr;
 
     auto has_remaining_bytes = [&buffer, &ptr](std::size_t x)
@@ -24,17 +26,17 @@ Record::parse(payload_type buffer, payload_type::iterator &ptr)
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
 
-    m_record_length = static_cast<std::uint16_t>(*ptr++) |     // 0
-                      static_cast<std::uint16_t>(*ptr++) << 8; // 1
+    m_length = static_cast<std::uint16_t>(*ptr++) |     // 0
+               static_cast<std::uint16_t>(*ptr++) << 8; // 1
 
-    if (m_record_length > max_frame_size)
+    if (m_length > max_frame_size)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
 
-    m_record_number = static_cast<std::uint16_t>(*ptr++) |     // 2
-                      static_cast<std::uint16_t>(*ptr++) << 8; // 3
-    auto flag = static_cast<uint8_t>(*ptr++);                  // 4
+    m_number = static_cast<std::uint16_t>(*ptr++) |     // 2
+               static_cast<std::uint16_t>(*ptr++) << 8; // 3
+    auto flag = static_cast<uint8_t>(*ptr++);           // 4
 
     // NO NEED
     // bool ssod = flag & 0x80 != 0;
@@ -85,20 +87,23 @@ Record::parse(payload_type buffer, payload_type::iterator &ptr)
     m_source_service_type = static_cast<ServiceType>(*ptr++);
     m_recipient_service_type = static_cast<ServiceType>(*ptr++);
 
-    if (!has_remaining_bytes(m_record_length))
+    if (!has_remaining_bytes(m_length))
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
     auto offset = std::distance(buffer.begin(), begin);
     offset += std::distance(begin, ptr);
-    mp_data = buffer.subspan(offset, m_record_length);
-    ptr += m_record_length;
+    mp_data = buffer.subspan(offset, m_length);
+    ptr += m_length;
+
+    std::cout << "parse record number: " << static_cast<int>(m_number) << " source serv: " << m_source_service_type << " receive serv: " << m_recipient_service_type << " length: " << static_cast<int>(m_length) << "\ndata: " << mp_data << std::endl;
+    // std::cout << "read: record number: " << rec.record_number() << " source serv: " << rec.source_service_type() << " receive serv: " << rec.recipient_service_type() << " length: " << rec.length() << std::endl;
 }
 
 uint16_t
 Record::record_number() const
 {
-    return m_record_number;
+    return m_number;
 }
 
 payload_type
@@ -121,7 +126,7 @@ Record::recipient_service_type() const
 
 buffer_type
 wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType recipient_service_type, buffer_type &&data)
-{
+{    
     if (data.size() > max_frame_size)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
@@ -142,7 +147,46 @@ wrapper(uint16_t record_number, ServiceType source_service_type, ServiceType rec
         ptr,
         std::make_move_iterator(data.begin()),
         std::make_move_iterator(data.end()));
+
+    std::cout << "wrapper record: " << static_cast<int>(record_number) << " source serv: " << source_service_type << " receive serv: " << recipient_service_type << " length: " << static_cast<int>(record_length) << "\ndata: " << buffer << std::endl;
     return buffer;
 }
 
+uint16_t
+Record::length() const
+{
+    return m_length;
+}
+
 } // namespace egts::v1::record
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::record::ServiceType &serviceType)
+{
+    using egts::v1::record::ServiceType;
+    switch (serviceType)
+    {
+    case ServiceType::UNDEFINED:
+        os << "UNDEFINED";
+        break;
+    case ServiceType::EGTS_AUTH_SERVICE:
+        os << "EGTS_AUTH_SERVICE";
+        break;
+    case ServiceType::EGTS_TELEDATA_SERVICE:
+        os << "EGTS_TELEDATA_SERVICE";
+        break;
+    case ServiceType::EGTS_COMMANDS_SERVICE:
+        os << "EGTS_COMMANDS_SERVICE";
+        break;
+    case ServiceType::EGTS_FIRMWARE_SERVICE:
+        os << "EGTS_FIRMWARE_SERVICE";
+        break;
+    case ServiceType::EGTS_ECALL_SERVICE:
+        os << "EGTS_ECALL_SERVICE";
+        break;
+    default:
+        os << "Unknown ServiceType";
+        break;
+    }
+    return os;
+}

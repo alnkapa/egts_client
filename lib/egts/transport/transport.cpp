@@ -1,8 +1,6 @@
 #include "transport.h"
 #include <algorithm>
 #include <cassert>
-#include <iterator>
-#include <span>
 
 namespace egts::v1::transport
 {
@@ -25,10 +23,10 @@ Packet::is_response() const
     return m_packet_type == Type::EGTS_PT_RESPONSE;
 }
 
-std::pair<uint16_t, Error>
+std::pair<uint16_t, Code>
 Packet::response() const
 {
-    return std::pair<uint16_t, Error>();
+    return std::pair<uint16_t, Code>(m_response_packet_identifier, m_processing_result);
 }
 
 uint16_t
@@ -38,7 +36,7 @@ Packet::frame_data_length() const
 }
 
 Packet
-Packet::make_response(const Error &processing_result)
+Packet::make_response(const Code &processing_result)
 {
     Packet response{};
     response.m_response_packet_identifier = m_packet_identifier;
@@ -75,11 +73,15 @@ Packet::parse_frame(frame_buffer_type &&buffer)
         }
         m_response_packet_identifier = static_cast<uint16_t>(buffer[0]) |
                                        static_cast<uint16_t>(buffer[1]) << 8;
-        m_processing_result = Error(static_cast<Code>(buffer[2]));
+        m_processing_result = static_cast<Code>(buffer[2]);
         buffer.erase(buffer.begin(), buffer.begin() + response_length);
     }
     m_frame_data_length = buffer.size();
     mp_data = std::move(buffer);
+    if (is_response())
+    {
+        std::cout << "transport2: response_packet_identifier: " << static_cast<int>(m_response_packet_identifier) << " processing_result: " << m_processing_result << std::endl;
+    }
 }
 
 void
@@ -160,17 +162,7 @@ Packet::parse_header(const header_buffer_type &head)
     {
         throw Error(Code::EGTS_PC_INC_HEADERFORM);
     }
-    // read packet identifier
-    if (head[9] > static_cast<uint8_t>(Type::EGTS_PT_APPDATA))
-    {
-        throw Error(Code::EGTS_PC_UNS_TYPE);
-    }
-    m_packet_type = static_cast<Type>(head[9]);
-    // test crc
-    if (head[header_length - 1] != egts::v1::crc8(head.begin(), head.end() - crc_header_length))
-    {
-        throw Error(Code::EGTS_PC_HEADERCRC_ERROR);
-    }
+
     // read frame data length
     m_frame_data_length = static_cast<uint16_t>(head[5]) |
                           static_cast<uint16_t>(head[6]) << 8;
@@ -178,13 +170,30 @@ Packet::parse_header(const header_buffer_type &head)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
+
+    // read packet identifier
+    m_packet_identifier = static_cast<uint16_t>(head[7]) |
+                          static_cast<uint16_t>(head[8]) << 8;
+
+    // read packet identifier
+    if (head[9] > static_cast<uint8_t>(Type::EGTS_PT_APPDATA))
+    {
+        throw Error(Code::EGTS_PC_UNS_TYPE);
+    }
+
+    m_packet_type = static_cast<Type>(head[9]);
+    // test crc
+    if (head[header_length - 1] != egts::v1::crc8(head.begin(), head.end() - crc_header_length))
+    {
+        throw Error(Code::EGTS_PC_HEADERCRC_ERROR);
+    }
+
     if (is_response() && m_frame_data_length < response_length)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
-    // read packet identifier
-    m_packet_identifier = static_cast<uint16_t>(head[7]) |
-                          static_cast<uint16_t>(head[8]) << 8;
+
+    std::cout << "transport1: identifier: " << static_cast<int>(m_packet_identifier) << " frame_length: " << static_cast<int>(m_frame_data_length) << " packet_type: " << m_packet_type << std::endl;
 }
 
 header_buffer_type
@@ -232,4 +241,27 @@ Packet::operator==(const Packet &other) const
 {
     return m_packet_identifier == other.m_packet_identifier;
 }
+
 } // namespace egts::v1::transport
+
+std::ostream &
+operator<<(std::ostream &os, const egts::v1::transport::Type &type)
+{
+    using egts::v1::transport::Type;
+    switch (type)
+    {
+    case Type::EGTS_PT_RESPONSE:
+        os << "EGTS_PT_RESPONSE";
+        break;
+    case Type::EGTS_PT_APPDATA:
+        os << "EGTS_PT_APPDATA";
+        break;
+    case Type::EGTS_PT_SIGNED_APPDATA:
+        os << "EGTS_PT_SIGNED_APPDATA";
+        break;
+    default:
+        os << "Unknown Type";
+        break;
+    }
+    return os;
+}
