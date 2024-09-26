@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <nmea/message/gga.hpp>
+#include <nmea/message/gsa.hpp>
 #include <nmea/message/gsv.hpp>
 #include <nmea/message/rmc.hpp>
 #include <nmea/sentence.hpp>
@@ -22,6 +23,7 @@ get_time()
 constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
 
 thread_local egts::v1::record::subrecord::SrPosData rd{};
+thread_local egts::v1::record::subrecord::SrExtPosData x_rd{};
 
 bool
 my_parse_string(std::string_view str)
@@ -48,8 +50,25 @@ my_parse_string(std::string_view str)
                 rd.flags &= ~(1 << 7); // ALTE
                 rd.flags &= ~(1 << 6); // ALTS
             }
-            // // gga.satellite_count.get();
-            // // gga.hdop.get() * 10;
+
+            if (gga.hdop.exists())
+            {
+                x_rd.horizontal_dilution_of_precision = gga.hdop.get() * 10;
+            }
+            else
+            {
+                x_rd.horizontal_dilution_of_precision = 0;
+            }
+
+            if (gga.satellite_count.exists())
+            {
+                x_rd.satellites = gga.satellite_count.get();
+            }
+            else
+            {
+                x_rd.satellites = 0;
+            }
+
             if (gga.fix.exists() && gga.fix.get() == nmea::gga::fix_type::DGPS)
             {
                 rd.flags |= 1 << 1; // FIX
@@ -59,10 +78,62 @@ my_parse_string(std::string_view str)
                 rd.flags &= ~(1 << 1); // FIX
             }
         }
-        else if (sentence.type() == "GSV") // GPS Satellites in View
+        else if (sentence.type() == "GSA")
         {
-            // nmea::gsv gsv(sentence);
-            // gsv.satellite_count.get();
+            nmea::gsa gsa(sentence);
+
+            if (gsa.hdop.exists())
+            {
+                x_rd.horizontal_dilution_of_precision = gsa.hdop.get() * 10;
+            }
+            else
+            {
+                x_rd.horizontal_dilution_of_precision = 0;
+            }
+
+            if (gsa.vdop.exists())
+            {
+                x_rd.vertical_dilution_of_precision = gsa.vdop.get() * 10;
+            }
+            else
+            {
+                x_rd.vertical_dilution_of_precision = 0;
+            }
+
+            if (gsa.pdop.exists())
+            {
+                x_rd.position_dilution_of_precision = gsa.pdop.get() * 10;
+            }
+            else
+            {
+                x_rd.position_dilution_of_precision = 0;
+            }
+
+            if (gsa.system.exists())
+            {
+                switch (gsa.system.get())
+                {
+                case nmea::gsa::system_type::GPS:
+                    x_rd.navigation_system = 2;
+                    break;
+                case nmea::gsa::system_type::GLONASS:
+                    x_rd.navigation_system = 1;
+                    break;
+                case nmea::gsa::system_type::GALILEO:
+                    x_rd.navigation_system = 4;
+                    break;
+                case nmea::gsa::system_type::BEIDOU:
+                    x_rd.navigation_system = 16;
+                    break;
+                default:
+                    x_rd.navigation_system = 0;
+                    break;
+                }
+            }
+            else
+            {
+                x_rd.navigation_system = 0;
+            }
         }
         else if (sentence.type() == "RMC") // Recommended Minimum Specific GPS/Transit Data
         {
@@ -162,6 +233,10 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                     auto sub = egts::v1::record::subrecord::wrapper(
                         egts::v1::record::subrecord::Type::EGTS_SR_POS_DATA,
                         rd.buffer());
+
+                    sub += egts::v1::record::subrecord::wrapper(
+                        egts::v1::record::subrecord::Type::EGTS_SR_EXT_POS_DATA,
+                        x_rd.buffer());
 
                     auto record_number = g_record_number++;
 

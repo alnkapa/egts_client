@@ -109,7 +109,7 @@ SrExtPosData::buffer() const noexcept
     }
 
     frame_buffer_type buffer(size, 0);
-    auto ptr = buffer.begin();
+    auto ptr = buffer.begin()+1;
     auto flag = buffer.begin();
 
     if (vertical_dilution_of_precision != 0)

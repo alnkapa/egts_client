@@ -11,6 +11,7 @@
 #include <pub_sub.h>
 #include <record/record.h>
 #include <record/subrecord/sr_pos_data/sr_pos_data.h>
+#include <record/subrecord/sr_ext_pos_data/sr_ext_pos_data.h>
 #include <record/subrecord/sr_record_response/sr_record_response.h>
 #include <record/subrecord/sr_result_code/sr_result_code.h>
 #include <record/subrecord/sr_term_identity/sr_term_identity.h>

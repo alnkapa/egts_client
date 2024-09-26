@@ -26,6 +26,10 @@ TEST(EGTS_SR_EXT_POS_DATA, BasicTests)
     EXPECT_EQ(rd.satellites, rd1.satellites);
     EXPECT_EQ(rd.navigation_system, rd1.navigation_system);
 
+    rd1.navigation_system = 0;
+    rd1.horizontal_dilution_of_precision = 0;
+    rd.navigation_system = 0;
+    rd.horizontal_dilution_of_precision = 0;
     buf = rd1.buffer();
 
     try
