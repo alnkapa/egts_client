@@ -50,15 +50,14 @@ my_parse_string(std::string_view str)
             }
             // // gga.satellite_count.get();
             // // gga.hdop.get() * 10;
-
-            // switch (gga.fix.get())
-            // {
-            // case nmea::gga::fix_type::DGPS:
-            //     rd.flags |= 1 << 1; // FIX
-            //     break;
-            // default:
-            //     break;
-            // }
+            if (gga.fix.exists() && gga.fix.get() == nmea::gga::fix_type::DGPS)
+            {
+                rd.flags |= 1 << 1; // FIX
+            }
+            else
+            {
+                rd.flags &= ~(1 << 1); // FIX
+            }
         }
         else if (sentence.type() == "GSV") // GPS Satellites in View
         {
@@ -122,16 +121,16 @@ my_parse_string(std::string_view str)
             else
             {
                 rd.flags &= ~(1); // VLD
-                
+
                 rd.longitude = 0;
                 rd.latitude = 0;
                 rd.flags &= ~(1 << 5); // LAHS
                 rd.flags &= ~(1 << 6); // LOHS
-                
+
                 rmc.speed = 0;
                 rd.direction = 0;
                 rd.speed &= ~(1 << 7); // DIRH
-                
+
                 rd.altitude = 0;
                 rd.flags &= ~(1 << 7); // ALTE
                 rd.flags &= ~(1 << 6); // ALTS

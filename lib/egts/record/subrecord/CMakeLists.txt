@@ -5,6 +5,7 @@ add_subdirectory(sr_result_code)
 add_subdirectory(sr_record_response)
 add_subdirectory(sr_term_identity)
 add_subdirectory(sr_pos_data)
+add_subdirectory(sr_ext_pos_data)
 
 add_library(subrecord subrecord.cpp)
 
@@ -21,6 +22,7 @@ target_link_libraries(
     sr_result_code
     sr_term_identity
     sr_pos_data
+    sr_ext_pos_data
     )
 
 if(BUILD_TESTING)
