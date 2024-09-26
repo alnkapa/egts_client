@@ -21,8 +21,10 @@ get_time()
 
 constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
 
+thread_local egts::v1::record::subrecord::SrPosData rd{};
+
 bool
-my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd)
+my_parse_string(std::string_view str)
 {
     bool ready_for_send{false};
     try
@@ -31,9 +33,21 @@ my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd
         if (sentence.type() == "GGA") // Global Positioning System Fix Data
         {
             nmea::gga gga(sentence);
-            // rd.altitude = static_cast<uint16_t>(gga.altitude.get());
-            // rd.flags |= 1 << 7; // ALTE
-
+            if (gga.altitude.exists())
+            {
+                rd.flags |= 1 << 7; // ALTE
+                if (gga.altitude.get() < 0)
+                {
+                    rd.flags |= 1 << 6; // ALTS
+                }
+                rd.altitude = static_cast<uint32_t>(gga.altitude.get()) & 0x0FFF;
+            }
+            else
+            {
+                rd.altitude = 0;
+                rd.flags &= ~(1 << 7); // ALTE
+                rd.flags &= ~(1 << 6); // ALTS
+            }
             // // gga.satellite_count.get();
             // // gga.hdop.get() * 10;
 
@@ -48,44 +62,79 @@ my_parse_string(std::string_view str, egts::v1::record::subrecord::SrPosData &rd
         }
         else if (sentence.type() == "GSV") // GPS Satellites in View
         {
-            nmea::gsv gsv(sentence);
+            // nmea::gsv gsv(sentence);
             // gsv.satellite_count.get();
         }
         else if (sentence.type() == "RMC") // Recommended Minimum Specific GPS/Transit Data
         {
             nmea::rmc rmc(sentence);
-
             if (rmc.status.get() == nmea::status::ACTIVE)
             {
                 rd.flags |= 1; // VLD
 
-                if (rmc.longitude.get() < 0) // W
+                if (rmc.longitude.exists() && rmc.latitude.exists() &&
+                    (rmc.latitude.get() >= -90.0 && rmc.latitude.get() <= 90.0) &&
+                    (rmc.longitude.get() >= -180.0 && rmc.longitude.get() <= 180.0))
                 {
-                    rd.flags |= 1 << 6; // LOHS
+
+                    if (rmc.longitude.get() < 0) // W
+                    {                            //
+                        rd.flags |= 1 << 6;      // LOHS
+                    }
+                    rd.longitude = static_cast<uint32_t>((rmc.longitude.get() / 180.0) * maxUint32);
+
+                    if (rmc.latitude.get() < 0) // S
+                    {                           //
+                        rd.flags |= 1 << 5;     // LAHS
+                    }
+                    rd.latitude = static_cast<uint32_t>((rmc.latitude.get() / 90.0) * maxUint32);
+                }
+                else
+                {
+                    rd.flags &= ~(1);      // VLD
+                    rd.flags &= ~(1 << 5); // LAHS
+                    rd.flags &= ~(1 << 6); // LOHS
                 }
 
-                std::cout << rmc.longitude.get() << std::endl;
-
-                rd.longitude = static_cast<uint32_t>((rmc.longitude.get() / 180.0) * maxUint32);
-
-                std::cout << rd.longitude << std::endl;
-
-                if (rmc.latitude.get() < 0) // S
+                if (rmc.speed.exists())
                 {
-                    rd.flags |= 1 << 5; // LAHS
+                    rd.speed = static_cast<uint16_t>(rmc.speed.get() * 1.852 * 10) & 0x3FFF;
+                }
+                else
+                {
+                    rd.speed = 0;
                 }
 
-                std::cout << rmc.latitude.get() << std::endl;
-
-                rd.latitude = static_cast<uint32_t>((rmc.latitude.get() / 90.0) * maxUint32);
-
-                std::cout << rd.latitude << std::endl;
-
-                rd.speed = static_cast<uint16_t>(rmc.speed.get() * 1.85200) & 0x7FFF;
-
-                rd.direction = static_cast<uint8_t>(rmc.track_angle.get());
-                // TODO: DIRH ??
-            
+                if (rmc.track_angle.exists())
+                {
+                    auto direction = static_cast<uint16_t>(rmc.track_angle.get());
+                    if ((direction & 0x100) != 0)
+                    {
+                        rd.speed |= 1 << 7; // DIRH
+                    }
+                    rd.direction = static_cast<uint8_t>(direction);
+                }
+                else
+                {
+                    rd.speed &= ~(1 << 7); // DIRH
+                }
+            }
+            else
+            {
+                rd.flags &= ~(1); // VLD
+                
+                rd.longitude = 0;
+                rd.latitude = 0;
+                rd.flags &= ~(1 << 5); // LAHS
+                rd.flags &= ~(1 << 6); // LOHS
+                
+                rmc.speed = 0;
+                rd.direction = 0;
+                rd.speed &= ~(1 << 7); // DIRH
+                
+                rd.altitude = 0;
+                rd.flags &= ~(1 << 7); // ALTE
+                rd.flags &= ~(1 << 6); // ALTS
             }
             rd.navigation_time = get_time();
             ready_for_send = true;
@@ -102,14 +151,13 @@ void
 my_read_file(std::shared_ptr<std::ifstream> file) noexcept
 {
     std::string line;
-    egts::v1::record::subrecord::SrPosData rd{};
     while (g_keep_running)
     {
         try
         {
             while (g_keep_running && std::getline(*file, line))
             {
-                if (my_parse_string(line, rd))
+                if (my_parse_string(line))
                 {
 
                     auto sub = egts::v1::record::subrecord::wrapper(
