@@ -82,7 +82,7 @@ SrCommandData::parse(payload_type buffer)
 
         if (data.action == DataAct::ADD_ACT) // parse size
         {
-            data.size(flag >> 4);
+            data.m_size = flag >> 4;
         }
 
         // TODO: data.size <= data_size ????
@@ -192,6 +192,7 @@ SrCommandData::buffer() const noexcept
     {
         *ptr++ = static_cast<uint8_t>(m_authorization_code.size());
         std::copy(m_authorization_code.begin(), m_authorization_code.end(), ptr);
+        ptr += m_authorization_code.size();
     }
 
     flag = (data.m_size << 4) | static_cast<uint8_t>(data.action);
