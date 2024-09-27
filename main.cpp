@@ -1,4 +1,5 @@
 #include "my_globals.h"
+#include "sr_module_data/sr_module_data.h"
 
 int
 main(int argc, char *argv[])
@@ -39,6 +40,29 @@ main(int argc, char *argv[])
         auto sub = egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
+
+        // TODO: ask from cmd line
+        egts::v1::record::subrecord::SrModuleData m{};
+        // TODO: ask from cmd line
+        m.module_type = 1;
+        // TODO: ask from cmd line
+        m.vendor_identifier = 1;
+        // TODO: ask from cmd line
+        m.firmware_version = 0x1010;
+        // TODO: ask from cmd line
+        m.software_version = 0x2020;
+        // TODO: ask from cmd line
+        m.modification = 1;
+        // TODO: ask from cmd line
+        m.state = 1;
+        // TODO: ask from cmd line
+        m.serial_number = "client_egts_serial_number";
+        // TODO: ask from cmd line
+        m.description = {"client_egts_desc", "client_egts_desc1", "client_egts_desc2"};
+
+        sub += egts::v1::record::subrecord::wrapper(
+            egts::v1::record::subrecord::Type::EGTS_SR_MODULE_DATA,
+            m.buffer());
 
         auto record_number = g_record_number++;
 

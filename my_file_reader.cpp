@@ -28,6 +28,7 @@ thread_local egts::v1::record::subrecord::SrExtPosData x_rd{};
 bool
 my_parse_string(std::string_view str)
 {
+    // TODO: устанавливать переменную, если новое время из NMIE
     bool ready_for_send{false};
     try
     {
