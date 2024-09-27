@@ -259,6 +259,10 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                 file->seekg(0);
             }
         }
+        catch (const std::ios_base::failure &err)
+        {
+            std::cerr << "read_file: error: " << err.code() << " : " << err.what() << std::endl;
+        }
         catch (const std::exception &err)
         {
             std::cerr << "read_file: error: " << err.what() << std::endl;

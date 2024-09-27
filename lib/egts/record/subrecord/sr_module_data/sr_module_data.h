@@ -59,9 +59,13 @@ struct SrModuleData
     uint8_t state;
 
     // Serial number of the module
+    //
+    // TODO: replace '0' to '_'
     std::string serial_number;
 
     // Brief description of the module
+    //
+    // TODO: replace '0' to '_'
     std::vector<std::string> description;
 
     void parse(payload_type);
