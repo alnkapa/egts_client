@@ -58,7 +58,7 @@ main(int argc, char *argv[])
         // TODO: ask from cmd line
         m.serial_number = "client_egts_serial_number";
         // TODO: ask from cmd line
-        m.description = {"client_egts_desc", "client_egts_desc1", "client_egts_desc2"};
+        m.description = {"client_egts_desc", "client_egts_desc1", "client_egts_desc2 <hr>"};
 
         sub += egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_MODULE_DATA,
