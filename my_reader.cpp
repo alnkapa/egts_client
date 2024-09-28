@@ -1,6 +1,7 @@
 #include "my_globals.h"
 #include "queue.h"
 #include "record.h"
+#include "sr_command_data/sr_command_data.h"
 #include "sr_record_response/sr_record_response.h"
 #include <cstdint>
 #include <stdexcept>
@@ -41,8 +42,14 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
             // TODO
             break;
         case Type::EGTS_SR_COMMAND_DATA:
-            // TODO
-            break;
+        {
+            egts::v1::record::subrecord::SrCommandData cmd;
+            cmd.parse(s_rec.data());
+            std::cout << "CMD code: " << cmd.data.code << std::endl;
+            std::cout << "CMD data: " << cmd.data.data() << std::endl;
+            // g_send_queue.push(std::move(rsp));
+        }
+        break;
         default:
             // The rest is simply ignored.
             break;

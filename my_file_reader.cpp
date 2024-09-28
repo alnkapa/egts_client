@@ -28,6 +28,7 @@ thread_local egts::v1::record::subrecord::SrExtPosData x_rd{};
 bool
 my_parse_string(std::string_view str)
 {
+    // TODO: устанавливать переменную, если новое время из NMIE
     bool ready_for_send{false};
     try
     {
@@ -257,6 +258,10 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                 file->clear();
                 file->seekg(0);
             }
+        }
+        catch (const std::ios_base::failure &err)
+        {
+            std::cerr << "read_file: error: " << err.code() << " : " << err.what() << std::endl;
         }
         catch (const std::exception &err)
         {

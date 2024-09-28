@@ -2,7 +2,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include <iomanip> // std::hex
 #include <iostream>
 #include <iterator> // std::distance
 #include <span>
