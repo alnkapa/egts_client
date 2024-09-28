@@ -1,7 +1,6 @@
 #include "my_globals.h"
 #include "sr_module_data/sr_module_data.h"
 #include <regex>
-#include <string_view>
 #include <unistd.h> // getopt
 
 void
@@ -25,7 +24,6 @@ isValidIMEI(const char *imei)
 int
 main(int argc, char *argv[])
 {
-
     egts::v1::record::subrecord::SrTermIdentity i{};
     i.buffer_size = 512;
     std::string address;
