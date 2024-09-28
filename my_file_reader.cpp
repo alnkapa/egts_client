@@ -21,8 +21,6 @@ get_time()
 }
 
 constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
-const double epsilon = 1e-9; // Define a small tolerance
-
 thread_local egts::v1::record::subrecord::SrPosData rd{};
 thread_local egts::v1::record::subrecord::SrExtPosData x_rd{};
 thread_local int utc{0};
