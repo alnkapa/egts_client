@@ -21,14 +21,17 @@ get_time()
 }
 
 constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
+const double epsilon = 1e-9; // Define a small tolerance
 
 thread_local egts::v1::record::subrecord::SrPosData rd{};
 thread_local egts::v1::record::subrecord::SrExtPosData x_rd{};
+thread_local int utc{0};
+
+// TODO: print coordinate
 
 bool
 my_parse_string(std::string_view str)
 {
-    // TODO: устанавливать переменную, если новое время из NMIE
     bool ready_for_send{false};
     try
     {
@@ -189,6 +192,15 @@ my_parse_string(std::string_view str)
                 {
                     rd.speed &= ~(1 << 7); // DIRH
                 }
+                if (utc == 0)
+                {
+                    utc = static_cast<int>(rmc.utc.get());
+                }
+                int diff = static_cast<int>(rmc.utc.get()) - utc;
+                std::this_thread::sleep_for(std::chrono::seconds(diff));
+                ready_for_send = true;
+                utc = rmc.utc.get();
+                rd.navigation_time = get_time();
             }
             else
             {
@@ -207,8 +219,6 @@ my_parse_string(std::string_view str)
                 rd.flags &= ~(1 << 7); // ALTE
                 rd.flags &= ~(1 << 6); // ALTS
             }
-            rd.navigation_time = get_time();
-            ready_for_send = true;
         }
     }
     catch (const std::exception &err)
@@ -250,7 +260,6 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                     egts::v1::transport::Packet new_pkg{};
                     new_pkg.set_frame(std::move(rec));
                     g_send_queue.push(std::move(new_pkg));
-                    std::this_thread::sleep_for(std::chrono::seconds(1));
                 };
             }
             if (file->eof())

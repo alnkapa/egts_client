@@ -50,7 +50,7 @@ inline std::tm g_start_time{
     0,           // tm_wday
     0,           // tm_yday
     0            // tm_isdst
-}; // 00:00:00 01.01.2010 UTC
+};               // 00:00:00 01.01.2010 UTC
 
 inline std::time_t g_start_time_t = std::mktime(&g_start_time);
 #endif // my_globals_H
