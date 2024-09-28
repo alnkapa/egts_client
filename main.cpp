@@ -73,8 +73,8 @@ main(int argc, char *argv[])
     tcp::socket socket(io_context);
     try
     {
-        std::string port = ""; // default
-        std::string host = ""; // default
+        std::string port = "";
+        std::string host = "";
         size_t colon_pos = address.find(':');
         if (colon_pos != std::string::npos)
         {
