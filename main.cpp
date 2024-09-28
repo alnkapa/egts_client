@@ -1,18 +1,88 @@
 #include "my_globals.h"
 #include "sr_module_data/sr_module_data.h"
+#include <regex>
+#include <string_view>
+#include <unistd.h> // getopt
+
+void
+printHelp()
+{
+    std::cout << "Usage: program [options]\n"
+              << "Options:\n"
+              << "  -h, --help                  Display help on usage and available parameters.\n"
+              << "  -a [<host>]:<port>          Specify the server address to which the client will connect. For example: -a :5000, -a localhost:5000\n"
+              << "  -e <IMEI>                   Specify the IMEI that will be used for authentication. For example: -e 863921034878280\n"
+              << "  -n <file_path>              Specify the path to the file containing NMEA data. For example: -n nmea.txt\n";
+}
+
+bool
+isValidIMEI(const char *imei)
+{
+    std::regex imeiRegex("^[0-9a-f]{14}$|^\\d{15}$|^\\d{18}$");
+    return std::regex_match(imei, imeiRegex);
+}
 
 int
 main(int argc, char *argv[])
 {
+
+    egts::v1::record::subrecord::SrTermIdentity i{};
+    i.buffer_size = 512;
+    std::string address;
+    std::string nmea_file_path;
+
+    int opt;
+    while ((opt = getopt(argc, argv, "ha:e:n:")) != -1)
+    {
+        switch (opt)
+        {
+        case 'h':
+            printHelp();
+            return 0;
+        case 'a':
+            address = optarg;
+            break;
+        case 'e':
+            if (!isValidIMEI(optarg))
+            {
+                std::cerr << "Invalid IMEI: " << optarg << ". IMEI must match the specified format." << std::endl;
+                return 1;
+            }
+            std::copy(optarg, optarg + 15, i.IMEI.begin());
+            break;
+        case 'n':
+            nmea_file_path = optarg;
+            break;
+        case '?':
+            if (optopt == 'a' || optopt == 'e' || optopt == 'n')
+            {
+                std::cerr << "Option -" << static_cast<char>(optopt) << " requires an argument.\n";
+            }
+            else
+            {
+                std::cerr << "Unknown option: -" << static_cast<char>(optopt) << "\n";
+            }
+            return 1;
+        default:
+            return 1;
+        }
+    }
+
     using boost::asio::ip::tcp;
     boost::asio::io_context io_context{};
     tcp::socket socket(io_context);
     try
     {
+        std::string port = ""; // default
+        std::string host = ""; // default
+        size_t colon_pos = address.find(':');
+        if (colon_pos != std::string::npos)
+        {
+            host = address.substr(0, colon_pos);
+            port = address.substr(colon_pos + 1);
+        }
         tcp::resolver resolver(io_context);
-        // TODO: ask from cmd line
-        boost::asio::connect(socket, resolver.resolve("alfa.shatl-t.ru", "36329"));
-        // boost::asio::connect(socket, resolver.resolve("localhost", "12345"));
+        boost::asio::connect(socket, resolver.resolve(host, port));
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
@@ -30,12 +100,6 @@ main(int argc, char *argv[])
 
     try
     {
-        // send sr_term_identity
-        egts::v1::record::subrecord::SrTermIdentity i{};
-        // "863921034878280" -- АИмитатор 109
-        // TODO: ask from cmd line
-        i.IMEI = {'8', '6', '3', '9', '2', '1', '0', '3', '4', '8', '7', '8', '2', '8', '0'};
-        i.buffer_size = 512;
 
         auto sub = egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
