@@ -218,4 +218,11 @@ SrCommandData::buffer() const noexcept
     return buffer;
 }
 
+bool
+SrCommandData::ct_com() const noexcept
+{
+    return command_type == CommandType::CT_COM;
+};
+
+
 } // namespace egts::v1::record::subrecord

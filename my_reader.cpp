@@ -45,9 +45,7 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
         {
             egts::v1::record::subrecord::SrCommandData cmd;
             cmd.parse(s_rec.data());
-            std::cout << "CMD code: " << cmd.data.code << std::endl;
-            std::cout << "CMD data: " << cmd.data.data() << std::endl;
-            // g_send_queue.push(std::move(rsp));
+            g_send_queue.push(std::move(cmd));
         }
         break;
         default:

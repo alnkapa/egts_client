@@ -1,4 +1,5 @@
 #include "my_globals.h"
+#include "sr_command_data/sr_command_data.h"
 #include "sr_module_data/sr_module_data.h"
 #include <regex>
 #include <unistd.h> // getopt
@@ -129,8 +130,8 @@ main(int argc, char *argv[])
 
         auto rec = egts::v1::record::wrapper(
             record_number,
-            egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
-            egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
+            egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
+            egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
             std::move(sub));
 
         egts::v1::transport::Packet new_pkg{};
@@ -212,6 +213,41 @@ main(int argc, char *argv[])
             {
                 const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
                 // TODO: для загрузки файлов, будет нужно потом
+            }
+            else if (std::holds_alternative<egts::v1::record::subrecord::SrCommandData>(mes)) // cmd from server
+            {
+                // TODO: что то сделать по командам
+                auto &cmd = std::get<egts::v1::record::subrecord::SrCommandData>(mes);
+                std::cout << "CMD code: " << cmd.data.code << std::endl;
+                std::cout << "CMD data: " << cmd.data.data() << std::endl;
+                if (cmd.ct_com())
+                {
+                    // command response
+                    cmd.command_type = egts::v1::record::subrecord::CommandType::CT_COMCONF;
+
+                    auto sub = egts::v1::record::subrecord::wrapper(
+                        egts::v1::record::subrecord::Type::EGTS_SR_COMMAND_DATA,
+                        cmd.buffer());
+
+                    auto record_number = g_record_number++;
+
+                    auto rec = egts::v1::record::wrapper(
+                        record_number,
+                        egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
+                        egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
+                        std::move(sub));
+
+                    egts::v1::transport::Packet new_pkg{};
+                    new_pkg.identifier(g_packet_identifier++);
+                    new_pkg.set_frame(std::move(rec));
+                    if (boost::asio::write(
+                            socket,
+                            boost::asio::buffer(new_pkg.buffer()),
+                            boost::asio::transfer_all()) != new_pkg.buffer().size())
+                    {
+                        throw std::runtime_error("send size error");
+                    }
+                }
             }
             else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
             {

@@ -79,9 +79,13 @@ struct SrCommandData
     frame_buffer_type m_authorization_code;
 
   public:
+    
     ConfirmationType confirmation_type; // The confirmation type from command flags
 
     CommandType command_type; // The command type from command flags
+
+    bool
+    ct_com() const noexcept;
 
     uint32_t command_identifier; // Identifier for the command
 
