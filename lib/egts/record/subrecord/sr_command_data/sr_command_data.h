@@ -46,17 +46,6 @@ enum class CharSet : uint8_t
     UCS2 = 8           // UCS2 (ISO/IEC-10646)
 };
 
-enum class CODE : uint16_t
-{
-    EGTS_RAW_DATA = 0,          // Command for transmitting arbitrary data
-    EGTS_TEST_MODE = 1,         // Command to start/stop terminal testing
-    EGTS_TEST_GET_ERRORS = 4,   // Request for error codes
-    EGTS_TEST_CLEAR_ERRORS = 5, // Clear error codes
-    EGTS_CONFIG_RESET = 6,      // Reset to factory settings
-    EGTS_SET_AUTH_CODE = 7,     // Set authorization code on ASN side
-    EGTS_RESTART = 8            // Restart main software on ASN
-};
-
 enum class ConfirmationType : uint8_t
 {
     CC_OK = 0,     // Successful execution, positive response
@@ -71,13 +60,13 @@ enum class ConfirmationType : uint8_t
 enum class CommandType : uint8_t
 {
     CT_COMCONF = 1, // Confirmation of command reception and processing
-    CT_MSGCONF = 2, // Confirmation of message reception and processing
-    CT_MSGFROM = 3, // Informational message from ASN
-    CT_MSGTO = 4,   // Informational message for display on ASN
-    CT_COM = 5,     // Command for execution on ASN
-    CT_DELCOM = 6,  // Deletion from the execution queue
-    CT_SUBREQ = 7,  // Additional sub-request for execution
-    CT_DELIV = 8    // Confirmation of command or message delivery
+    // CT_MSGCONF = 2, // Confirmation of message reception and processing
+    // CT_MSGFROM = 3, // Informational message from ASN
+    // CT_MSGTO = 4,   // Informational message for display on ASN
+    CT_COM = 5, // Command for execution on ASN
+    // CT_DELCOM = 6,  // Deletion from the execution queue
+    // CT_SUBREQ = 7,  // Additional sub-request for execution
+    // CT_DELIV = 8    // Confirmation of command or message delivery
 };
 
 const size_t max_command_length = 65205;

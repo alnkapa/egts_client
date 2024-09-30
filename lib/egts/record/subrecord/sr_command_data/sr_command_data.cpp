@@ -72,18 +72,20 @@ SrCommandData::parse(payload_type buffer)
     {
         data.address = static_cast<uint16_t>(*ptr++) |     // 0
                        static_cast<uint16_t>(*ptr++) << 8; // 1
-                                                           //
-        uint8_t flag = static_cast<uint8_t>(*ptr++);       // 2
-                                                           //
-        data.code = static_cast<uint16_t>(*ptr++) |        // 3
-                    static_cast<uint16_t>(*ptr++) << 8;    // 4
 
-        data.action = static_cast<DataAct>(flag & 0x0F);
-
-        if (data.action == DataAct::ADD_ACT) // parse size
+        if (command_type == CommandType::CT_COM)
         {
-            data.m_size = flag >> 4;
+            flag = static_cast<uint8_t>(*ptr++); // 2
+            data.action = static_cast<DataAct>(flag & 0x0F);
+
+            if (data.action == DataAct::ADD_ACT) // parse size
+            {
+                data.m_size = flag >> 4;
+            }
         }
+
+        data.code = static_cast<uint16_t>(*ptr++) |     // 3
+                    static_cast<uint16_t>(*ptr++) << 8; // 4
 
         // TODO: data.size <= data_size ????
 
@@ -147,7 +149,15 @@ SrCommandData::Data::size() const noexcept
 frame_buffer_type
 SrCommandData::buffer() const noexcept
 {
-    size_t size{10 + 5};
+    size_t size{10};
+    if (command_type == CommandType::CT_COM)
+    {
+        size += 5;
+    }
+    else
+    {
+        size += 4;
+    }
     uint8_t flag{0};
     if (charset > CharSet::CP1251)
     {
@@ -195,14 +205,16 @@ SrCommandData::buffer() const noexcept
         ptr += m_authorization_code.size();
     }
 
-    flag = (data.m_size << 4) | static_cast<uint8_t>(data.action);
-
     *ptr++ = static_cast<uint8_t>(data.address);      // 0
     *ptr++ = static_cast<uint8_t>(data.address >> 8); // 1
-    *ptr++ = static_cast<uint8_t>(flag);              // 2
-    *ptr++ = static_cast<uint8_t>(data.code);         // 3
-    *ptr++ = static_cast<uint8_t>(data.code >> 8);    // 4
+    if (command_type == CommandType::CT_COM)
+    {
+        *ptr++ = static_cast<uint8_t>((data.m_size << 4) | static_cast<uint8_t>(data.action)); // 2
+    }
+    *ptr++ = static_cast<uint8_t>(data.code);      // 3
+    *ptr++ = static_cast<uint8_t>(data.code >> 8); // 4
     std::copy(data.m_data.begin(), data.m_data.end(), ptr);
+
     return buffer;
 }
 
