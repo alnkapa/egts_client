@@ -11,9 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: build
         run: |
-          sudo apt install cmake
-          sudo apt install g++-12
-          sudo apt install libgtest-dev
+          sudo apt install -y cmake g++-12 libgtest-dev
           cmake .
           cmake --build .
       - name: test
