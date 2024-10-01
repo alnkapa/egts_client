@@ -1,12 +1,13 @@
 #pragma once
-#include <memory>
-#include <string_view>
+
 #ifndef FIRMWARE_H
 #define FIRMWARE_H
 
 #include <cstdint> // uint16_t, uint8_t
 #include <error/error.h>
 #include <globals.h>
+#include <optional>
+#include <string_view>
 
 namespace egts::v1::record::subrecord
 {
@@ -87,8 +88,7 @@ const uint16_t begin_part_number = 1;
 struct SrPartData
 {
   private:
-    // TODO std::optional
-    std::unique_ptr<ObjectDataHeader> m_odh;
+    std::optional<ObjectDataHeader> m_odh;
     frame_buffer_type mp_data;
 
   public:
@@ -99,10 +99,18 @@ struct SrPartData
     // expected quantity of parts for the transmitted entity
     uint16_t expected_parts_quantity{};
 
-    void odh(std::unique_ptr<ObjectDataHeader>);
+    void
+    odh(ObjectDataHeader &&);
+
+    ObjectDataHeader
+    odh() const noexcept;
 
     // data of the transmitted entity
     void data(frame_buffer_type);
+
+    // data of the transmitted entity
+    payload_type
+    data() const noexcept;
 
     void parse(payload_type);
 
@@ -113,9 +121,23 @@ struct SrPartData
 // The subrecord for type EGTS_SR_SERVICE_FULL_DATA.
 struct SrFullData
 {
-    ObjectDataHeader odh{};
+  private:
+    frame_buffer_type mp_data;
+    std::optional<ObjectDataHeader> m_odh;
+
+  public:
+    void
+    odh(ObjectDataHeader &&);
+
+    ObjectDataHeader
+    odh() const noexcept;
+
     // data of the transmitted entity
-    payload_type data;
+    void data(frame_buffer_type);
+
+    // data of the transmitted entity
+    payload_type
+    data() const noexcept;
 
     void parse(payload_type);
 

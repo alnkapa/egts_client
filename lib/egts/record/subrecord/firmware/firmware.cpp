@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <memory>
 #include <span>
 #include <stdexcept>
+#include <utility>
 
 namespace egts::v1::record::subrecord
 {
@@ -100,6 +100,22 @@ ObjectDataHeader::buffer() const noexcept
 }
 
 void
+SrPartData::odh(ObjectDataHeader &&in)
+{
+    m_odh.emplace(in);
+}
+
+ObjectDataHeader
+SrPartData::odh() const noexcept
+{
+    if (m_odh.has_value())
+    {
+        return m_odh.value();
+    }
+    return {};
+}
+
+void
 SrPartData::parse(payload_type buffer)
 {
     auto ptr = buffer.begin();
@@ -116,15 +132,16 @@ SrPartData::parse(payload_type buffer)
     expected_parts_quantity = static_cast<uint16_t>(*ptr++) |     // 4
                               static_cast<uint16_t>(*ptr++) << 8; // 5
 
-    if (m_odh)
+    if (m_odh.has_value())
     {
         m_odh.reset();
     }
 
     if (part_number == begin_part_number)
     {
-        m_odh = std::make_unique<ObjectDataHeader>();
-        m_odh->parse(buffer, ptr);
+        ObjectDataHeader odh;
+        odh.parse(buffer, ptr);
+        m_odh.emplace(std::move(odh));
     }
 
     size_t size = std::distance(ptr, buffer.end());
@@ -139,10 +156,10 @@ SrPartData::parse(payload_type buffer)
 frame_buffer_type
 SrPartData::buffer() const noexcept
 {
-    size_t size = 6;    
+    size_t size = 6;
     frame_buffer_type buffer(size, 0);
     frame_buffer_type odh_buffer;
-    if (part_number == begin_part_number && !m_odh)
+    if (part_number == begin_part_number && m_odh.has_value())
     {
         odh_buffer = m_odh->buffer();
         buffer.reserve(size + odh_buffer.size() + mp_data.size());
@@ -163,7 +180,7 @@ SrPartData::buffer() const noexcept
     *ptr++ = static_cast<uint8_t>(expected_parts_quantity);      // 4
     *ptr++ = static_cast<uint8_t>(expected_parts_quantity >> 8); // 5
 
-    if (part_number == begin_part_number && !m_odh)
+    if (part_number == begin_part_number && m_odh.has_value())
     {
         buffer.insert(
             ptr,
@@ -181,23 +198,85 @@ SrPartData::buffer() const noexcept
 }
 
 void
+SrPartData::data(frame_buffer_type in)
+{
+    mp_data = std::move(in);
+}
+
+payload_type
+SrPartData::data() const noexcept
+{
+    return mp_data;
+}
+
+void
 SrFullData::parse(payload_type buffer)
 {
     auto ptr = buffer.begin();
-    if (!has_remaining_bytes(buffer, ptr, 1))
+    ObjectDataHeader odh;
+    odh.parse(buffer, ptr);
+    m_odh.emplace(std::move(odh));
+
+    size_t size = std::distance(ptr, buffer.end());
+    if (size > max_file_data_size || size == 0)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
-    // record_status = static_cast<Code>(*ptr++); // 0
+
+    mp_data.resize(size);
+    std::copy(ptr, buffer.end(), mp_data.begin());
 }
 
 frame_buffer_type
 SrFullData::buffer() const noexcept
 {
-    frame_buffer_type buffer(1, 0);
-    auto ptr = buffer.begin();
-    // *ptr++ = static_cast<uint8_t>(record_status); // 0
+    frame_buffer_type buffer{};
+    if (m_odh.has_value())
+    {
+        frame_buffer_type odh_buffer = m_odh.value().buffer();
+        buffer.reserve(odh_buffer.size() + mp_data.size());
+        buffer.insert(
+            buffer.end(),
+            std::make_move_iterator(odh_buffer.begin()),
+            std::make_move_iterator(odh_buffer.end()));
+    }
+    else
+    {
+        buffer.reserve(mp_data.size());
+    }
+    buffer.insert(
+        buffer.end(),
+        std::make_move_iterator(mp_data.begin()),
+        std::make_move_iterator(mp_data.end()));
     return buffer;
+}
+
+void
+SrFullData::odh(ObjectDataHeader &&in)
+{
+    m_odh.emplace(in);
+}
+
+ObjectDataHeader
+SrFullData::odh() const noexcept
+{
+    if (m_odh.has_value())
+    {
+        return m_odh.value();
+    }
+    return {};
+}
+
+void
+SrFullData::data(frame_buffer_type in)
+{
+    mp_data = std::move(in);
+}
+
+payload_type
+SrFullData::data() const noexcept
+{
+    return mp_data;
 }
 
 } // namespace egts::v1::record::subrecord

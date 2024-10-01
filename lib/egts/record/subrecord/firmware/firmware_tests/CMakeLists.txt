@@ -14,3 +14,6 @@ target_link_libraries(firmware_tests GTest::GTest GTest::Main egts)
 
 add_test(NAME FIRMWARE_OBJECT_DATA_HEADER COMMAND firmware_tests)
 
+add_test(NAME FIRMWARE_SR_PART_DATA COMMAND firmware_tests)
+
+add_test(NAME FIRMWARE_SR_FULL COMMAND firmware_tests)
