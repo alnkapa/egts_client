@@ -8,7 +8,7 @@ add_library(
 target_include_directories(
     transport 
     PRIVATE
-    ${CMAKE_SOURCE_DIR}/lib/egts    
+    ${CMAKE_SOURCE_DIR}/lib/egts
 )
 
 if(BUILD_TESTING)

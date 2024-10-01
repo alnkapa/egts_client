@@ -9,14 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: build
-        run: |
-          sudo apt install -y cmake libgtest-dev
-          cmake .
-          cmake --build .
       - name: test
         run: |
+          sudo apt install -y cmake libgtest-dev
+          cmake . -DCMAKE_BUILD_TYPE=Debug
+          cmake --build .
           ctest --rerun-failed --output-on-failure
+      
+      - name: build
+        run: |
+          sudo apt install -y cmake
+          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
 
   build-and-test-windows:
     runs-on: windows-latest
@@ -25,11 +29,8 @@ jobs:
       - name: build
         run: |
           choco install cmake
-          cmake .
+          cmake . -DCMAKE_BUILD_TYPE=Release
           cmake --build .
-      - name: test
-        run: |
-          ctest --rerun-failed --output-on-failure
 
   build-and-test-macos:
     runs-on: macos-latest
@@ -38,8 +39,5 @@ jobs:
       - name: build
         run: |
           brew install cmake
-          cmake .
+          cmake . -DCMAKE_BUILD_TYPE=Release
           cmake --build .
-      - name: test
-        run: |
-          ctest --rerun-failed --output-on-failure

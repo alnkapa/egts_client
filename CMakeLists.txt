@@ -2,12 +2,16 @@ cmake_minimum_required(VERSION 3.5)
 
 project(egtsClient VERSION 0.0.1)
 
-set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # clangd
-include(CTest)
-enable_testing()
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
 
-set(CMAKE_MESSAGE_LOG_LEVEL VERBOSE)
+IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # clangd
+    include(CTest)
+    enable_testing()
+ENDIF()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -37,11 +41,9 @@ add_subdirectory(lib/nmea)
 
 add_executable(egts_client main.cpp my_reader.cpp queue.cpp my_file_reader.cpp my_file_save.cpp)
 
-# auth.cpp queue.cpp
-
 
 target_include_directories(
-    egts_client 
+    egts_client
     PRIVATE
     egts
     pub_sub
@@ -50,7 +52,7 @@ target_include_directories(
 )
 
 target_link_libraries(
-    egts_client 
+    egts_client
     PRIVATE
     egts
     pub_sub
