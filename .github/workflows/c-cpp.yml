@@ -17,3 +17,29 @@ jobs:
       - name: test
         run: |
           ctest --rerun-failed --output-on-failure
+
+  build-and-test-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: |
+          choco install cmake
+          cmake .
+          cmake --build .
+      - name: test
+        run: |
+          ctest --rerun-failed --output-on-failure
+
+  build-and-test-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: |
+          brew install cmake
+          cmake .
+          cmake --build .
+      - name: test
+        run: |
+          ctest --rerun-failed --output-on-failure

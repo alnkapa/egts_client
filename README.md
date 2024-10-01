@@ -34,8 +34,7 @@ To build the project, execute the following commands in the terminal:
 For Ubuntu/Debian-based systems:
 
 ```bash
-sudo apt install cmake
-sudo apt install g++-12
+sudo apt install -y cmake libgtest-dev
 mkdir -p build
 cd build
 cmake ..
