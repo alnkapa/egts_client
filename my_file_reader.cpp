@@ -1,7 +1,8 @@
 #include "my_globals.h"
 #include "nmea/object/status.hpp"
-#include <chrono>
 #include <cstdint>
+#include <ctime>
+#include <iomanip>
 #include <iostream>
 #include <nmea/message/gga.hpp>
 #include <nmea/message/gsa.hpp>
@@ -15,9 +16,10 @@
 long
 get_time()
 {
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    return static_cast<long>(now_c - g_start_time_t);
+    std::time_t now = std::time(nullptr);
+    std::tm tm = *std::localtime(&now);
+    std::cout << "ntm: " << std::put_time(&tm, "%Y-%m-%d %H.%M.%S") << "\n";
+    return static_cast<long>(now - g_start_time_t);
 }
 
 constexpr double maxUint32 = std::numeric_limits<uint32_t>::max();
@@ -221,7 +223,7 @@ my_parse_string(std::string_view str)
     }
     catch (const std::exception &err)
     {
-        std::cerr << "nmea: error: " << err.what() << std::endl;
+        
     }
     return ready_for_send;
 }
@@ -265,10 +267,6 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                 file->clear();
                 file->seekg(0);
             }
-        }
-        catch (const std::ios_base::failure &err)
-        {
-            std::cerr << "read_file: error: " << err.code() << " : " << err.what() << std::endl;
         }
         catch (const std::exception &err)
         {

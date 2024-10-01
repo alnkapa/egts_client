@@ -193,23 +193,24 @@ main(int argc, char *argv[])
                 auto err = rez.error();
                 if (!err.OK())
                 {
-                    std::cerr << "transport: auth: error: " << err.what() << std::endl;
+                    std::cerr << "auth: error: " << err.what() << std::endl;
                     break;
                 }
                 else
                 {
-                    std::cout << "transport: auth: ok" << std::endl;
+                    std::cout << "auth: ok" << std::endl;
 
-                    // run file reader
-                    // TODO: ask from cmd line
-                    auto file_ptr = std::make_shared<std::ifstream>("nmea.txt");
-                    if (!file_ptr->is_open())
+                    if (!nmea_file_path.empty())
                     {
-                        std::cerr << "transport: error open file nmea.txt" << std::endl;
-                        break;
+                        auto file_ptr = std::make_shared<std::ifstream>(nmea_file_path);
+                        if (!file_ptr->is_open())
+                        {
+                            std::cerr << "error open file: " << nmea_file_path << std::endl;
+                            break;
+                        }
+                        std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
+                        reader.detach();
                     }
-                    std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
-                    reader.detach();
                 }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
@@ -243,6 +244,7 @@ main(int argc, char *argv[])
                     egts::v1::transport::Packet new_pkg{};
                     new_pkg.identifier(g_packet_identifier++);
                     new_pkg.set_frame(std::move(rec));
+                    
                     if (boost::asio::write(
                             socket,
                             boost::asio::buffer(new_pkg.buffer()),
@@ -254,21 +256,15 @@ main(int argc, char *argv[])
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrPartData>(mes)) // file part
             {
-                auto &&rez = std::get<egts::v1::record::subrecord::SrPartData>(mes);
-                file_holder.add_part(std::move(rez));
+                file_holder.add_part(std::move(std::get<egts::v1::record::subrecord::SrPartData>(mes)));
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrFullData>(mes)) // file full
             {
-                auto &&rez = std::get<egts::v1::record::subrecord::SrFullData>(mes);
-                file_holder.add_full(std::move(rez));
+                file_holder.add_full(std::move(std::get<egts::v1::record::subrecord::SrFullData>(mes)));
             }
             else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
             {
                 break;
-            }
-            else
-            {
-                // ?
             }
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
