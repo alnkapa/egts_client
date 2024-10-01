@@ -1,6 +1,7 @@
 #include "my_globals.h"
-#include "sr_command_data/sr_command_data.h"
-#include "sr_module_data/sr_module_data.h"
+#include "record/subrecord/firmware/firmware.h"
+#include "record/subrecord/sr_command_data/sr_command_data.h"
+#include "record/subrecord/sr_module_data/sr_module_data.h"
 #include <regex>
 #include <unistd.h> // getopt
 
@@ -162,6 +163,8 @@ main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    FileHolder file_holder;
+
     // Main
     while (true)
     {
@@ -248,6 +251,21 @@ main(int argc, char *argv[])
                         throw std::runtime_error("send size error");
                     }
                 }
+            }
+            else if (std::holds_alternative<egts::v1::record::subrecord::SrPartData>(mes)) // file part
+            {
+                auto &&rez = std::get<egts::v1::record::subrecord::SrPartData>(mes);
+                file_holder.add_part(std::move(rez));
+                if (file_holder.is_full())
+                {
+                    file_holder.save();
+                }
+            }
+            else if (std::holds_alternative<egts::v1::record::subrecord::SrFullData>(mes)) // file full
+            {
+                auto &&rez = std::get<egts::v1::record::subrecord::SrFullData>(mes);
+                file_holder.add_full(std::move(rez));
+                file_holder.save();
             }
             else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
             {

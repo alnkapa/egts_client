@@ -54,8 +54,8 @@ SubRecord::length() const
     return m_length;
 }
 
-frame_buffer_type
-wrapper(Type type, frame_buffer_type &&data)
+buffer_type
+wrapper(Type type, buffer_type &&data)
 {
     if (data.size() > max_frame_size)
     {
@@ -65,7 +65,7 @@ wrapper(Type type, frame_buffer_type &&data)
 
     const std::size_t size = 3;
 
-    frame_buffer_type buffer(size, 0);
+    buffer_type buffer(size, 0);
     buffer.reserve(size + record_length);
 
     auto ptr = buffer.begin();

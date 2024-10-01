@@ -1,8 +1,9 @@
 #include "my_globals.h"
 #include "queue.h"
 #include "record.h"
-#include "sr_command_data/sr_command_data.h"
-#include "sr_record_response/sr_record_response.h"
+#include "record/subrecord/firmware/firmware.h"
+#include "record/subrecord/sr_command_data/sr_command_data.h"
+#include "record/subrecord/sr_record_response/sr_record_response.h"
 #include <cstdint>
 #include <stdexcept>
 #include <unordered_map>
@@ -36,11 +37,19 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
         }
         break;
         case Type::EGTS_SR_SERVICE_PART_DATA:
-            // TODO
-            break;
+        {
+            egts::v1::record::subrecord::SrPartData rsp;
+            rsp.parse(s_rec.data());
+            g_send_queue.push(std::move(rsp));
+        }
+        break;
         case Type::EGTS_SR_SERVICE_FULL_DATA:
-            // TODO
-            break;
+        {
+            egts::v1::record::subrecord::SrFullData rsp;
+            rsp.parse(s_rec.data());
+            g_send_queue.push(std::move(rsp));
+        }
+        break;
         case Type::EGTS_SR_COMMAND_DATA:
         {
             egts::v1::record::subrecord::SrCommandData cmd;

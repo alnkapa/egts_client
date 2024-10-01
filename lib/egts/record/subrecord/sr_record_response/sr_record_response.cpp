@@ -18,10 +18,10 @@ SRRecordResponse::parse(payload_type buffer)
     record_status = static_cast<error::Code>(*ptr++);                  // 2
 }
 
-frame_buffer_type
+buffer_type
 SRRecordResponse::buffer() const noexcept
 {
-    frame_buffer_type buffer(3, 0);
+    buffer_type buffer(3, 0);
     auto ptr = buffer.begin();
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number);      // 0
     *ptr++ = static_cast<std::uint8_t>(confirmed_record_number >> 8); // 1

@@ -1,6 +1,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include "record/subrecord/firmware/firmware.h"
 #include <condition_variable>
 #include <mutex>
 #include <queue>
@@ -19,6 +20,8 @@ using queue_type = std::variant<
     egts::v1::record::subrecord::SRRecordResponse,
     egts::v1::record::subrecord::SrResultCode,
     egts::v1::record::subrecord::SrCommandData,
+    egts::v1::record::subrecord::SrPartData,
+    egts::v1::record::subrecord::SrFullData,
     Done>;
 
 class MyQueue

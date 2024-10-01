@@ -10,7 +10,7 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::buffer_type;
+using buffer_type = egts::v1::buffer_type;
 
 using payload_type = egts::v1::payload_type;
 
@@ -76,7 +76,7 @@ const size_t max_command_data_length = 65200;
 struct SrCommandData
 {
   private:
-    frame_buffer_type m_authorization_code;
+    buffer_type m_authorization_code;
 
   public:
     
@@ -94,7 +94,7 @@ struct SrCommandData
     CharSet charset; // Character set used in the command
 
     // Authorization code for command execution
-    void authorization_code(frame_buffer_type);
+    void authorization_code(buffer_type);
 
     // Authorization code for command execution
     payload_type
@@ -103,7 +103,7 @@ struct SrCommandData
     struct Data // command data
     {
       private:
-        frame_buffer_type m_data;
+        buffer_type m_data;
         uint8_t m_size;
 
       public:
@@ -122,7 +122,7 @@ struct SrCommandData
         uint16_t code;
 
         // Authorization code for command execution
-        void data(frame_buffer_type);
+        void data(buffer_type);
 
         // Authorization code for command execution
         payload_type
@@ -132,7 +132,7 @@ struct SrCommandData
 
     void parse(payload_type);
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 };
 

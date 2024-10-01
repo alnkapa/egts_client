@@ -69,7 +69,7 @@ ObjectDataHeader::parse(payload_type buffer, payload_type::iterator &ptr)
     ptr = zero_it + 1;
 }
 
-frame_buffer_type
+buffer_type
 ObjectDataHeader::buffer() const noexcept
 {
     size_t size = 6 + 1;
@@ -78,7 +78,7 @@ ObjectDataHeader::buffer() const noexcept
         size += m_file_name.size();
     }
 
-    frame_buffer_type buffer(size, 0);
+    buffer_type buffer(size, 0);
     auto ptr = buffer.begin();
     *ptr++ = ((static_cast<uint8_t>(object_type) & 0x03) << 2) | (static_cast<uint8_t>(module_type) & 0x03); // 0
                                                                                                              //
@@ -106,13 +106,23 @@ SrPartData::odh(ObjectDataHeader &&in)
 }
 
 ObjectDataHeader
-SrPartData::odh() const noexcept
+SrPartData::odh() const
 {
-    if (m_odh.has_value())
+    if (!m_odh.has_value())
     {
-        return m_odh.value();
+        throw std::runtime_error("odh absent");
     }
-    return {};
+    return m_odh.value();
+}
+
+ObjectDataHeader &&
+SrPartData::odh()
+{
+    if (!m_odh.has_value())
+    {
+        throw std::runtime_error("odh absent");
+    }
+    return std::move(m_odh.value());
 }
 
 void
@@ -153,12 +163,12 @@ SrPartData::parse(payload_type buffer)
     std::copy(ptr, buffer.end(), mp_data.begin());
 }
 
-frame_buffer_type
+buffer_type
 SrPartData::buffer() const noexcept
 {
     size_t size = 6;
-    frame_buffer_type buffer(size, 0);
-    frame_buffer_type odh_buffer;
+    buffer_type buffer(size, 0);
+    buffer_type odh_buffer;
     if (part_number == begin_part_number && m_odh.has_value())
     {
         odh_buffer = m_odh->buffer();
@@ -198,7 +208,7 @@ SrPartData::buffer() const noexcept
 }
 
 void
-SrPartData::data(frame_buffer_type in)
+SrPartData::data(buffer_type in)
 {
     mp_data = std::move(in);
 }
@@ -227,13 +237,13 @@ SrFullData::parse(payload_type buffer)
     std::copy(ptr, buffer.end(), mp_data.begin());
 }
 
-frame_buffer_type
+buffer_type
 SrFullData::buffer() const noexcept
 {
-    frame_buffer_type buffer{};
+    buffer_type buffer{};
     if (m_odh.has_value())
     {
-        frame_buffer_type odh_buffer = m_odh.value().buffer();
+        buffer_type odh_buffer = m_odh.value().buffer();
         buffer.reserve(odh_buffer.size() + mp_data.size());
         buffer.insert(
             buffer.end(),
@@ -258,17 +268,17 @@ SrFullData::odh(ObjectDataHeader &&in)
 }
 
 ObjectDataHeader
-SrFullData::odh() const noexcept
+SrFullData::odh() const
 {
-    if (m_odh.has_value())
+    if (!m_odh.has_value())
     {
-        return m_odh.value();
+        throw std::runtime_error("odh absent");
     }
-    return {};
+    return m_odh.value();
 }
 
 void
-SrFullData::data(frame_buffer_type in)
+SrFullData::data(buffer_type in)
 {
     mp_data = std::move(in);
 }

@@ -9,7 +9,7 @@ using namespace egts::v1;
 TEST(PARSE_SUBRECORD, BasicTests)
 {
     subrecord::SubRecord srd{};
-    subrecord::frame_buffer_type data(2, 0);
+    subrecord::buffer_type data(2, 0);
     subrecord::payload_type s(data.cbegin(), data.cend());
     auto ptr = s.begin();
     try

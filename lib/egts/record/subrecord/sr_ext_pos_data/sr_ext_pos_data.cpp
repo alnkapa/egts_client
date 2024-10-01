@@ -83,7 +83,7 @@ SrExtPosData::parse(payload_type buffer)
     }
 }
 
-frame_buffer_type
+buffer_type
 SrExtPosData::buffer() const noexcept
 {
     size_t size = 1;
@@ -108,7 +108,7 @@ SrExtPosData::buffer() const noexcept
         size += 2;
     }
 
-    frame_buffer_type buffer(size, 0);
+    buffer_type buffer(size, 0);
     auto ptr = buffer.begin()+1;
     auto flag = buffer.begin();
 

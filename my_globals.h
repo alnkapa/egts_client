@@ -1,6 +1,7 @@
 #ifndef MY_GLOBALS_H
 #define MY_GLOBALS_H
 
+#include "globals.h"
 #include "queue.h"
 #include <atomic>
 #include <boost/asio.hpp>
@@ -10,6 +11,7 @@
 #include <memory>
 #include <pub_sub.h>
 #include <record/record.h>
+#include <record/subrecord/firmware/firmware.h>
 #include <record/subrecord/sr_command_data/sr_command_data.h>
 #include <record/subrecord/sr_ext_pos_data/sr_ext_pos_data.h>
 #include <record/subrecord/sr_pos_data/sr_pos_data.h>
@@ -18,6 +20,7 @@
 #include <record/subrecord/sr_term_identity/sr_term_identity.h>
 #include <record/subrecord/subrecord.h>
 #include <transport/transport.h>
+#include <unordered_map>
 
 using boost::asio::ip::tcp;
 
@@ -50,7 +53,31 @@ inline std::tm g_start_time{
     0,           // tm_wday
     0,           // tm_yday
     0            // tm_isdst
-};               // 00:00:00 01.01.2010 UTC
+}; // 00:00:00 01.01.2010 UTC
 
 inline std::time_t g_start_time_t = std::mktime(&g_start_time);
+
+class FileHolder
+{
+  private:
+    struct value
+    {
+        uint16_t expected_part_number{};
+        uint16_t expected_parts_quantity{};
+        egts::v1::record::subrecord::ObjectDataHeader odh;
+        egts::v1::buffer_type data{};
+    };
+    std::unordered_multimap<uint16_t, value> m;
+
+  public:
+    void
+    add_part(egts::v1::record::subrecord::SrPartData &&);
+    void
+    add_full(egts::v1::record::subrecord::SrFullData &&);
+    bool
+    is_full();
+    void
+    save();
+};
+
 #endif // my_globals_H

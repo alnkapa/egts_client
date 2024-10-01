@@ -12,7 +12,7 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::buffer_type;
+using buffer_type = egts::v1::buffer_type;
 
 using payload_type = egts::v1::payload_type;
 
@@ -73,7 +73,7 @@ struct ObjectDataHeader
     void
     parse(payload_type, payload_type::iterator &);
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 };
 
@@ -89,7 +89,7 @@ struct SrPartData
 {
   private:
     std::optional<ObjectDataHeader> m_odh;
-    frame_buffer_type mp_data;
+    buffer_type mp_data;
 
   public:
     // unique identifier for the transmitted entity
@@ -103,10 +103,13 @@ struct SrPartData
     odh(ObjectDataHeader &&);
 
     ObjectDataHeader
-    odh() const noexcept;
+    odh() const;
+
+    ObjectDataHeader &&
+    odh();
 
     // data of the transmitted entity
-    void data(frame_buffer_type);
+    void data(buffer_type);
 
     // data of the transmitted entity
     payload_type
@@ -114,7 +117,7 @@ struct SrPartData
 
     void parse(payload_type);
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 };
 
@@ -122,7 +125,7 @@ struct SrPartData
 struct SrFullData
 {
   private:
-    frame_buffer_type mp_data;
+    buffer_type mp_data;
     std::optional<ObjectDataHeader> m_odh;
 
   public:
@@ -130,10 +133,10 @@ struct SrFullData
     odh(ObjectDataHeader &&);
 
     ObjectDataHeader
-    odh() const noexcept;
+    odh() const;
 
     // data of the transmitted entity
-    void data(frame_buffer_type);
+    void data(buffer_type);
 
     // data of the transmitted entity
     payload_type
@@ -141,7 +144,7 @@ struct SrFullData
 
     void parse(payload_type);
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 };
 

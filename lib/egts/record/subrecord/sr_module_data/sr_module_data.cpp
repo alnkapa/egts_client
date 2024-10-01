@@ -59,7 +59,7 @@ SrModuleData::parse(payload_type buffer)
     }
 }
 
-frame_buffer_type
+buffer_type
 SrModuleData::buffer() const noexcept
 {
     size_t ext_size = 0;
@@ -77,7 +77,7 @@ SrModuleData::buffer() const noexcept
         }
     }
 
-    frame_buffer_type buffer(11 + ext_size, 0);
+    buffer_type buffer(11 + ext_size, 0);
     auto ptr = buffer.begin();
 
     *ptr++ = static_cast<uint8_t>(module_type);             // 0

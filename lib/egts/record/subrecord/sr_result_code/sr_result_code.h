@@ -9,7 +9,7 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::buffer_type;
+using buffer_type = egts::v1::buffer_type;
 
 using payload_type = egts::v1::payload_type;
 
@@ -29,7 +29,7 @@ struct SrResultCode
 
     void parse(payload_type);
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 
     Error

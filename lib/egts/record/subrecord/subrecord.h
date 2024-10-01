@@ -9,7 +9,7 @@
 namespace egts::v1::record::subrecord
 {
 
-using frame_buffer_type = egts::v1::buffer_type;
+using buffer_type = egts::v1::buffer_type;
 
 using payload_type = egts::v1::payload_type;
 
@@ -156,8 +156,8 @@ class SubRecord
 };
 
 // make a subrecord buffer from a specific subrecord buffer.
-frame_buffer_type
-wrapper(Type type, frame_buffer_type &&data);
+buffer_type
+wrapper(Type type, buffer_type &&data);
 
 } // namespace egts::v1::record::subrecord
 

@@ -60,7 +60,7 @@ SrPosData::parse(payload_type buffer)
     }
 }
 
-frame_buffer_type
+buffer_type
 SrPosData::buffer() const noexcept
 {
     size_t buffer_size = 21;
@@ -74,7 +74,7 @@ SrPosData::buffer() const noexcept
         buffer_size += 2;
     }
 
-    frame_buffer_type buffer(buffer_size, 0);
+    buffer_type buffer(buffer_size, 0);
     auto ptr = buffer.begin();
 
     *ptr++ = static_cast<uint8_t>(navigation_time);       // 0

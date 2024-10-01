@@ -99,7 +99,7 @@ SrCommandData::parse(payload_type buffer)
 }
 
 void
-SrCommandData::authorization_code(frame_buffer_type code)
+SrCommandData::authorization_code(buffer_type code)
 {
     if (code.size() > std::numeric_limits<uint8_t>::max())
     {
@@ -115,7 +115,7 @@ SrCommandData::authorization_code() const noexcept
 }
 
 void
-SrCommandData::Data::data(frame_buffer_type data)
+SrCommandData::Data::data(buffer_type data)
 {
     if (data.size() > max_command_data_length)
     {
@@ -146,7 +146,7 @@ SrCommandData::Data::size() const noexcept
     return std::pow(2, static_cast<double>(m_size));
 }
 
-frame_buffer_type
+buffer_type
 SrCommandData::buffer() const noexcept
 {
     size_t size{10};
@@ -176,7 +176,7 @@ SrCommandData::buffer() const noexcept
         size += data.m_data.size();
     }
 
-    frame_buffer_type buffer(size, 0);
+    buffer_type buffer(size, 0);
     auto ptr = buffer.begin();
 
     *ptr++ = static_cast<uint8_t>((static_cast<uint8_t>(command_type) << 4) | (static_cast<uint8_t>(confirmation_type) & 0x0f)); // 0

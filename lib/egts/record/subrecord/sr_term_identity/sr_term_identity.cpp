@@ -88,10 +88,10 @@ SrTermIdentity::parse(payload_type buffer)
     }
 }
 
-frame_buffer_type
+buffer_type
 SrTermIdentity::buffer() const noexcept
 {
-    frame_buffer_type buffer(5 + 15 + 2, 0);
+    buffer_type buffer(5 + 15 + 2, 0);
     auto ptr = buffer.begin();
     ptr += 4;                                        // skip TID
     *ptr++ = static_cast<uint8_t>(0x02 | 0x40);      // set flag IMEIE and BSE

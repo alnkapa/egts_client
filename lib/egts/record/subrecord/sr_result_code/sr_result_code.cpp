@@ -15,10 +15,10 @@ SrResultCode::parse(payload_type buffer)
     record_status = static_cast<Code>(*ptr++); // 0
 }
 
-frame_buffer_type
+buffer_type
 SrResultCode::buffer() const noexcept
 {
-    frame_buffer_type buffer(1, 0);
+    buffer_type buffer(1, 0);
     auto ptr = buffer.begin();
     *ptr++ = static_cast<uint8_t>(record_status); // 0
     return buffer;
