@@ -1,0 +1,16 @@
+name: "C++ CI"
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt install cmake
+      - run: sudo apt install g++-12
+      - run: cmake .
+      - run: cmake --build .
