@@ -256,16 +256,11 @@ main(int argc, char *argv[])
             {
                 auto &&rez = std::get<egts::v1::record::subrecord::SrPartData>(mes);
                 file_holder.add_part(std::move(rez));
-                if (file_holder.is_full())
-                {
-                    file_holder.save();
-                }
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrFullData>(mes)) // file full
             {
                 auto &&rez = std::get<egts::v1::record::subrecord::SrFullData>(mes);
                 file_holder.add_full(std::move(rez));
-                file_holder.save();
             }
             else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
             {

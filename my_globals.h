@@ -9,6 +9,7 @@
 #include <error/error.h>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <pub_sub.h>
 #include <record/record.h>
 #include <record/subrecord/firmware/firmware.h>
@@ -60,24 +61,23 @@ inline std::time_t g_start_time_t = std::mktime(&g_start_time);
 class FileHolder
 {
   private:
+    std::mutex lo;
     struct value
     {
-        uint16_t expected_part_number{};
         uint16_t expected_parts_quantity{};
         egts::v1::record::subrecord::ObjectDataHeader odh;
-        egts::v1::buffer_type data{};
+        egts::v1::buffer_type data{};        
     };
-    std::unordered_multimap<uint16_t, value> m;
+    std::unordered_map<uint16_t, value> m_value;
+
+    void
+    save_to_disc(value &&);
 
   public:
     void
     add_part(egts::v1::record::subrecord::SrPartData &&);
     void
     add_full(egts::v1::record::subrecord::SrFullData &&);
-    bool
-    is_full();
-    void
-    save();
 };
 
 #endif // my_globals_H

@@ -219,6 +219,12 @@ SrPartData::data() const noexcept
     return mp_data;
 }
 
+buffer_type
+SrPartData::data() 
+{
+    return mp_data;
+}
+
 void
 SrFullData::parse(payload_type buffer)
 {
@@ -288,5 +294,12 @@ SrFullData::data() const noexcept
 {
     return mp_data;
 }
+
+buffer_type
+SrFullData::data() 
+{
+    return mp_data;
+}
+
 
 } // namespace egts::v1::record::subrecord

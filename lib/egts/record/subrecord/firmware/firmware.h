@@ -115,6 +115,9 @@ struct SrPartData
     payload_type
     data() const noexcept;
 
+    buffer_type
+    data();
+
     void parse(payload_type);
 
     buffer_type
@@ -141,6 +144,9 @@ struct SrFullData
     // data of the transmitted entity
     payload_type
     data() const noexcept;
+
+    buffer_type
+    data();
 
     void parse(payload_type);
 
