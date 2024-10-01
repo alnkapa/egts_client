@@ -5,12 +5,17 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-    permissions: write-all
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt install cmake
-      - run: sudo apt install g++-12
-      - run: cmake .
-      - run: cmake --build .
+      - name: build
+        run: |
+          sudo apt install cmake
+          sudo apt install g++-12
+          sudo apt install libgtest-dev
+          cmake .
+          cmake --build .
+      - name: test
+        run: |
+          ctest -rerun-failed --output-on-failure
