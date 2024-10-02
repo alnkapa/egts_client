@@ -22,39 +22,15 @@ jobs:
             cmake . -DCMAKE_BUILD_TYPE=Release
             cmake --build .
 
-        # - name: Upload Linux Artifact
-        #   if: success()
-        #   uses: actions/upload-artifact@v3
-        #   with:
-        #     name: egts_client_linux
-        #     path: ./egts_client
-
-    build-macos:
-      runs-on: macos-latest
+    build-windows:
+      runs-on: windows-latest
       steps:
         - uses: actions/checkout@v4
         - name: build
           run: |
-            # brew install cmake
+            choco install cmake
             cmake . -DCMAKE_BUILD_TYPE=Release
             cmake --build .
-
-  #     - name: Upload macOS Artifact
-  #       if: success()
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: egts_client_macos
-  #         path: ./egts_client
-
-  # build-windows:
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: build
-  #       run: |
-  #         choco install cmake
-  #         cmake . -DCMAKE_BUILD_TYPE=Release
-  #         cmake --build .
 
 # create-release:
 #   runs-on: ubuntu-latest
