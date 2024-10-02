@@ -5,57 +5,55 @@ on:
     branches: ["main"]
 
 jobs:
-  # build-and-test:
-  # runs-on: ubuntu-latest
-  # # ubuntu-22.04:docker://node:16-bullseye
-  # # ubuntu-latest
-  # steps:
-  #   - uses: actions/checkout@v4
-  #   - name: test
-  #     run: |
-  #       # sudo apt install -y cmake libgtest-dev
-  #       cmake . -DCMAKE_BUILD_TYPE=Debug
-  #       cmake --build .
-  #       ctest --rerun-failed --output-on-failure
+    build-and-test:
+      runs-on: ubuntu-latest-full
+      
+      steps:
+        - uses: actions/checkout@v4
+        - name: test
+          run: |
+            sudo apt install -y cmake libgtest-dev
+            cmake . -DCMAKE_BUILD_TYPE=Debug
+            cmake --build .
+            ctest --rerun-failed --output-on-failure
+        - name: build
+          run: |
+            cmake . -DCMAKE_BUILD_TYPE=Release
+            cmake --build .
 
-  #   - name: build
-  #     run: |
-  #       cmake . -DCMAKE_BUILD_TYPE=Release
-  #       cmake --build .
+        - name: Upload Linux Artifact
+          if: success()
+          uses: actions/upload-artifact@v3
+          with:
+            name: egts_client_linux
+            path: ./egts_client
 
-  #   - name: Upload Linux Artifact
-  #     if: success()
-  #     uses: actions/upload-artifact@v3
-  #     with:
-  #       name: egts_client_linux
-  #       path: ./egts_client
+  # build-macos:
+  #   runs-on: macos-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: build
+  #       run: |
+  #         # brew install cmake
+  #         cmake . -DCMAKE_BUILD_TYPE=Release
+  #         cmake --build .
 
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: build
-        run: |
-          # brew install cmake
-          cmake . -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
+  #     - name: Upload macOS Artifact
+  #       if: success()
+  #       uses: actions/upload-artifact@v3
+  #       with:
+  #         name: egts_client_macos
+  #         path: ./egts_client
 
-      - name: Upload macOS Artifact
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: egts_client_macos
-          path: ./egts_client
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: build
-        run: |
-          choco install cmake
-          cmake . -DCMAKE_BUILD_TYPE=Release
-          cmake --build .
+  # build-windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: build
+  #       run: |
+  #         choco install cmake
+  #         cmake . -DCMAKE_BUILD_TYPE=Release
+  #         cmake --build .
 
 # create-release:
 #   runs-on: ubuntu-latest
