@@ -5,32 +5,36 @@ on:
     branches: ["main"]
 
 jobs:
-    build-and-test:
-      runs-on: cth-ubuntu-latest
-      
-      steps:
-        - uses: actions/checkout@v4
-        - name: test
-          run: |
-            sudo apt-get -q -y update
-            sudo apt-get -q -y install cmake libgtest-dev
-            cmake . -DCMAKE_BUILD_TYPE=Debug
-            cmake --build .
-            ctest --rerun-failed --output-on-failure
-        - name: build
-          run: |
-            cmake . -DCMAKE_BUILD_TYPE=Release
-            cmake --build .
+  build-and-test:
+    runs-on: cth-ubuntu-latest
 
-    build-windows:
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v4
-        - name: build
-          run: |
-            choco install cmake
-            cmake . -DCMAKE_BUILD_TYPE=Release
-            cmake --build .
+    steps:
+      - uses: actions/checkout@v4
+      - name: env
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install cmake libgtest-dev
+      - name: test
+        run: |
+          mkdir test
+          cd test
+          cmake .. -DCMAKE_BUILD_TYPE=Debug
+          cmake --build .
+          ctest --rerun-failed --output-on-failure
+      - name: build
+        run: |
+          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+
+  # build-windows:
+  #   runs-on: windows-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: build
+  #       run: |
+  #         choco install cmake
+  #         cmake . -DCMAKE_BUILD_TYPE=Release
+  #         cmake --build .
 
 # create-release:
 #   runs-on: ubuntu-latest
