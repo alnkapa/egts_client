@@ -223,7 +223,6 @@ my_parse_string(std::string_view str)
     }
     catch (const std::exception &err)
     {
-        
     }
     return ready_for_send;
 }
@@ -270,7 +269,7 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
         }
         catch (const std::exception &err)
         {
-            std::cerr << "read_file: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.what() << "\n";
             break;
         }
     }

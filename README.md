@@ -24,9 +24,9 @@ The EGTS client emulator is designed for testing and debugging systems that util
 The emulator supports the following command line parameters:
 
 - -h, --help                  Display help on usage and available parameters.
-- -a [<host>]:<port>          Specify the server address to which the client will connect. For example: -a :5000, -a localhost:5000
-- -e <IMEI>                   Specify the IMEI that will be used for authentication. For example: -e 863921034878280
-- -n <file_path>              Specify the path to the file containing NMEA data. For example: -n nmea.txt
+- -a [\<host\>]:\<port\>          Specify the server address to which the client will connect. <br>For example: -a :5000, -a localhost:5000
+- -e \<IMEI\>                   Specify the IMEI that will be used for authentication. <br>For example: -e 863921034878280
+- -n \<file_path\>              Specify the path to the file containing NMEA data. <br> For example: -n nmea.txt
 
 ## Building
 
@@ -34,9 +34,18 @@ To build the project, execute the following commands in the terminal:
 For Ubuntu/Debian-based systems:
 
 ```bash
-sudo apt install -y cmake libgtest-dev
+sudo apt-get -q -y update
+sudo apt-get -q -y install cmake
 mkdir -p build
 cd build
-cmake ..
+cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
+```
 
+## Running
+
+For Ubuntu/Debian-based systems:
+
+```bash
+./build/egts_client -e 863921034878280 -a test.shatl-t.ru:36329  -n nmea.txt
+```

@@ -230,21 +230,19 @@ my_read(tcp::socket &socket) noexcept
             if (!pkg.is_response())
             {
                 auto resp_pkg = pkg.make_response(err);
-                // g_send_queue.push(std::move(resp_pkg));
+                g_send_queue.push(std::move(resp_pkg));
             }
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.what() << "\n";
             break;
         }
         catch (const boost::system::error_code &err) // Connection errors
         {
-            // определить  ошибку соединение, и есть надо завершить цикл
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.message() << "\n";
             break;
         }
         catch (const std::exception &err) // Other errors
         {
-            // завершить цикл
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.what() << "\n";
             break;
         }
     }

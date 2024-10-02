@@ -2,6 +2,7 @@
 #include "record/subrecord/firmware/firmware.h"
 #include "record/subrecord/sr_command_data/sr_command_data.h"
 #include "record/subrecord/sr_module_data/sr_module_data.h"
+#include <cstdlib>
 #include <regex>
 #include <unistd.h> // getopt
 
@@ -86,11 +87,14 @@ main(int argc, char *argv[])
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        std::cerr << "error: " << err.message() << "\n";
+        return EXIT_FAILURE;
     }
     catch (const std::exception &err) // Other errors
     {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        std::cerr << "error: " << err.what() << "\n";
+
+        return EXIT_FAILURE;
     }
 
     // run reader
@@ -100,7 +104,6 @@ main(int argc, char *argv[])
 
     try
     {
-
         auto sub = egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_TERM_IDENTITY,
             i.buffer());
@@ -154,12 +157,12 @@ main(int argc, char *argv[])
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        std::cerr << "error: " << err.message() << "\n";
         return EXIT_FAILURE;
     }
     catch (const std::exception &err) // Other errors
     {
-        std::cerr << "transport: read: error: " << err.what() << std::endl;
+        std::cerr << "error: " << err.what() << "\n";
         return EXIT_FAILURE;
     }
 
@@ -244,7 +247,7 @@ main(int argc, char *argv[])
                     egts::v1::transport::Packet new_pkg{};
                     new_pkg.identifier(g_packet_identifier++);
                     new_pkg.set_frame(std::move(rec));
-                    
+
                     if (boost::asio::write(
                             socket,
                             boost::asio::buffer(new_pkg.buffer()),
@@ -269,17 +272,17 @@ main(int argc, char *argv[])
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
         {
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.what() << "\n";
             break;
         }
         catch (const boost::system::error_code &err) // Connection errors
         {
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.message() << "\n";
             break;
         }
         catch (const std::exception &err) // Other errors
         {
-            std::cerr << "transport: read: error: " << err.what() << std::endl;
+            std::cerr << "error: " << err.what() << "\n";
             break;
         }
     }
