@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(egtsClient VERSION 0.0.1)
 
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Debug")
+    set(CMAKE_BUILD_TYPE "Release")
 endif()
 
 IF (CMAKE_BUILD_TYPE STREQUAL "Debug")

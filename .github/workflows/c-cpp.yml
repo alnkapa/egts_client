@@ -28,7 +28,7 @@ jobs:
           name: egts_client_linux
           path: ./egts_client
 
-  build-and-test-macos:
+  build-macos:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +44,18 @@ jobs:
         with:
           name: egts_client_macos
           path: ./egts_client          
-  
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: build
+        run: |
+          choco install cmake
+          cmake . -DCMAKE_BUILD_TYPE=Release
+          cmake --build .
+
+
 # create-release:
 #   runs-on: ubuntu-latest
 #   needs: build-and-test
