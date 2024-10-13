@@ -8,14 +8,9 @@ find_package(Qt5 REQUIRED COMPONENTS Network)
 add_library(
     qt 
     STATIC
-    network_model.cpp
+    network_client_model.cpp
 )
 
-target_link_libraries(
-    qt
-    PUBLIC
-    .
-)
 target_link_libraries(
     qt 
     PRIVATE 

@@ -9,12 +9,12 @@
 namespace model
 {
 
-class Network : public INetwork
+class NetworkClient : public INetwork
 {
   public:
-    Network(std::string_view host, std::string_view port);
+    NetworkClient(std::string_view host, std::string_view port);
 
-    virtual ~Network();
+    virtual ~NetworkClient();
 
     std::size_t
     send(std::uint8_t *ptr, std::size_t size) override;

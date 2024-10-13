@@ -8,11 +8,6 @@ find_package(Boost REQUIRED)
 add_library(
     terminal 
     STATIC
-    network_model.cpp
+    network_client_model.cpp
 )
 
-target_link_libraries(
-    terminal
-    PUBLIC
-    .
-)

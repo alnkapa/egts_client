@@ -9,14 +9,14 @@
 namespace model
 {
 
-class Network : public INetwork, public QObject
+class NetworkClient : public INetwork, public QObject
 {
     Q_OBJECT
 
   public:
-    Network(const QString &host, quint16 port, QObject *parent = nullptr);
+    NetworkClient(const QString &host, quint16 port, QObject *parent = nullptr);
 
-    virtual ~Network();
+    virtual ~NetworkClient();
   
     std::size_t
     send(std::uint8_t *ptr, std::size_t size) override;

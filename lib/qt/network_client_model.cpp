@@ -1,16 +1,16 @@
-#include "network_model.h"
+#include "network_client_model.h"
 #include <cstddef>
 
 namespace model
 {
 
-Network::Network(const QString &host, quint16 port, QObject *parent)
+NetworkClient::NetworkClient(const QString &host, quint16 port, QObject *parent)
     : QObject(parent)
 {
     socket.connectToHost(host, port);
 }
 
-Network::~Network()
+NetworkClient::~NetworkClient()
 {
     if (socket.isOpen())
     {
@@ -19,7 +19,7 @@ Network::~Network()
 }
 
 std::size_t
-Network::send(std::uint8_t *ptr, std::size_t size)
+NetworkClient::send(std::uint8_t *ptr, std::size_t size)
 {
     std::size_t total = 0;
     QByteArray data(reinterpret_cast<const char *>(ptr), size);
@@ -32,7 +32,7 @@ Network::send(std::uint8_t *ptr, std::size_t size)
 }
 
 std::vector<std::uint8_t>
-Network::receive(std::size_t size)
+NetworkClient::receive(std::size_t size)
 {
     std::vector<std::uint8_t> buffer(size);
     std::size_t total = 0;
