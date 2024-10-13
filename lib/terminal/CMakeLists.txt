@@ -1,22 +1,35 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Укажите путь к Boost
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED)
 
 # Укажите путь к Qt
 # find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
+
+message(WARNING, message="${CMAKE_CURRENT_SOURCE_DIR}")
+
 # Терминальная версия
 add_library(
-    terminal
-    ${CMAKE_SOURCE_DIR}/terminal/*.cpp    
+    terminal 
+    STATIC
+    network_model.cpp
 )
 
 target_link_libraries(
     terminal
-    PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
+    PUBLIC
+    .
 )
+
+
+# ${CMAKE_SOURCE_DIR}/include
+
+# target_link_libraries(
+#     terminal
+#     PRIVATE
+#     ${CMAKE_SOURCE_DIR}/src
+# )
 
 # # Qt версия
 # add_executable(QtApp
