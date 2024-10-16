@@ -10,7 +10,7 @@
 namespace egts::v1::transport
 {
 
-using frame_buffer_type = egts::v1::buffer_type;
+using buffer_type = egts::v1::buffer_type;
 
 using payload_type = egts::v1::payload_type;
 
@@ -64,7 +64,7 @@ class Packet
 {
   private:
     // packet payload
-    frame_buffer_type mp_data;
+    buffer_type mp_data;
 
     // packet type
     Type m_packet_type{Type::EGTS_PT_APPDATA};
@@ -83,7 +83,9 @@ class Packet
   public:
     Packet();
 
-    Packet(frame_buffer_type &&);
+    Packet(buffer_type &&frame);
+
+    Packet(uint16_t packet_identifier, buffer_type &&frame);
 
     void
     identifier(uint16_t packet_identifier);
@@ -104,15 +106,15 @@ class Packet
     make_response(const Code &processing_result);
 
     void
-    parse_frame(frame_buffer_type &&buffer);
+    parse_frame(buffer_type &&buffer);
 
     void
-    set_frame(frame_buffer_type &&buffer) noexcept;
+    set_frame(buffer_type &&buffer) noexcept;
 
     payload_type
     get_frame() const noexcept;
 
-    frame_buffer_type
+    buffer_type
     frame_to_buffer() const noexcept;
 
     void
@@ -121,7 +123,7 @@ class Packet
     header_buffer_type
     header_to_buffer() const noexcept;
 
-    frame_buffer_type
+    buffer_type
     buffer() const noexcept;
 
     bool

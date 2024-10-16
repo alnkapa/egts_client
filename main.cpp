@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "my_globals.h"
 #include "record/subrecord/firmware/firmware.h"
 #include "record/subrecord/sr_command_data/sr_command_data.h"
@@ -30,7 +31,6 @@ main(int argc, char *argv[])
     egts::v1::record::subrecord::SrTermIdentity i{};
     i.buffer_size = 512;
     std::string address;
-    std::string nmea_file_path;
 
     int opt;
     while ((opt = getopt(argc, argv, "ha:e:n:")) != -1)
@@ -52,7 +52,12 @@ main(int argc, char *argv[])
             std::copy(optarg, optarg + 15, i.IMEI.begin());
             break;
         case 'n':
-            nmea_file_path = optarg;
+            g_nmea_file = std::ifstream(optarg);
+            if (!g_nmea_file.is_open())
+            {
+                std::cerr << "error open file: " << optarg << std::endl;
+                return 1;
+            }
             break;
         case '?':
             if (optopt == 'a' || optopt == 'e' || optopt == 'n')
@@ -74,8 +79,8 @@ main(int argc, char *argv[])
     tcp::socket socket(io_context);
     try
     {
-        std::string port = "";
-        std::string host = "";
+        std::string port = "36329";
+        std::string host = "test.shatl-t.ru";
         size_t colon_pos = address.find(':');
         if (colon_pos != std::string::npos)
         {
@@ -109,23 +114,16 @@ main(int argc, char *argv[])
             i.buffer());
 
         // TODO: ask from cmd line
-        egts::v1::record::subrecord::SrModuleData m{};
-        // TODO: ask from cmd line
-        m.module_type = 1;
-        // TODO: ask from cmd line
-        m.vendor_identifier = 1;
-        // TODO: ask from cmd line
-        m.firmware_version = 0x1010;
-        // TODO: ask from cmd line
-        m.software_version = 0x2020;
-        // TODO: ask from cmd line
-        m.modification = 1;
-        // TODO: ask from cmd line
-        m.state = 1;
-        // TODO: ask from cmd line
-        m.serial_number = "client_egts_serial_number";
-        // TODO: ask from cmd line
-        m.description = {"ICCID:897010269724308273", "VIN:EAA236021J1001200", "client_egts_desc2"};
+        egts::v1::record::subrecord::SrModuleData m{
+            1,                                                                         // module_type
+            2,                                                                         // vendor_identifier
+            0x1010,                                                                    // firmware_version
+            0x2020,                                                                    // software_version
+            1,                                                                         // modification
+            1,                                                                         // state
+            "client_egts_serial_number",                                               // serial_number
+            {"ICCID:897010269724308273", "VIN:EAA236021J1001200", "client_egts_desc2"} // description
+        };
         sub += egts::v1::record::subrecord::wrapper(
             egts::v1::record::subrecord::Type::EGTS_SR_MODULE_DATA,
             m.buffer());
@@ -150,10 +148,6 @@ main(int argc, char *argv[])
         {
             throw std::runtime_error("send size error");
         }
-
-#ifdef MY_DEBUG
-        std::cout << "SEND: " << new_pkg.buffer() << std::endl;
-#endif
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
@@ -185,10 +179,6 @@ main(int argc, char *argv[])
                 {
                     throw std::runtime_error("send size error");
                 };
-
-#ifdef MY_DEBUG
-                std::cout << "SEND: " << pkg.buffer() << std::endl;
-#endif
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
             {
@@ -203,15 +193,9 @@ main(int argc, char *argv[])
                 {
                     std::cout << "auth: ok" << std::endl;
 
-                    if (!nmea_file_path.empty())
+                    if (g_nmea_file.is_open())
                     {
-                        auto file_ptr = std::make_shared<std::ifstream>(nmea_file_path);
-                        if (!file_ptr->is_open())
-                        {
-                            std::cerr << "error open file: " << nmea_file_path << std::endl;
-                            break;
-                        }
-                        std::thread reader(my_read_file, file_ptr); // to exit g_keep_running = false
+                        std::thread reader(my_read_file); // to exit g_keep_running = false
                         reader.detach();
                     }
                 }

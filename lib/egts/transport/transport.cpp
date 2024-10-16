@@ -10,8 +10,13 @@ Packet::Packet()
 {
 }
 
-Packet::Packet(frame_buffer_type &&in)
+Packet::Packet(buffer_type &&in)
     : m_frame_data_length(in.size()), mp_data(std::move(in))
+{
+}
+
+Packet::Packet(uint16_t packet_identifier, buffer_type &&in)
+    : m_packet_identifier(packet_identifier), m_frame_data_length(in.size()), mp_data(std::move(in))
 {
 }
 
@@ -56,7 +61,7 @@ Packet::make_response(const Code &processing_result)
 }
 
 void
-Packet::parse_frame(frame_buffer_type &&buffer)
+Packet::parse_frame(buffer_type &&buffer)
 {
     // test size of frame size
     if (buffer.size() != m_frame_data_length + crc_data_length)
@@ -91,7 +96,7 @@ Packet::parse_frame(frame_buffer_type &&buffer)
 }
 
 void
-Packet::set_frame(frame_buffer_type &&buffer) noexcept
+Packet::set_frame(buffer_type &&buffer) noexcept
 {
     mp_data = std::move(buffer);
     m_frame_data_length = mp_data.size();
@@ -103,7 +108,7 @@ Packet::get_frame() const noexcept
     return payload_type(mp_data.cbegin(), mp_data.cend());
 }
 
-frame_buffer_type
+buffer_type
 Packet::frame_to_buffer() const noexcept
 {
     if (m_frame_data_length == 0 && !is_response())
@@ -117,7 +122,7 @@ Packet::frame_to_buffer() const noexcept
         size += response_length;
     }
 
-    frame_buffer_type ret(size);
+    buffer_type ret(size);
     auto ptr = ret.begin();
 
     if (is_response())
@@ -225,10 +230,10 @@ Packet::header_to_buffer() const noexcept
     return ret;
 }
 
-frame_buffer_type
+buffer_type
 Packet::buffer() const noexcept
 {
-    frame_buffer_type ret(header_length);
+    buffer_type ret(header_length);
     auto h = header_to_buffer();
     std::copy(h.begin(), h.end(), ret.begin());
     auto f = frame_to_buffer();

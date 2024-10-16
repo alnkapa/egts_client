@@ -148,7 +148,7 @@ my_read(tcp::socket &socket) noexcept
             if (pkg.frame_data_length() > 0)
             {
                 std::size_t size = pkg.frame_data_length() + egts::v1::transport::crc_data_length;
-                egts::v1::transport::frame_buffer_type frame_buffer(size, 0);
+                egts::v1::transport::buffer_type frame_buffer(size, 0);
                 if (boost::asio::read(
                         socket,
                         boost::asio::buffer(frame_buffer),

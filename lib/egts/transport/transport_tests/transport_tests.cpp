@@ -192,7 +192,7 @@ TEST(TRANSPORT_PARSE_FRAME, BasicTests)
 
         pr.parse_header(header);
 
-        frame_buffer_type frame_copy(frame_data_length, 0);
+        buffer_type frame_copy(frame_data_length, 0);
         uint16_t crc16_val = egts::v1::crc16(frame.begin(), frame.end());
         frame_copy.resize(frame_data_length, 0);
         std::copy(frame.begin(), frame.end(), frame_copy.begin());
@@ -226,7 +226,7 @@ TEST(TRANSPORT_SEND_RECEIVE_1, BasicTests)
 {
     try
     {
-        auto fr = frame_buffer_type{1, 2, 3};
+        auto fr = buffer_type{1, 2, 3};
         auto frame_data_length = fr.size();
         Packet pr{};
         header_buffer_type header = {
@@ -251,7 +251,7 @@ TEST(TRANSPORT_SEND_RECEIVE_1, BasicTests)
         pr.parse_frame(std::move(fr));
 
         auto buf = pr.frame_to_buffer();
-        if (buf != frame_buffer_type{
+        if (buf != buffer_type{
                        1,
                        2,
                        3,
@@ -261,7 +261,7 @@ TEST(TRANSPORT_SEND_RECEIVE_1, BasicTests)
             ADD_FAILURE() << "frame 1 failed: error is: " << buf[0] << buf[1] << buf[2];
         }
 
-        fr = frame_buffer_type{1, 2, 3};
+        fr = buffer_type{1, 2, 3};
         frame_data_length = fr.size();
         header = {
             protocol_version,                                  // 0  PRV
@@ -285,7 +285,7 @@ TEST(TRANSPORT_SEND_RECEIVE_1, BasicTests)
         pr.parse_frame(std::move(fr));
 
         buf = pr.frame_to_buffer();
-        if (buf != frame_buffer_type{
+        if (buf != buffer_type{
                        1,
                        2,
                        3,
@@ -376,7 +376,7 @@ TEST(TRANSPORT_PARSE_BUFFER, BasicTests)
     try
     {
 
-        frame_buffer_type buffer{0x1, 0x0, 0x0, 0xb, 0x0, 0xd, 0x0, 0x2, 0x0, 0x0, 0x6a, 0x1, 0x0, 0x0, 0x3, 0x0, 0x2, 0x0, 0x80, 0x1, 0x1, 0x1, 0x0, 0x0, 0xf3, 0x6c};
+        buffer_type buffer{0x1, 0x0, 0x0, 0xb, 0x0, 0xd, 0x0, 0x2, 0x0, 0x0, 0x6a, 0x1, 0x0, 0x0, 0x3, 0x0, 0x2, 0x0, 0x80, 0x1, 0x1, 0x1, 0x0, 0x0, 0xf3, 0x6c};
 
         header_buffer_type header{};
 

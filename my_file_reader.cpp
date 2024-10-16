@@ -228,14 +228,14 @@ my_parse_string(std::string_view str)
 }
 
 void
-my_read_file(std::shared_ptr<std::ifstream> file) noexcept
+my_read_file() noexcept
 {
     std::string line;
     while (g_keep_running)
     {
         try
         {
-            while (g_keep_running && std::getline(*file, line))
+            while (g_keep_running && std::getline(g_nmea_file, line))
             {
                 if (my_parse_string(line))
                 {
@@ -261,10 +261,10 @@ my_read_file(std::shared_ptr<std::ifstream> file) noexcept
                     g_send_queue.push(std::move(new_pkg));
                 };
             }
-            if (file->eof())
+            if (g_nmea_file.eof())
             {
-                file->clear();
-                file->seekg(0);
+                g_nmea_file.clear();
+                g_nmea_file.seekg(0);
             }
         }
         catch (const std::exception &err)
