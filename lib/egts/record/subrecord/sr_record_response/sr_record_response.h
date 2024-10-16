@@ -36,6 +36,8 @@ struct SRRecordResponse
     
     SRRecordResponse();
 
+    SRRecordResponse(payload_type);
+
     SRRecordResponse(uint16_t confirmed_record_number, Code record_status);
 };
 

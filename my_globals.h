@@ -66,7 +66,7 @@ class FileHolder
     {
         uint16_t expected_parts_quantity{};
         egts::v1::record::subrecord::ObjectDataHeader odh;
-        egts::v1::buffer_type data{};        
+        egts::v1::buffer_type data{};
     };
     std::unordered_map<uint16_t, value> m_value;
 

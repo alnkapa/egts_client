@@ -79,7 +79,10 @@ struct SrCommandData
     buffer_type m_authorization_code;
 
   public:
-    
+    SrCommandData();
+
+    SrCommandData(payload_type);
+
     ConfirmationType confirmation_type; // The confirmation type from command flags
 
     CommandType command_type; // The command type from command flags

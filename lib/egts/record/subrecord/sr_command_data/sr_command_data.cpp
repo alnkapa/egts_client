@@ -9,6 +9,18 @@
 namespace egts::v1::record::subrecord
 {
 
+SrCommandData::SrCommandData()
+{
+}
+
+SrCommandData::SrCommandData(payload_type in)
+{
+    if (!in.empty())
+    {
+        parse(in);
+    }
+}
+
 void
 SrCommandData::parse(payload_type buffer)
 {
@@ -223,6 +235,5 @@ SrCommandData::ct_com() const noexcept
 {
     return command_type == CommandType::CT_COM;
 };
-
 
 } // namespace egts::v1::record::subrecord

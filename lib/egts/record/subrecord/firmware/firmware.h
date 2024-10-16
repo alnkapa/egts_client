@@ -99,6 +99,10 @@ struct SrPartData
     // expected quantity of parts for the transmitted entity
     uint16_t expected_parts_quantity{};
 
+    SrPartData();
+    
+    SrPartData(payload_type);
+
     void
     odh(ObjectDataHeader &&);
 
@@ -132,6 +136,11 @@ struct SrFullData
     std::optional<ObjectDataHeader> m_odh;
 
   public:
+
+    SrFullData();
+
+    SrFullData(payload_type);
+
     void
     odh(ObjectDataHeader &&);
 

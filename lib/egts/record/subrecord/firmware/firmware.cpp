@@ -99,6 +99,16 @@ ObjectDataHeader::buffer() const noexcept
     return buffer;
 }
 
+SrPartData::SrPartData() {}
+
+SrPartData::SrPartData(payload_type in)
+{
+    if (!in.empty())
+    {
+        parse(in);
+    }
+}
+
 void
 SrPartData::odh(ObjectDataHeader &&in)
 {
@@ -220,10 +230,22 @@ SrPartData::data() const noexcept
 }
 
 buffer_type
-SrPartData::data() 
+SrPartData::data()
 {
     return mp_data;
 }
+
+
+SrFullData::SrFullData() {}
+
+SrFullData::SrFullData(payload_type in)
+{
+    if (!in.empty())
+    {
+        parse(in);
+    }
+}
+
 
 void
 SrFullData::parse(payload_type buffer)
@@ -296,10 +318,9 @@ SrFullData::data() const noexcept
 }
 
 buffer_type
-SrFullData::data() 
+SrFullData::data()
 {
     return mp_data;
 }
-
 
 } // namespace egts::v1::record::subrecord

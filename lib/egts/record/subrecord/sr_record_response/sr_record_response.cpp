@@ -30,6 +30,14 @@ SRRecordResponse::buffer() const noexcept
     return buffer;
 }
 
+SRRecordResponse::SRRecordResponse(payload_type in)
+{
+    if (!in.empty())
+    {
+        parse(in);
+    }
+};
+
 SRRecordResponse::SRRecordResponse(){};
 
 SRRecordResponse::SRRecordResponse(uint16_t confirmed_record_number, Code record_status)

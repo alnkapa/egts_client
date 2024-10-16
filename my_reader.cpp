@@ -23,40 +23,20 @@ my_sub_record_level(egts::v1::payload_type sub_buffer)
         switch (s_rec.type())
         {
         case Type::EGTS_SR_RECORD_RESPONSE:
-        {
-            egts::v1::record::subrecord::SRRecordResponse rsp;
-            rsp.parse(s_rec.data());
-            g_send_queue.push(std::move(rsp));
-        }
-        break;
+            g_send_queue.push(egts::v1::record::subrecord::SRRecordResponse(s_rec.data()));
+            break;
         case Type::EGTS_SR_RESULT_CODE:
-        {
-            egts::v1::record::subrecord::SrResultCode rsp;
-            rsp.parse(s_rec.data());
-            g_send_queue.push(std::move(rsp));
-        }
-        break;
+            g_send_queue.push(egts::v1::record::subrecord::SrResultCode(s_rec.data()));
+            break;
         case Type::EGTS_SR_SERVICE_PART_DATA:
-        {
-            egts::v1::record::subrecord::SrPartData rsp;
-            rsp.parse(s_rec.data());
-            g_send_queue.push(std::move(rsp));
-        }
-        break;
+            g_send_queue.push(egts::v1::record::subrecord::SrPartData(s_rec.data()));
+            break;
         case Type::EGTS_SR_SERVICE_FULL_DATA:
-        {
-            egts::v1::record::subrecord::SrFullData rsp;
-            rsp.parse(s_rec.data());
-            g_send_queue.push(std::move(rsp));
-        }
-        break;
+            g_send_queue.push(egts::v1::record::subrecord::SrFullData(s_rec.data()));
+            break;
         case Type::EGTS_SR_COMMAND_DATA:
-        {
-            egts::v1::record::subrecord::SrCommandData cmd;
-            cmd.parse(s_rec.data());
-            g_send_queue.push(std::move(cmd));
-        }
-        break;
+            g_send_queue.push(egts::v1::record::subrecord::SrCommandData(s_rec.data()));
+            break;
         default:
             // The rest is simply ignored.
             break;
@@ -144,68 +124,51 @@ my_make_record(std::span<std::uint32_t> in)
     return record_buf;
 }
 
-// transport level
 void
 my_read(tcp::socket &socket) noexcept
 {
     egts::v1::transport::header_buffer_type header_buffer{};
-    std::vector<std::uint32_t> received_records{};
+    std::vector<std::uint32_t> received_number_records{};
     while (true)
     {
         egts::v1::transport::Packet pkg{};
         try
         {
+            // read and parse header
             if (boost::asio::read(
                     socket,
                     boost::asio::buffer(header_buffer),
                     boost::asio::transfer_all()) != header_buffer.size())
             {
-                throw std::runtime_error("read size error");
+                throw std::runtime_error("header read size error");
             }
-#ifdef MY_DEBUG
-            std::cout << "RESPONSE H: " << header_buffer << std::endl;
-#endif
-
             pkg.parse_header(header_buffer);
 
+            // if (frame) read and parse frame
             if (pkg.frame_data_length() > 0)
             {
                 std::size_t size = pkg.frame_data_length() + egts::v1::transport::crc_data_length;
                 egts::v1::transport::frame_buffer_type frame_buffer(size, 0);
-
                 if (boost::asio::read(
                         socket,
                         boost::asio::buffer(frame_buffer),
                         boost::asio::transfer_all()) != size)
                 {
-                    throw std::runtime_error("read size error");
+                    throw std::runtime_error("frame read size error");
                 }
-#ifdef MY_DEBUG
-                std::cout << "RESPONSE F: " << frame_buffer << std::endl;
-#endif
-
                 pkg.parse_frame(std::move(frame_buffer));
-                received_records = my_record_level(pkg.get_frame());
+                received_number_records = my_record_level(pkg.get_frame());
             }
 
+            // response
             egts::v1::buffer_type rec_buffer;
-            if (!received_records.empty())
+            if (!received_number_records.empty()) // add the numbers of the sent records to the response
             {
-#ifdef MY_DEBUG
-                std::cout << "my_make_record\n"
-                          << std::endl;
-#endif
-
-                rec_buffer = my_make_record(received_records);
-                received_records.clear();
+                rec_buffer = my_make_record(received_number_records);
+                received_number_records.clear();
             }
             if (!pkg.is_response())
             {
-#ifdef MY_DEBUG
-                std::cout << "SEND pkg\n"
-                          << std::endl;
-#endif
-
                 auto resp_pkg = pkg.make_response({});
                 if (!rec_buffer.empty())
                 {
@@ -215,22 +178,14 @@ my_read(tcp::socket &socket) noexcept
             }
             else if (!rec_buffer.empty())
             {
-#ifdef MY_DEBUG
-                std::cout << "SEND new_pkg\n"
-                          << std::endl;
-#endif
-
-                egts::v1::transport::Packet new_pkg{};
-                new_pkg.set_frame(std::move(rec_buffer));
-                g_send_queue.push(std::move(new_pkg));
+                g_send_queue.push(egts::v1::transport::Packet(std::move(rec_buffer)));
             }
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
         {
             if (!pkg.is_response())
             {
-                auto resp_pkg = pkg.make_response(err);
-                g_send_queue.push(std::move(resp_pkg));
+                g_send_queue.push(pkg.make_response(err));
             }
             std::cerr << "error: " << err.what() << "\n";
             break;

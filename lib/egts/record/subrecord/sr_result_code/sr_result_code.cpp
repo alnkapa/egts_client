@@ -4,6 +4,16 @@
 namespace egts::v1::record::subrecord
 {
 
+SrResultCode::SrResultCode() {}
+
+SrResultCode::SrResultCode(payload_type in)
+{
+    if (!in.empty())
+    {
+        parse(in);
+    }
+}
+
 void
 SrResultCode::parse(payload_type buffer)
 {

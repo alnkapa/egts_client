@@ -32,6 +32,10 @@ struct SrResultCode
     buffer_type
     buffer() const noexcept;
 
+    SrResultCode();
+
+    SrResultCode(payload_type);
+
     Error
     error() const
     {

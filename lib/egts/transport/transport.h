@@ -81,6 +81,10 @@ class Packet
     Code m_processing_result{};
 
   public:
+    Packet();
+
+    Packet(frame_buffer_type &&);
+
     void
     identifier(uint16_t packet_identifier);
 

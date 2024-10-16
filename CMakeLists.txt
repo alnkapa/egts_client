@@ -2,12 +2,13 @@ cmake_minimum_required(VERSION 3.5)
 
 project(egtsClient VERSION 0.0.1)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # clangd
+
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # clangd
+IF (CMAKE_BUILD_TYPE STREQUAL "Debug")    
     include(CTest)
     enable_testing()
 ENDIF()

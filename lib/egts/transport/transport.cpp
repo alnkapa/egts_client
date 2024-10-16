@@ -1,9 +1,19 @@
 #include "transport.h"
 #include <algorithm>
 #include <cassert>
+#include <utility>
 
 namespace egts::v1::transport
 {
+
+Packet::Packet()
+{
+}
+
+Packet::Packet(frame_buffer_type &&in)
+    : m_frame_data_length(in.size()), mp_data(std::move(in))
+{
+}
 
 void
 Packet::identifier(uint16_t packet_identifier)
@@ -78,12 +88,6 @@ Packet::parse_frame(frame_buffer_type &&buffer)
     }
     m_frame_data_length = buffer.size();
     mp_data = std::move(buffer);
-    if (is_response())
-    {
-#ifdef MY_DEBUG
-        std::cout << "transport2: response_packet_identifier: " << static_cast<int>(m_response_packet_identifier) << " processing_result: " << m_processing_result << std::endl;
-#endif
-    }
 }
 
 void
@@ -194,10 +198,6 @@ Packet::parse_header(const header_buffer_type &head)
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
-
-#ifdef MY_DEBUG
-    std::cout << "transport1: identifier: " << static_cast<int>(m_packet_identifier) << " frame_length: " << static_cast<int>(m_frame_data_length) << " packet_type: " << m_packet_type << std::endl;
-#endif
 }
 
 header_buffer_type
