@@ -8,7 +8,6 @@
 #include <ctime>
 #include <error/error.h>
 #include <fstream>
-#include <memory>
 #include <mutex>
 #include <pub_sub.h>
 #include <record/record.h>
@@ -47,14 +46,14 @@ inline std::atomic<std::uint16_t> g_packet_identifier(0);
 inline egts::v1::buffer_type
 make_new_packet(egts::v1::record::ServiceType source_service_type, egts::v1::buffer_type &&sub)
 {
-    auto pkg = egts::v1::transport::Packet(
-        g_packet_identifier++,
-        egts::v1::record::wrapper(
-            g_record_number++,
-            source_service_type,
-            source_service_type,
-            std::move(sub)));
-    return pkg.buffer();
+    return egts::v1::transport::Packet(
+               g_packet_identifier++,
+               egts::v1::record::wrapper(
+                   g_record_number++,
+                   source_service_type,
+                   source_service_type,
+                   std::move(sub)))
+        .buffer();
 }
 
 inline std::ifstream g_nmea_file;

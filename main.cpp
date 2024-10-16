@@ -4,8 +4,10 @@
 #include "record/subrecord/sr_command_data/sr_command_data.h"
 #include "record/subrecord/sr_module_data/sr_module_data.h"
 #include <cstdlib>
+#include <iostream>
 #include <regex>
 #include <unistd.h> // getopt
+#include <utility>
 
 void
 printHelp()
@@ -89,6 +91,7 @@ main(int argc, char *argv[])
         }
         tcp::resolver resolver(io_context);
         boost::asio::connect(socket, resolver.resolve(host, port));
+        std::cout << "connecting address: " << host << ":" << port << "\n";
     }
     catch (const boost::system::error_code &err) // Connection errors
     {
@@ -128,23 +131,13 @@ main(int argc, char *argv[])
             egts::v1::record::subrecord::Type::EGTS_SR_MODULE_DATA,
             m.buffer());
 
-        auto record_number = g_record_number++;
-
-        auto rec = egts::v1::record::wrapper(
-            record_number,
-            egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
+        auto buffer = make_new_packet(
             egts::v1::record::ServiceType::EGTS_AUTH_SERVICE,
             std::move(sub));
-
-        egts::v1::transport::Packet new_pkg{};
-        new_pkg.identifier(g_packet_identifier++);
-
-        new_pkg.set_frame(std::move(rec));
-
         if (boost::asio::write(
                 socket,
-                boost::asio::buffer(new_pkg.buffer()),
-                boost::asio::transfer_all()) != new_pkg.buffer().size())
+                boost::asio::buffer(buffer),
+                boost::asio::transfer_all()) != buffer.size())
         {
             throw std::runtime_error("send size error");
         }
@@ -220,22 +213,14 @@ main(int argc, char *argv[])
                         egts::v1::record::subrecord::Type::EGTS_SR_COMMAND_DATA,
                         cmd.buffer());
 
-                    auto record_number = g_record_number++;
-
-                    auto rec = egts::v1::record::wrapper(
-                        record_number,
-                        egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
+                    auto buffer = make_new_packet(
                         egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
                         std::move(sub));
 
-                    egts::v1::transport::Packet new_pkg{};
-                    new_pkg.identifier(g_packet_identifier++);
-                    new_pkg.set_frame(std::move(rec));
-
                     if (boost::asio::write(
                             socket,
-                            boost::asio::buffer(new_pkg.buffer()),
-                            boost::asio::transfer_all()) != new_pkg.buffer().size())
+                            boost::asio::buffer(buffer),
+                            boost::asio::transfer_all()) != buffer.size())
                     {
                         throw std::runtime_error("send size error");
                     }

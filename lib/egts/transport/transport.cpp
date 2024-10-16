@@ -11,13 +11,14 @@ Packet::Packet()
 }
 
 Packet::Packet(buffer_type &&in)
-    : m_frame_data_length(in.size()), mp_data(std::move(in))
 {
+    set_frame(std::move(in));
 }
 
 Packet::Packet(uint16_t packet_identifier, buffer_type &&in)
-    : m_packet_identifier(packet_identifier), m_frame_data_length(in.size()), mp_data(std::move(in))
+    : Packet(std::move(in))
 {
+    m_packet_identifier = packet_identifier;
 }
 
 void
