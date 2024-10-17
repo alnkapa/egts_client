@@ -171,7 +171,7 @@ main(int argc, char *argv[])
             queue_type mes{g_send_queue.pop()}; // lock
             if (std::holds_alternative<egts::v1::transport::Packet>(mes))
             {
-                auto &pkg = std::get<egts::v1::transport::Packet>(mes);
+                egts::v1::transport::Packet &pkg{std::get<egts::v1::transport::Packet>(mes)};
                 pkg.identifier(g_packet_identifier++);
                 if (boost::asio::write(
                         socket,
@@ -183,7 +183,7 @@ main(int argc, char *argv[])
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
             {
-                const auto &rez = std::get<egts::v1::record::subrecord::SrResultCode>(mes);
+                const egts::v1::record::subrecord::SrResultCode &rez{std::get<egts::v1::record::subrecord::SrResultCode>(mes)};
                 auto err = rez.error();
                 if (!err.OK())
                 {
@@ -209,7 +209,7 @@ main(int argc, char *argv[])
             else if (std::holds_alternative<egts::v1::record::subrecord::SrCommandData>(mes)) // cmd from server
             {
                 // TODO: что то сделать по командам
-                auto &cmd = std::get<egts::v1::record::subrecord::SrCommandData>(mes);
+                egts::v1::record::subrecord::SrCommandData &cmd{std::get<egts::v1::record::subrecord::SrCommandData>(mes)};
                 std::cout << "CMD code: " << cmd.data.code << std::endl;
                 std::cout << "CMD data: " << cmd.data.data() << std::endl;
                 if (cmd.ct_com())
