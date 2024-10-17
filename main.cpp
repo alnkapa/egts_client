@@ -66,7 +66,7 @@ main(int argc, char *argv[])
                 std::cerr << "Invalid IMEI: " << optarg << ". IMEI must match the specified format." << std::endl;
                 return 1;
             }
-            std::copy(optarg, optarg + 15, i.IMEI.begin());
+            std::copy(optarg, optarg + strlen(optarg), i.IMEI.begin());
             break;
         case 'n':
             g_nmea_file = std::ifstream(optarg);
