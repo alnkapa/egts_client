@@ -48,9 +48,8 @@ TEST(FIRMWARE_SR_PART_DATA, BasicTests)
     odh.module_type = egts::v1::record::subrecord::ModuleType::PERIPHERALS;
     partData.odh(std::move(odh));
     partData.data({0x01, 0x02, 0x03});
-    auto buf = partData.buffer();
-    egts::v1::record::subrecord::payload_type s(buf.cbegin(), buf.cend());
-    auto ptr = s.begin();
+    auto buf = partData.buffer();    
+    egts::v1::record::subrecord::payload_type s(buf.cbegin(), buf.cend());    
     try
     {
         partData1.parse(s);
@@ -91,7 +90,6 @@ TEST(FIRMWARE_SR_FULL, BasicTests)
     partData.data({0x01, 0x02, 0x03});
     auto buf = partData.buffer();
     egts::v1::record::subrecord::payload_type s(buf.cbegin(), buf.cend());
-    auto ptr = s.begin();
     try
     {
         partData1.parse(s);

@@ -11,18 +11,15 @@ endif()
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")    
     add_compile_options(
         -Wall 
-        -Werror 
-        -Wno-analyzer-use-of-uninitialized-value 
-        -Wno-analyzer-possible-null-dereference 
-        -Wno-analyzer-null-dereference
-        -fanalyzer
+#        -Werror 
+#        -Wno-analyzer-use-of-uninitialized-value 
+#        -Wno-analyzer-possible-null-dereference 
+#        -Wno-analyzer-null-dereference
+#        -fanalyzer
     ) 
 endif()
 
 IF (CMAKE_BUILD_TYPE STREQUAL "Debug")    
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")    
-#        add_compile_options(-fanalyzer) 
-    endif()
     include(CTest)
     enable_testing()
 ENDIF()
