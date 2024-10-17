@@ -168,7 +168,7 @@ main(int argc, char *argv[])
     {
         try
         {
-            auto mes = std::move(g_send_queue.pop()); // lock
+            queue_type mes{g_send_queue.pop()}; // lock
             if (std::holds_alternative<egts::v1::transport::Packet>(mes))
             {
                 auto &pkg = std::get<egts::v1::transport::Packet>(mes);
