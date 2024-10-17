@@ -1,6 +1,7 @@
 #include "transport.h"
 #include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <utility>
 
 namespace egts::v1::transport
@@ -65,7 +66,7 @@ void
 Packet::parse_frame(buffer_type &&buffer)
 {
     // test size of frame size
-    if (buffer.size() != m_frame_data_length + crc_data_length)
+    if (buffer.size() != static_cast<std::size_t>(m_frame_data_length + crc_data_length))
     {
         throw Error(Code::EGTS_PC_INVDATALEN);
     }
@@ -110,14 +111,14 @@ Packet::get_frame() const noexcept
 }
 
 buffer_type
-Packet::frame_to_buffer() const noexcept
+Packet::frame_to_buffer() const
 {
     if (m_frame_data_length == 0 && !is_response())
     {
-        return {};
+        return buffer_type();
     }
 
-    auto size = m_frame_data_length + crc_data_length;
+    uint16_t size = m_frame_data_length +  static_cast<uint16_t>(crc_data_length);
     if (is_response())
     {
         size += response_length;
@@ -209,7 +210,7 @@ Packet::parse_header(const header_buffer_type &head)
 header_buffer_type
 Packet::header_to_buffer() const noexcept
 {
-    auto frame_data = m_frame_data_length;
+    std::uint16_t frame_data{m_frame_data_length};
     if (is_response())
     {
         frame_data += response_length;

@@ -115,7 +115,7 @@ class Packet
     get_frame() const noexcept;
 
     buffer_type
-    frame_to_buffer() const noexcept;
+    frame_to_buffer() const;
 
     void
     parse_header(const header_buffer_type &);

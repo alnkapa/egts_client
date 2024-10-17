@@ -40,7 +40,6 @@ SrModuleData::parse(payload_type buffer)
         auto zero_it = std::find(ptr, buffer.end(), 0); // find Delimiter
         if (zero_it != buffer.end())
         {
-            size_t size = std::distance(ptr, zero_it);
             if (counter == 0) // serial_number
             {
                 serial_number.assign(ptr, zero_it);

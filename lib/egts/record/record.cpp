@@ -1,4 +1,5 @@
 #include "record.h"
+#include <cstddef>
 #include <iterator>
 #include <span>
 
@@ -17,7 +18,7 @@ Record::parse(payload_type buffer, payload_type::iterator &ptr)
         {
             return false;
         }
-        return std::distance(ptr, buffer.end()) >= x;
+        return static_cast<std::size_t>(std::distance(ptr, buffer.end())) >= x;
     };
 
     if (!has_remaining_bytes(5))

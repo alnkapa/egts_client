@@ -8,7 +8,21 @@ if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")    
+    add_compile_options(
+        -Wall 
+        -Werror 
+        -Wno-analyzer-use-of-uninitialized-value 
+        -Wno-analyzer-possible-null-dereference 
+        -Wno-analyzer-null-dereference
+        -fanalyzer
+    ) 
+endif()
+
 IF (CMAKE_BUILD_TYPE STREQUAL "Debug")    
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")    
+#        add_compile_options(-fanalyzer) 
+    endif()
     include(CTest)
     enable_testing()
 ENDIF()
@@ -16,6 +30,7 @@ ENDIF()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
 
 set(BOOST_ROOT_PREFIX ${CMAKE_SOURCE_DIR}/lib/boost)
 set(CMAKE_PREFIX_PATH ${BOOST_ROOT_PREFIX})

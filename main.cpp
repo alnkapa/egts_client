@@ -203,7 +203,7 @@ main(int argc, char *argv[])
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
             {
-                const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
+                // const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
                 // TODO: для загрузки файлов, будет нужно потом
             }
             else if (std::holds_alternative<egts::v1::record::subrecord::SrCommandData>(mes)) // cmd from server

@@ -2,6 +2,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
+#include <cstddef>
 #include <iostream>
 #include <iterator> // std::distance
 #include <span>
@@ -20,7 +21,7 @@ has_remaining_bytes(payload_type buffer, payload_type::iterator ptr, std::size_t
     {
         return false;
     }
-    return std::distance(ptr, buffer.end()) >= x;
+    return static_cast<std::size_t>(std::distance(ptr, buffer.end())) >= x;
 };
 
 } // namespace egts::v1
