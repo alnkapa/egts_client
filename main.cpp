@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <regex>
+#include <string>
 #include <unistd.h> // getopt
 #include <utility>
 
@@ -32,7 +33,8 @@ main(int argc, char *argv[])
 {
     egts::v1::record::subrecord::SrTermIdentity i{};
     i.buffer_size = 512;
-    std::string address;
+    std::string port = "36329";
+    std::string host = "test.shatl-t.ru";
 
     int opt;
     while ((opt = getopt(argc, argv, "ha:e:n:")) != -1)
@@ -43,8 +45,21 @@ main(int argc, char *argv[])
             printHelp();
             return 0;
         case 'a':
-            address = optarg;
+        {
+            std::string address{optarg};
+            size_t colon_pos = address.find(':');
+            if (colon_pos != std::string::npos)
+            {
+                host = address.substr(0, colon_pos);
+                port = address.substr(colon_pos + 1);
+            }
+            else
+            {
+                std::cerr << "Invalid address: " << optarg << std::endl;
+                return 1;
+            }
             break;
+        }
         case 'e':
             if (!isValidIMEI(optarg))
             {
@@ -81,14 +96,6 @@ main(int argc, char *argv[])
     tcp::socket socket(io_context);
     try
     {
-        std::string port = "36329";
-        std::string host = "test.shatl-t.ru";
-        size_t colon_pos = address.find(':');
-        if (colon_pos != std::string::npos)
-        {
-            host = address.substr(0, colon_pos);
-            port = address.substr(colon_pos + 1);
-        }
         tcp::resolver resolver(io_context);
         boost::asio::connect(socket, resolver.resolve(host, port));
         std::cout << "connecting address: " << host << ":" << port << "\n";
@@ -110,6 +117,7 @@ main(int argc, char *argv[])
     std::thread reader(my_read, std::ref(socket));
     reader.detach();
 
+    // send auth and module
     try
     {
         auto sub = egts::v1::record::subrecord::wrapper(
