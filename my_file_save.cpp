@@ -27,7 +27,7 @@ FileHolder::add_part(egts::v1::record::subrecord::SrPartData &&in)
         {
             throw std::runtime_error("file part not found");
         }
-        it->second.data += in.data();
+        it->second.data += std::move(in.data());
 
         if (it->second.expected_parts_quantity == in.part_number) // file download
         {
