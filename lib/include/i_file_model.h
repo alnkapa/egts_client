@@ -26,12 +26,6 @@ class IFile
     tell() = 0;
 
     virtual bool
-    is_open() = 0;
-
-    virtual void
-    close() = 0;
-
-    virtual bool
     eof() = 0;
 };
 

@@ -68,21 +68,6 @@ File::tell()
 }
 
 bool
-File::is_open()
-{
-    return m_file.isOpen();
-}
-
-void
-File::close()
-{
-    if (m_file.isOpen())
-    {
-        m_file.close();
-    }
-}
-
-bool
 File::eof()
 {
     if (!m_file.isOpen())

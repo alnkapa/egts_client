@@ -1,20 +1,20 @@
 #pragma once
+
 #ifndef FILE_MODEL_H
 #define FILE_MODEL_H
 
 #include "i_file_model.h"
-#include <QFile>
-#include <QString>
+#include <fstream>
+#include <string>
 
 namespace model
 {
 
-class File : public IFile, public QObject
+class File : public IFile
 {
-    Q_OBJECT
 
   public:
-    File(const QString &file_name, QObject *parent = nullptr);
+    File(const std::string &file_name);
 
     virtual ~File();
 
@@ -29,13 +29,13 @@ class File : public IFile, public QObject
 
     std::size_t
     tell() override;
-    
 
     bool
     eof() override;
 
   private:
-    QFile m_file;
+    std::fstream m_file;
+    std::size_t m_size{0};
 };
 
 } // namespace model
