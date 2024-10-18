@@ -7,7 +7,7 @@ include_directories(
 )
 
 add_subdirectory(terminal)
-add_subdirectory(qt)
+add_subdirectory(gui)
 
 # add_library(modules .)
 

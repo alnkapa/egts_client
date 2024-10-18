@@ -6,14 +6,14 @@ find_package(Qt5 REQUIRED COMPONENTS Network Core)
 
 # Qt версия
 add_library(
-    qt 
+    gui 
     STATIC
     network_client_model.cpp
     file_model.cpp
 )
 
 target_link_libraries(
-    qt 
+    gui 
     PRIVATE 
     Qt5::Network
     Qt5::Core
