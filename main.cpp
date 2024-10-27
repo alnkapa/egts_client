@@ -9,6 +9,7 @@
 #include <string>
 #include <unistd.h> // getopt
 #include <utility>
+#include <variant>
 
 void
 printHelp()
@@ -161,91 +162,60 @@ main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    FileHolder file_holder;
-
     // Main
     while (true)
     {
         try
         {
-            queue_type mes{g_send_queue.pop()}; // lock
-            if (std::holds_alternative<egts::v1::transport::Packet>(mes))
-            {
-                egts::v1::transport::Packet &pkg{std::get<egts::v1::transport::Packet>(mes)};
-                pkg.identifier(g_packet_identifier++);
-                if (boost::asio::write(
-                        socket,
-                        boost::asio::buffer(pkg.buffer()),
-                        boost::asio::transfer_all()) != pkg.buffer().size())
+            std::visit(
+                [&socket](auto &&arg)
                 {
-                    throw std::runtime_error("send size error");
-                };
-            }
-            else if (std::holds_alternative<egts::v1::record::subrecord::SrResultCode>(mes)) // auth result
-            {
-                const egts::v1::record::subrecord::SrResultCode &rez{std::get<egts::v1::record::subrecord::SrResultCode>(mes)};
-                auto err = rez.error();
-                if (!err.OK())
-                {
-                    std::cerr << "auth: error: " << err.what() << std::endl;
-                    break;
-                }
-                else
-                {
-                    std::cout << "auth: ok" << std::endl;
-
-                    if (g_nmea_file.is_open())
+                    using T = std::decay_t<decltype(arg)>;
+                    using namespace egts::v1::record::subrecord;
+                    using namespace egts::v1::transport;
+                    if constexpr (std::is_same_v<T, Packet>)
                     {
-                        std::thread reader(my_read_file); // to exit g_keep_running = false
-                        reader.detach();
+                        arg.identifier(g_packet_identifier++);
+                        if (boost::asio::write(
+                                socket,
+                                boost::asio::buffer(arg.buffer()),
+                                boost::asio::transfer_all()) != arg.buffer().size())
+                        {
+                            throw std::runtime_error("send size error");
+                        }
                     }
-                }
-            }
-            else if (std::holds_alternative<egts::v1::record::subrecord::SRRecordResponse>(mes)) // status of sent records
-            {
-                // const auto &rez = std::get<egts::v1::record::subrecord::SRRecordResponse>(mes);
-                // TODO: для загрузки файлов, будет нужно потом
-            }
-            else if (std::holds_alternative<egts::v1::record::subrecord::SrCommandData>(mes)) // cmd from server
-            {
-                // TODO: что то сделать по командам
-                egts::v1::record::subrecord::SrCommandData &cmd{std::get<egts::v1::record::subrecord::SrCommandData>(mes)};
-                std::cout << "CMD code: " << cmd.data.code << std::endl;
-                std::cout << "CMD data: " << cmd.data.data() << std::endl;
-                if (cmd.ct_com())
-                {
-                    // command response
-                    cmd.command_type = egts::v1::record::subrecord::CommandType::CT_COMCONF;
-
-                    auto sub = egts::v1::record::subrecord::wrapper(
-                        egts::v1::record::subrecord::Type::EGTS_SR_COMMAND_DATA,
-                        cmd.buffer());
-
-                    auto buffer = make_new_packet(
-                        egts::v1::record::ServiceType::EGTS_COMMANDS_SERVICE,
-                        std::move(sub));
-
-                    if (boost::asio::write(
-                            socket,
-                            boost::asio::buffer(buffer),
-                            boost::asio::transfer_all()) != buffer.size())
+                    else if constexpr (std::is_same_v<T, SRRecordResponse>)
                     {
-                        throw std::runtime_error("send size error");
+                        // Обработка SRRecordResponse
+                        std::cout << "Processing SRRecordResponse" << std::endl;
                     }
-                }
-            }
-            else if (std::holds_alternative<egts::v1::record::subrecord::SrPartData>(mes)) // file part
-            {
-                file_holder.add_part(std::move(std::get<egts::v1::record::subrecord::SrPartData>(mes)));
-            }
-            else if (std::holds_alternative<egts::v1::record::subrecord::SrFullData>(mes)) // file full
-            {
-                file_holder.add_full(std::move(std::get<egts::v1::record::subrecord::SrFullData>(mes)));
-            }
-            else if (std::holds_alternative<Done>(mes)) // reader has finished execution.
-            {
-                break;
-            }
+                    else if constexpr (std::is_same_v<T, SrResultCode>)
+                    {
+                        // Обработка SrResultCode
+                        std::cout << "Processing SrResultCode" << std::endl;
+                    }
+                    else if constexpr (std::is_same_v<T, SrCommandData>)
+                    {
+                        // Обработка SrCommandData
+                        std::cout << "Processing SrCommandData" << std::endl;
+                    }
+                    else if constexpr (std::is_same_v<T, SrPartData>)
+                    {
+                        // Обработка SrPartData
+                        std::cout << "Processing SrPartData" << std::endl;
+                    }
+                    else if constexpr (std::is_same_v<T, SrFullData>)
+                    {
+                        // Обработка SrFullData
+                        std::cout << "Processing SrFullData" << std::endl;
+                    }
+                    else if constexpr (std::is_same_v<T, Done>)
+                    {
+                        // Обработка Done
+                        std::cout << "Processing Done" << std::endl;
+                    }
+                },
+                g_send_queue.pop());
         }
         catch (const egts::v1::error::Error &err) // Protocol errors
         {
@@ -263,6 +233,7 @@ main(int argc, char *argv[])
             break;
         }
     }
+
     g_keep_running = false; // read_file will finish execution.
     if (socket.is_open())
     {

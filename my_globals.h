@@ -68,7 +68,7 @@ inline std::tm g_start_time{
     0,           // tm_wday
     0,           // tm_yday
     0            // tm_isdst
-}; // 00:00:00 01.01.2010 UTC
+};               // 00:00:00 01.01.2010 UTC
 
 inline std::time_t g_start_time_t = std::mktime(&g_start_time);
 
@@ -92,6 +92,38 @@ class FileHolder
     add_part(egts::v1::record::subrecord::SrPartData &&);
     void
     add_full(egts::v1::record::subrecord::SrFullData &&);
+};
+
+class PacketHandler
+{
+    egts::v1::transport::Packet m_packet;
+    tcp::socket &m_socket;
+
+  public:
+    PacketHandler(tcp::socket &socket);
+    virtual void
+    operator()(egts::v1::transport::Packet &&pkg);
+};
+
+class VisitorHolder : public PacketHandler
+{
+    tcp::socket &m_socket;
+    FileHolder m_file_holder;
+
+  public:
+    VisitorHolder(tcp::socket &socket);
+    void
+    operator()(egts::v1::record::subrecord::SRRecordResponse &&response);
+    void
+    operator()(egts::v1::record::subrecord::SrResultCode &&resultCode);
+    void
+    operator()(egts::v1::record::subrecord::SrCommandData &&commandData);
+    void
+    operator()(egts::v1::record::subrecord::SrPartData &&partData);
+    void
+    operator()(egts::v1::record::subrecord::SrFullData &&fullData);
+    void
+    operator()(Done);
 };
 
 #endif // my_globals_H

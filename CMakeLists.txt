@@ -46,7 +46,7 @@ add_subdirectory(lib/egts)
 add_subdirectory(lib/pub_sub)
 add_subdirectory(lib/nmea)
 
-add_executable(egts_client main.cpp my_reader.cpp queue.cpp my_file_reader.cpp my_file_save.cpp)
+add_executable(egts_client main.cpp my_reader.cpp queue.cpp my_file_reader.cpp my_file_save.cpp helper.cpp)
 
 
 target_include_directories(

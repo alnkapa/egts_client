@@ -24,6 +24,7 @@ using queue_type = std::variant<
     egts::v1::record::subrecord::SrFullData,
     Done>;
 
+
 class MyQueue
 {
   private:
